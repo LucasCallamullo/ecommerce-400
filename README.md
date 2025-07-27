@@ -86,6 +86,6 @@ Deployed to Railway: https://web-production-8e84.up.railway.app
 
 ### 💻 Contact Back-End Developer / Full-Stack Developer:
 
-| ![GitHub Badge](https://img.shields.io/badge/github-%23121011.svg?&style=for-the-badge&logo=github&logoColor=white) | ![LinkedIn Badge](https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white) | ![YouTube Badge](https://img.shields.io/badge/YouTube%20-%23FF0000.svg?&style=for-the-badge&logo=YouTube&logoColor=white) | ![Gmail Badge](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white) |
-|:---:|:---:|:---:|:---:|
-| [GitHub](https://github.com/LucasCallamullo) | [LinkedIn](https://www.linkedin.com/in/lucas-callamullo/) | [YouTube](https://www.youtube.com/@lucas_clases_python) |  [Email](mailto:lucascallamullo98@gmail.com) |
+| [![GitHub Badge](https://img.shields.io/badge/github-%23121011.svg?&style=for-the-badge&logo=github&logoColor=white)](https://github.com/LucasCallamullo) | [![LinkedIn Badge](https://img.shields.io/badge/linkedin-%230077B5.svg?&style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/lucas-callamullo/) | [![YouTube Badge](https://img.shields.io/badge/YouTube%20-%23FF0000.svg?&style=for-the-badge&logo=YouTube&logoColor=white)](https://www.youtube.com/@lucas_clases_python) | [![Gmail Badge](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:lucascallamullo98@gmail.com) | [![Wsp Badge](https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/5493515437688) |
+|:---:|:---:|:---:|:---:|:---:|
+| [GitHub](https://github.com/LucasCallamullo) | [LinkedIn](https://www.linkedin.com/in/lucas-callamullo/) | [YouTube](https://www.youtube.com/@lucas_clases_python) |  [Email](mailto:lucascallamullo98@gmail.com) | [Whattsap](https://wa.me/5493515437688) |
