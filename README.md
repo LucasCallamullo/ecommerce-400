@@ -10,7 +10,7 @@ This project is a fully functional Ecommerce WebApp developed with Django for th
 https://img.shields.io/badge/postgres-%23316192.svg?&style=for-the-badge&logo=postgresql&logoColor=white
 ### Technologies
 - #### Back-End
-| [![Python Badge](https://img.shields.io/badge/python-%2314354C.svg?style=for-the-badge&logo=python&logoColor=white)](#features-id) | [![Django Badge](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](#features-id) | [![DRF Badge](https://img.shields.io/badge/django%20rest-ff1709?style=for-the-badge&logo=django&logoColor=white)](#features-id) | [![MySQL Badge](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#features-id) | [![Pandas Badge](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)](#features-id) |
+| [![Python Badge](https://img.shields.io/badge/python-%2314354C.svg?style=for-the-badge&logo=python&logoColor=white)](#features-id) | [![Django Badge](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](#features-id) | [![DRF Badge](https://img.shields.io/badge/django%20rest-ff1709?style=for-the-badge&logo=django&logoColor=white)](#features-id) | [![PostgreSQL Badge](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](#features-id) | [![Excel Badge](https://img.shields.io/badge/Data%20Upload-Excel-green)](#features-id) |
 |:-:|:-:|:-:|:-:|:-:|
 
 - ####  Fornt-End
@@ -22,7 +22,7 @@ https://img.shields.io/badge/postgres-%23316192.svg?&style=for-the-badge&logo=po
 |:-:|:-:|:-:|:-:|
 
 - #### Deploy
-| [![Railway Badge](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)](https://generic-ecommerce-project-production.up.railway.app) | [![Gunicorn](https://img.shields.io/badge/gunicorn-%298729.svg?style=for-the-badge&logo=gunicorn&logoColor=white)]
+| [![Railway Badge](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)](https://generic-ecommerce-project-production.up.railway.app) | [![Gunicorn](https://img.shields.io/badge/gunicorn-%298729.svg?style=for-the-badge&logo=gunicorn&logoColor=white)] |
 |:-:|:-:|
 Deployed to Railway: https://web-production-8e84.up.railway.app
 
