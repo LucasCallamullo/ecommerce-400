@@ -13,6 +13,7 @@ __pycache__/
 z_retirados/
 z-steps/
 z_steps/
+proofs/
 
 # Carpeta del collecstatic que se genera
 staticfiles
