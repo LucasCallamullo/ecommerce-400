@@ -1,0 +1,110 @@
+
+
+{% load custom_filters %}
+
+<!-- Se guarda como string vacío "" si no exisite -->
+<form id="form-hidden-filters" hidden>
+
+    <input type="hidden" name="category" value="{% if category %}{{ category.id|default:'' }}{% else %}{% endif %}">
+
+    <input type="hidden" name="subcategory" value="{% if subcategory %}{{ subcategory.id|default:'' }}{% else %}{% endif %}">
+
+    <input type="hidden" name="query" value="{% if query %}{{ query|default:'' }}{% else %}{% endif %}">
+
+    <input type="hidden" name="available" value="{{ available|default:2 }}">
+
+    <input type="hidden" name="sort_by" value="">
+    
+    <input type="hidden" name="sorted" value="">
+
+    <button id="btn-form-hidden" type="submit" hidden></button>
+</form>
+
+
+<div id="filters-str" hidden
+     {% if category %} data-category="{{ category.name }}" {% endif %}
+     {% if subcategory %} data-subcategory="{{ subcategory.name }}" {% endif %}
+     {% if query %} data-query="{{ query }}" {% endif %}>
+</div>
+
+
+
+<div class="d-grid grid-products">
+    {% for product in products %}
+        {% if product.description %}
+            <template id="template-{{product.id}}">
+                {{ product.description|safe }}
+            </template>
+        {% endif %}
+
+        <!-- 	Name n Image	    <div class="d-grid grid-products border-bot-prim"> -->
+        <div class="d-flex row-table border-bot-rows" data-index="{{product.id}}"
+            data-model='{
+                {% for image in product.images_all %}
+                    "image-{{image.main_image}}-{{image.id}}": "{{image.image_url|escape_data}}",
+                {% endfor %}
+                "name": "{{ product.name|escape_data }}",
+                "price": "{{ product.price|intdot|escape_data }}",
+                "discount": "{{ product.discount }}",
+                "stock": "{{ product.stock }}",
+                "available": "{{ product.available }}",
+                "price-list": "{{ product.price_list|intdot|escape_data }}",
+                "category": "{{ product.category.id }}",
+                "subcategory-{{product.category.id}}": "{{ product.subcategory.id }}",
+                "brand": "{{ product.brand.id }}"
+            }'>
+
+            <div class="cont-img-35 h-130" >
+                <img class="img-scale-down" alt="No Img" src="{% if product.main_image %}{{product.main_image}}{% endif %}">
+            </div>
+            <span class="cont-65 p-1 text-start font-sm"><b>{{product.name}}</b></span>
+        </div>
+
+        <!-- 	Category	 -->
+        <div class="d-desktop-block py-1 px-1 border-bot-rows font-sm"><b>{{product.category.name}}</b></div>
+
+        <!-- 	Available	 -->
+        <div class="d-desktop-block py-1 border-bot-rows">
+            <span class="status {% if product.available %}active{% else %}disabled{% endif %}">
+                <b>{{ product.available|yesno:"Activo,Inactivo" }}</b>
+            </span>
+        </div>
+
+        <!-- 	Ventas	 -->
+        <div class="d-desktop-flex py-1 justify-center border-bot-rows">{{ product.id }}</div>
+
+        <!-- 	Update Date	 -->
+        <div class="d-desktop-flex py-1 justify-end pxr-2 border-bot-rows">{{ product.updated_at|date:"d/m/Y" }}</div>
+
+        <!-- 	Stock	 -->
+        <div class="d-desktop-flex py-1 justify-center border-bot-rows">{{ product.stock }}</div>
+
+        <!-- 	Price	        </div>  -->
+        <div class="d-desktop-flex py-1 justify-end px-1 border-bot-rows">$ {{ product.price|intdot }}.000.000</div>
+
+    {% empty %}
+        <div class="grid-col-all d-flex-col gap-2 p-2">
+            <h4>No hay productos con los filtros ingresados.</h4>
+
+            {% if category %}
+                <p><b>Categoría: </b>{{ category.name }}</p>
+            {% endif %}
+            
+            {% if subcategory %}
+                <p><b>Subcategoría: </b>{{ subcategory.name }}</p>
+            {% endif %}
+            
+            {% if available == '1' %}
+                <p><b>Disponibilidad: </b>Disponible</p>
+            {% elif available == '0' %}
+                <p><b>Disponibilidad: </b>No Disponible</p>
+            {% else %}
+                <p><b>Disponibilidad: </b>Todos</p>
+            {% endif %}
+            
+            {% if query %}
+                <p><b>Buscador palabras: </b>{{ query }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

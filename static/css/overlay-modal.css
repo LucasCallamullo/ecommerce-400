@@ -1,0 +1,57 @@
+
+
+/* 
+    Useful basic styles for all templates to use overlay class
+
+    en algunas ocasiones es mejor llamar a una clase adicional para atar a un evento antes que el overlay princiapl
+    por ejemplo
+    <div class="overlay" id="overlay-carousel"></div>
+*/
+.overlay {
+    position: fixed;
+    display: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    z-index: var(--z-index-overlay);
+    /*  pointer-events: none;  Prevents interference when not visible
+    pointer-events: all;  Allows interaction when visible */
+}
+
+/* Estilos generales para el modal */
+.modal {
+    display: none;
+    position: fixed; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--bg-primary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 85vh;
+    width: 80%;
+    z-index: var(--z-index-plus);
+    padding: 16px;
+    overflow-y: auto;
+}
+
+/* Estilos cuando el modal está cerrado */
+.modal[data-state="closed"] {
+    display: none;
+    pointer-events: none; /* Evita interacciones cuando el modal está cerrado */
+}
+
+/* 
+    Estilos cuando el modal está abierto 
+    podes modificar propiamente este dentro de la pagina donde lo utilices aunque es mejor usar 
+    una clase adicional muchas veces que haga de 'modal-item'
+
+    <div class="carousel-modal" id="modal-{{ product.id }}" data-state="null">
+*/
+.modal[data-state="open"] {
+    display: block;
+    pointer-events: auto; /* Permite interacciones cuando el modal está abierto */
+}

@@ -1,0 +1,423 @@
+
+
+:root {
+    --width-dashboard: 44px;
+    --width-btn-dashboard: 40px;    /* 40 */
+}
+
+.dashboard {
+    position: absolute;
+    top: 0;
+    left: calc( -1 * var(--padding-container-page) - 1px );    /* mobile */
+    padding-left: 2px;
+
+    width: var(--width-dashboard);    /* mobile */
+    min-height: 1000px;
+    z-index: 10;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+.dashboard[data-state="closed"] {
+    width: var(--width-dashboard);    /* mobile */
+}
+
+.dashboard[data-state="open"] {
+    width: 250px;
+    max-width: 250px;
+}
+
+.btn-dashboard {
+    position: relative;
+    height: var(--width-btn-dashboard);    /* mobile */
+    width: var(--width-btn-dashboard);    /* mobile --w-h-btn-dashboard */
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.btn-dashboard.active,
+.btn-dashboard.active strong {
+    background-color: var(--main-light-color);
+}
+
+/* El texto dentro del botón */
+.btn-dashboard strong {
+    position: absolute;
+    left: calc(var(--width-btn-dashboard) - 2px);     /* 44px mobile */
+    width: 190px;
+    padding-left: 8px;
+    height: var(--width-btn-dashboard);    /* 40px mobile */
+    
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+/* Cuando el dashboard está abierto, se muestra el texto */
+.dashboard[data-state="open"] .btn-dashboard strong {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.border-bot-white {
+    border-bottom: 1px solid var(--white-color);
+}
+
+.dashboard-section {
+    display: none;     /* Oculta todas las secciones incialmente */
+    padding: 8px;    /* mobile */
+    margin-left: calc(var(--width-dashboard) - var(--padding-container-page) + 2px);    /* mobile */
+    background: var(--bg-primary);
+}
+
+/* Mostrar solo la sección activa */
+.dashboard-section.active {
+    display: block;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    :root {
+        /* modifica con variables el dashboard y los botones y spans internos de forma mas generica */ 
+        --width-dashboard: 60px;    /* mobile */
+        --width-btn-dashboard: 50px;    /* mobile */
+    }
+
+    .dashboard {
+        left: calc(-1 * var(--width-dashboard));       /* mobile */
+        padding-left: 5px;
+    }
+
+    .btn-dashboard:hover strong {
+        background-color: var(--main-light-color);
+    }
+
+    .dashboard-section {
+        padding: 14px;    /* mobile */
+        margin-left: 0;    /* mobile */
+    }
+}
+
+
+/* ============================================================== 
+    PRODUCTS SECTION
+============================================================== */
+.cont-grid-products {
+    padding: 0;
+    margin: 0;
+    gap: 0;
+    row-gap: 16px;
+    column-gap: 16px;
+}
+
+/* class from principle dash section */
+.search-dashboard {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+}
+  
+.search-dashboard input {
+    width: 100%;
+    padding: 8px 40px 8px 12px; /* espacio para el icono a la derecha */
+    border: 1px solid var(--text-secondary);
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    box-shadow: none;
+}
+
+.search-dashboard input:focus {
+    border: 2px solid var(--main-color);
+    box-shadow: none;
+}
+
+/* Cambio correcto del color del ícono al hacer focus en el input */
+.search-dashboard input:focus + i {
+    color: var(--main-color);
+}
+  
+.search-dashboard i {
+    position: absolute;
+    right: 12px;
+    top: 44%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+/* select filters dropdown */
+.dropdown-generic {
+    position: absolute;
+    left: 0;          /* mobile */
+    top: 100%;  
+    background-color: var(--bg-primary);
+    box-shadow: 1px 1px 3px 0px var(--black-color);
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    width: 270px;
+    padding: 12px 14px;
+    z-index: 20;
+    transform: translateY(-10px) scale(0.95);
+    transform-origin: top right;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease;
+}
+
+.dropdown-generic[data-state="open"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-generic[data-state="closed"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px) scale(0.95);
+}
+
+@media (min-width: 992px) {
+    .dropdown-generic {
+        left: auto;
+        right: 0;
+    }
+}
+/* 
+    SECTION TABLE PRODUCTS
+*/
+/* probar para ui table */
+/* .section-products {
+    max-height: 700px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.header-products-fixed{
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    background-color: var(--bg-primary);
+} */
+
+.grid-products {
+    display: grid;
+    grid-template-columns: 1.5fr;
+}
+
+#products .border-primary {
+    border: 2px solid var(--text-primary);
+}
+
+#products .border-bot-rows {
+    border-bottom: 2px solid var(--text-secondary);
+}
+
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+    /* section table */
+    .grid-products {
+        grid-template-columns: 1.3fr 0.55fr 0.55fr 0.4fr 0.6fr 0.4fr 0.7fr; 
+        padding: 0;
+        margin: 0;
+        gap: 0;
+    }
+
+    .row-table { cursor: pointer; }
+    .row-table:hover { color: var(--main-color) !important; }
+
+    .btn-sorted:hover,
+    .btn-sorted:active {
+        color: var(--main-light-color) !important;
+        transform: scale(1.2);
+    }
+
+    .status {
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 6px;
+        font-size: 12px;
+        max-width: 90%;
+    }
+    .status::before {
+        content: '';
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    /* Estado activo */
+    .status.active {
+        color: #2ba972;
+        background-color: rgba(43, 169, 114, 0.2);
+    }
+    .status.active::before {
+        background-color: #2ba972;
+    }
+    /* Estado deshabilitado */
+    .status.disabled {
+        color: #59719d;
+        background-color: rgba(89, 113, 157, 0.2);
+    }
+    .status.disabled::before {
+        background-color: #59719d;
+    }
+}
+
+/* Styles for modal product form */
+.row-modal-product {
+    /* name price discount subtotal stock available */
+    grid-template-columns: 0.5fr 0.5fr 0.5fr 0.5fr;
+    padding: 0;
+    row-gap: 10px;
+    column-gap: 8px;
+    grid-template-areas:
+        "name name name status"
+        "price price discount discount"
+        "subtotal subtotal stock stock";
+}
+
+/* asigno nombre a los hijos con los que trabajo  en la row 1 */
+.row-modal-product .name { grid-area: name; } /* name */
+.row-modal-product .available { grid-area: status; } /* available */
+.row-modal-product .price { grid-area: price; } /* price */
+.row-modal-product .discount { grid-area: discount; } /* discount */
+.row-modal-product .subtotal { grid-area: subtotal; } /* subtotal */
+.row-modal-product .stock { grid-area: stock; } /* stock */
+
+.row-modal-product input[type="checkbox"] {
+    border: 2px solid var(--text-primary);
+    width: 28px;
+    height: 28px;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    .row-modal-product {
+        /* name price discount subtotal stock available  5.0  1.6 0.7 */
+        grid-template-columns: 1.83fr 0.7fr 0.8fr 0.8fr 0.4fr 0.4fr;
+        gap: 16px;
+        grid-template-areas: 
+            "name price discount subtotal stock status";
+    }
+}
+
+/* select displayer, for views custom style on choices see choices.js */
+.subcat-container[data-state="closed"] {
+    display: none;
+}
+
+.subcat-container[data-state="open"] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start; /* center */
+}
+
+
+/* ============================================================== 
+    CATEGORIES N BRANDS SECTION
+============================================================== */
+#categories .btn-open-tabs,
+#categories .btn-open-form-modal {
+    height: 36px;
+    padding: 6px 16px;
+    width: auto;
+}
+
+.cont-grid-categories {
+    padding: 0;
+    margin: 0;
+    gap: 16px;
+    row-gap: 16px;
+    column-gap: 16px;
+}
+
+.cont-subcats {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding-left: 40px;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease;
+}
+
+.cont-subcats[data-state="open"] {
+    max-height: 1000px; /* Ajusta este valor según tu contenido máximo */
+    opacity: 1;
+    transition: max-height 0.4s ease-in, opacity 0.3s ease 0.1s;
+}
+
+.cont-subcats[data-state="closed"] {
+    display: block; /* Mantenemos block para que la transición funcione */
+    max-height: 0;
+    opacity: 0;
+}
+
+
+/*
+    STORE HEADERS AND BANNERS SECTION
+*/
+#table-headers {
+    padding: 0 11%;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+    #table-headers {
+        padding: 0 20px;
+    }
+
+    .cont-header-img {
+        transition: border 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .cont-header-img:hover {
+        border: var(--main-light-color) 4px solid;
+        box-shadow: 0 0 6px var(--main-light-color);
+    }
+
+    .cont-header-img:hover .image-overlay,
+    .cont-header-img:active .image-overlay {
+        opacity: 1;
+        z-index: 1;
+        pointer-events: all;
+    }
+
+    /* effects overlay buttons */
+    .border-main-lg {
+        border: 5px solid var(--main-color);
+    }
+
+    .btn-circle-overlay {
+        color: var(--white-color);
+        border-radius: 50%;
+        height: 64px;
+        width: 64px;
+        background-color: rgba(145, 143, 143, 0.5);
+        z-index: 1;
+    }
+}
+
+
+
+
+
+
+

@@ -1,0 +1,84 @@
+
+
+{% extends "home/base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+
+<!-- For More CSS Modules -->
+{% block extra_head %}
+    <title> Home </title>
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
+    <link href="{% static 'home/css/home.css' %}" rel="stylesheet">
+
+    <link href="{% static 'products/css/products_carousel.css' %}" rel="stylesheet">
+    
+    <link href="{% static 'products/css/products_cards.css' %}" rel="stylesheet">
+    
+        
+{% endblock %}
+
+
+<!-- To place banners without the page limit -->
+{% block top_banner_image %}
+    <!-- Carousel Headers -->
+    <div class="swiper-container home-header-container">
+        <div class="swiper-wrapper w-100 h-100">
+            {% for image in headers_active %}
+                <div class="swiper-slide">
+                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ image.id }}">
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- mostrar los botones de navegación 
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div> 
+        -->
+
+        <!-- mostrar la paginación -->
+        <div class="swiper-pagination"></div>
+    </div>
+{% endblock top_banner_image %}
+
+
+
+<!-- Content -->
+{% block main_content %}
+
+    {% include "products/products_carousel.html" %}
+    
+{% endblock main_content %}
+
+
+<!-- Cargas archivos .js propios de cada template/vista -->
+{% block extra_scripts %}
+
+    <script>
+        window.TEMPLATE_URLS = {
+            // favorites/urls.py
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+
+            // products/urls.py
+            addToCart: "{% url 'cart_add_product' %}",
+            productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
+            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}"
+        };
+    </script>
+
+    <!-- Swiper JS sirve para el carousel -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+    <script src="{% static 'home/js/home.js' %}"></script>
+    
+    
+    <script src="{% static 'products/js/products_cards.js' %}"></script>
+    <script src="{% static 'products/js/products_carousel.js' %}"></script>
+
+    
+{% endblock %}

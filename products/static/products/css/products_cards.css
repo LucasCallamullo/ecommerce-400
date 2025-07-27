@@ -1,0 +1,101 @@
+
+
+.product__card {
+    cursor: grab;
+    background: var(--bg-primary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    user-select: none; 
+    -webkit-user-select: none; /* Safari */ 
+    -moz-user-select: none; /* Firefox */ 
+    -ms-user-select: none; /* Internet Explorer/Edge */ 
+    
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;  /* Evita que las diapositivas se reduzcan */
+    height: 100%;
+    max-height: 400px;
+    width: 48.5%;     /*  edit mobile */
+    /* Adjusting the gap between slides should be done this way
+    to avoid continuous overflow if done with a gap */
+    margin-right: 1.5% !important;    /*  edit mobile */
+}
+
+/* CARDS PRODUCTS CAROUSEL */
+.product-card__info {
+    grid-template-columns: 1fr;
+    /*  img ;    name  ;     stars - likes ;    stock ;    discount    = 380px    -16 px gap = 364    (160px 54px 28px 24px 80px)
+        160      218         250                282        362       
+    /* nos quedan  - 160px(img height) -10px padding = 210px */
+    grid-template-rows: 150px 70px 24px auto; /* edit mobile */
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    row-gap: 8px;
+}
+
+/* Contenedor extensor para button */
+.product-card__extender-btn {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-primary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);    /* edit mobile */
+    height: 50px;
+}
+
+/* Styles for tablets (mín. 481px to max. 768px) */
+@media (min-width: 481px) {
+    .product__card {
+        width: 32%;
+        margin-right: 1.5%;
+    }
+}
+
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .product__card {
+        width: 23.5%;    /* edit mobile */
+        margin-right: 1.5%;  /* edit mobile */
+        max-height: 380px;
+        transition: max-height 0.3s ease-in-out;
+    }
+
+    .product__card:hover {
+        max-height: 430px;
+    }
+
+    .product-card__info {
+        grid-template-rows: 160px 70px 24px min-content; /* edit mobile */
+    }
+
+    .product-card__extender-btn {
+        align-items: flex-start;
+        transform: translateY(100%); /* Oculta inicialmente */
+        transition: transform 0.3s ease;
+    }
+
+    .product__card:hover .product-card__extender-btn {
+        transform: translateY(0);
+    }
+}
+
+
+/* Estilos generales para el modal */
+.product-card__modal {
+
+    height: 85vh;
+    width: 80%;
+    padding: 16px 16px;
+}
+
+.offer-tag {
+    top: 0;
+    right: 0;
+    position: absolute;
+    background-color: var(--red-color);
+    width: min-content;
+    padding: 4px 6px;
+}

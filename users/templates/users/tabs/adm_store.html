@@ -1,0 +1,156 @@
+
+
+
+{% load static %}
+{% load custom_filters %}
+
+
+
+<!-- FORMULARIO DATOS STORE		 -->
+<form class="d-grid cont-grid-122 mt-1 mb-2 form-store-grid" data-index="{{store.id}}">
+
+    <h2 class="bold-main mt-1 grid-col-all">Datos de la tienda:</h2>
+
+    <!--  DATOS DE CONTACTO DIRECTO		 -->
+    <label class="d-flex-col gap-1">
+        <p><b>Nombre del Local:</b></p>
+        <input type="text" name="name" value="{{ store.name }}">
+    </label>
+    
+    <label class="d-flex-col gap-1">
+        <p><b>Dirección:</b></p>
+        <input type="text" name="address" value="{{ store.address }}">
+    </label>
+
+    <label class="d-flex-col gap-1">
+        <p><b>Email:</b></p>
+        <input type="email" name="email" value="{{store.email}}">
+    </label>
+    
+    <label class="d-flex-col gap-1">
+        <p><b>Teléfono:</b></p>
+        <input type="tel" name="cellphone" value="{{store.cellphone}}">
+    </label>
+
+    
+    <!--  DATOS DE REDES		 -->
+    <h2 class="bold-main mt-2 grid-col-all">Redes de la tienda:</h2>
+
+    <label class="d-flex-col gap-1">
+        <p><b>Instagram:</b></p>
+        <input type="url" name="ig_url" value="{{store.ig_url}}">
+    </label>
+
+    <label class="d-flex-col gap-1">
+        <p><b>Facebook:</b></p>
+        <input type="url" name="fb_url" value="{{store.fb_url}}">
+    </label>
+
+    <label class="d-flex-col gap-1">
+        <p><b>Tik Tok:</b></p>
+        <input type="url" name="tt_url" value="{{store.tt_url}}">
+    </label>
+
+    <label class="d-flex-col gap-1">
+        <p><b>WhatsApp:</b></p>
+        <input type="tel" name="wsp_number" value="{{store.wsp_number}}">
+    </label>
+
+    <label class="d-flex-col gap-1">
+        <p><b>Google:</b></p>
+        <input type="url" name="google_url" value="{{store.google_url}}">
+    </label>
+
+    <label class="d-flex-col gap-1">
+        <p><b>Twitter/X:</b></p>
+        <input type="url" name="tw_url" value="{{store.tw_url}}">
+    </label>
+
+    <!-- Botón que ocupa las dos columnas -->
+    <div class="grid-col-all d-flex justify-center align-center">
+        <button class="btn gap-2 btn-40 h-min w-50 btn-alt" type="submit">
+            <i class="ri-save-3-line font-xl"></i>
+            <p><b>Guardar Cambios</b></p>
+        </button>
+    </div>
+</form>
+
+
+<hr>
+<!-- FORMULARIO METODOS DE ENVIO		 -->
+<h2 class="bold-main mt-2">Métodos de Envío:</h2>
+
+{% for shipment in shipments %}
+    <form class="shipments-form mt-2 mb-2" data-index="{{shipment.id}}">
+
+        <label class="d-flex-col gap-1">
+            <p><b>Nombre:</b></p>
+            <input type="text" value="{{shipment.name}}" disabled>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <p><b>Precio:</b></p>
+            <input type="price" name="price" value="{{shipment.price|floatformat:0}}">
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <p><b>Activo:</b></p>
+            <input class="text-center" type="checkbox" name="is_active" {% if shipment.is_active %}checked{% endif %}>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <p><b>Descripción:</b></p>
+            <textarea class="btn-48 w-100 p-1" name="description">{{shipment.description}}</textarea>
+        </label>
+
+        <div class="d-flex-col align-end justify-end gap-1">
+            <button class="btn btn-36 w-100 btn-alt" type="submit"> 
+                <i class="ri-edit-box-line font-lg"></i>
+                <p><b>Editar</b></p>
+            </button>
+        </div>
+    </form>
+{% endfor %}
+
+
+<hr>
+<h2 class="bold-main mt-2 mb-2">Métodos de Pago:</h2>
+
+{% for payment in payments %}
+    <form class="payments-form mt-2 text-mobile" data-index="{{payment.id}}">
+
+        <label class="d-flex-col gap-1">
+            <p><b>Nombre:</b></p>
+            <input type="text" value="{{payment.name}}" disabled>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <p><b>Tiempo(*)</b></p>
+            <input type="text" name="time" value="{{payment.time}}">
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <p><b>Activo:</b></p>
+            <input type="checkbox" name="is_active" {% if payment.is_active %}checked{% endif %}>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <p><b>Descripción:</b></p>
+            <textarea class="btn-48 w-100 p-1" name="description">{{payment.description}}</textarea>
+        </label>
+
+        <div class="d-flex-col align-end justify-end gap-1">
+            <button class="btn btn-36 w-100 btn-alt" type="submit"> 
+                <i class="ri-edit-box-line font-lg"></i>
+                <p><b>Editar</b></p>
+            </button>
+        </div>
+    </form>
+
+    {% if forloop.last %}
+        <div class="d-flex justify-start align-end mt-2 font-sm grid-col-all">
+            <span><b>(*)</b> Cantidad de <b>tiempo en horas</b> hasta cancelar la orden si no sube captura.</span>     
+        </div>
+    {% endif %}
+
+{% endfor %}

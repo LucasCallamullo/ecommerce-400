@@ -1,0 +1,142 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- Update multiple images -->
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+
+
+    <style>
+
+        #process-img {
+            display: flex;
+            gap: 32px;
+        }
+
+        .cont-img-previews {
+            width: 400px;
+            height: 400px;
+            border: 1px solid black;
+        }
+
+        .cont-img-previews img {
+            max-width: 400px;
+            max-height: 400px;
+            object-fit: scale-down;
+        }
+
+        .image-input{
+            width: 400px;
+            height: 200px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+    
+    <form id="process-img" action="">
+        <div class="cont-img-previews">  </div>
+
+        <input type="file" class="image-input" name="images" multiple>
+
+    </form>
+
+
+
+
+
+
+
+
+ <script src="https://cdn.jsdelivr.net/npm/compressorjs@1.2.1/dist/compressor.min.js"></script> 
+
+<!-- Scripts accept multiple files images from mobile   -->
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script> 
+
+
+
+    <script>
+        const form = document.getElementById('process-img')
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+        })
+
+        let globalPond = null;
+
+        function initInputImage(form) {
+            const imageInput = form.querySelector('.image-input');
+            const previewContainer = form.querySelector('.cont-img-previews');
+
+            // 1. Limpieza inicial
+            if (globalPond) {
+                FilePond.destroy(globalPond);
+                globalPond = null;
+            }
+            imageInput.value = '';
+            previewContainer.innerHTML = '';
+
+            // 2. Configurar FilePond con Compressor.js
+            globalPond = FilePond.create(imageInput, {
+                allowMultiple: true,
+                acceptedFileTypes: ['image/*'],
+                maxFiles: 5,
+                // Deshabilita la cámara para priorizar la galería
+                allowCamera: true,
+                labelIdle: 'Arrastra tus imágenes o <span class="filepond--label-action"><b>Selecciona</b></span>',
+
+                onaddfilestart: (file) => {
+                    const originalFile = file.file;
+
+                    new Compressor(originalFile, {
+                        quality: 0.7,
+                        maxWidth: 1024,
+                        maxHeight: 1024,
+                        success(result) {
+                            const compressed = new File([result], originalFile.name, {
+                                type: file.file.type, // esto es crucial
+                                // type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+
+                            // Actualizamos preview manualmente si querés
+                            updatePreview(compressed, previewContainer);
+                        },
+                        error(err) {
+                            console.error("Compresión falló:", err);
+                        }
+                    });
+                },
+                onremovefile: () => {
+                    previewContainer.innerHTML = '';
+                }
+            });
+
+            
+            // 3. Función de previsualización optimizada
+            function updatePreview(file, container) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('h-190');
+                    container.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        initInputImage(form);
+
+    </script>
+
+
+</body>
+</html>

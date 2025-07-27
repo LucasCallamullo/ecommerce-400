@@ -1,0 +1,166 @@
+
+
+{% load static %}
+<nav class="mobile-nav bg-color cont-page">
+
+    <div class="d-grid grid-navbar-sm">
+        <!-- Toggle button -->
+        <div class="btn btn-nav-mobile" id="nav-toggle">
+            <i class="ri-menu-line font-lg text-white"></i>
+        </div>
+
+        <!-- ICON SEARCH -->
+        <button class="btn btn-nav-mobile" id="top-btn-search" aria-expanded="false">
+            <i class="ri-search-line font-lg text-white"></i>
+        </button>
+
+        <!-- Search Form (hidden by default)  -->
+        <div class="search-bar-mobile" id="search-bar-mobile" data-state="null">
+            <form class="d-flex bg-primary top-bar-search" action="{% url 'product_top_search' %}">
+                <input class="text-primary" type="text" name="topQuery" placeholder="Buscar..." autocomplete="off">
+
+                <div class="cont-space-between">
+                    <button class="btn d-flex" type="submit">
+                        <i class="ri-search-line text-primary font-lg"></i>
+                    </button>
+
+                    <button class="btn d-flex" type="button" id="back-search-form">
+                        <i class="ri-close-line text-primary font-lg"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Logo -->
+        <a href="{% url 'Home' %}" class="cont-100">
+            <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="logo">
+        </a>
+
+        <!-- Icon Cart Overlay -->
+        <button class="btn btn-nav-mobile cart-button" aria-expanded="false"">
+            <i class="ri-shopping-cart-2-line font-lg text-white"></i>
+        </button>
+        {% include "cart/widget_cart.html" %}
+
+        <!-- Icon user login -->
+        <button class="btn btn-nav-mobile user-button text-white" aria-expanded="false">
+            <i class="ri-user-3-line font-lg"></i>
+        </button>
+        {% include "users/widget_login.html" %}
+    </div>
+
+    <!-- Content of toggle -->
+    <div class="menu-mobile bg-primary" id="menu-mobile" data-state="closed">
+        <div class="d-grid cont__menu-mobile">
+            <ul class="d-flex-col scroll-y">
+                <!-- Close button from toggle button -->
+                <li class="item__menu-mobile bg-primary">
+                    <b> Menú </b>
+                    <button class="btn btn__menu-mobile" id="menu-mobile-close">
+                        <i class="ri-close-large-line font-lg"></i>
+                    </button>
+                </li>
+                
+                <li>
+                    <!-- Botón para desplegar el menú -->
+                    <button class="dropdown-btn bg-primary text-primary" aria-expanded="false">
+                        <b class="font-md"> Nuestros Productos </b>
+                        <div class="btn btn__menu-mobile">
+                            <i class="ri-arrow-down-s-line font-lg arrow-drop"></i>
+                        </div>
+                    </button>
+
+                    <!-- Lista de categorías -->
+                    <ul class="dropdown-menu" data-state="null">
+                    {% for category, subcategories in categories_dropmenu.items %}
+                        <li>
+                        <!-- Item with sub menu -->
+                        {% if subcategories %}
+                            <button class="dropdown-btn bg-gray-light text-primary" aria-expanded="false">
+                                <b class="font-md"> {{ category.name }} </b>
+                                <div class="btn btn__menu-mobile">
+                                    <i class="ri-arrow-down-s-line font-lg arrow-drop"></i>
+                                </div>
+                            </button>
+
+                            <!-- Submenú -->
+                            <ul class="dropdown-menu text-primary" data-state="null">
+                            {% for subcat in subcategories %}
+                                {% if forloop.first %}
+                                <li class="item__menu-mobile border__menu-mobile bg-secondary">
+                                    <a href="{% url 'pl_category' category.slug %}" 
+                                    class="cont-space-between cont-100">
+                                        <b>Todos</b>
+                                    </a>
+                                </li>  
+                                {% endif %}
+                                    
+                                <li class="item__menu-mobile border__menu-mobile bg-secondary">
+                                    <a href="{% url 'pl_subcategory' category.slug subcat.slug %}" 
+                                    class="cont-space-between cont-100">
+                                        <b>{{ subcat.name }}</b>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                            </ul>
+
+                        {% else %}
+                            <!-- Item without sub menu -->
+                            <div class="item__menu-mobile bg-gray-light text-primary"> 
+                                <a href="{% url 'pl_category' category.slug %}" class="cont-space-between cont-100">
+                                    <b>{{ category.name }}</b>
+                                </a>
+                            </div>
+                        {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="item__menu-mobile">
+                    <a href="{% url 'Home' %}">
+                        <b>Home</b>
+                    </a>
+                </li>
+
+                <li class="item__menu-mobile">
+                    <a href="#">
+                        <b>¿Quienes Somos?</b>
+                    </a>
+                </li>
+        
+                <li class="item__menu-mobile">
+                    <a href="#">
+                        <b>Contacto</b>
+                    </a>
+                </li>
+            </ul>
+        
+            <!-- Iconos -->
+            <div class="d-flex ms-2 gap-4">
+                <a href="{{ store.google_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-whatsapp-line font-lg"></i>
+                </a>
+
+                <a href="{{ store.ig_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-instagram-line font-lg"></i>
+                </a>
+
+                <a href="{{ store.tt_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-tiktok-fill font-lg"></i>
+                </a>
+
+                <a href="{{ store.fb_url }}" target="_blank" class="btn text-primary">
+                    <i class="ri-facebook-box-fill font-lg"></i>
+                </a>
+
+                <!-- Icon reserver -->
+                <button class="theme-toggle btn text-primary">
+                    <i class="theme-icon ri-moon-line font-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay-menu-mobile"></div>
+</nav>

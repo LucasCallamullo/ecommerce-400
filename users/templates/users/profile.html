@@ -1,0 +1,160 @@
+
+
+{% extends "home/base.html" %}
+
+{% load static %}
+
+<!-- For More CSS Modules -->
+{% block extra_head %}
+
+    <title> Profile | {{ user.first_name }} {{ user.last_name }}</title>
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+    
+    
+    <link href="{% static 'products/css/products_carousel.css' %}" rel="stylesheet">
+    <link href="{% static 'products/css/products_cards.css' %}" rel="stylesheet">
+
+    <link href="{% static 'users/css/profile.css' %}" rel="stylesheet">
+
+{% endblock extra_head %}
+
+
+<!-- Contenido principal de la pagina -->
+{% block main_content %}
+
+<div class="d-grid cont-grid-11-13">
+
+    <!-- tarjeta del usuario e INFO CONTACTO -->
+    <aside class="d-flex-col gap-2">
+
+        <!-- Columna perfil + botones edit y logout -->
+        <div class="border-hover bg-primary d-flex-col w-100 align-center gap-1 p-3">
+
+            <img src="https://i.pinimg.com/736x/80/8d/03/808d03843400c4392b7891c1a6428104.jpg" 
+            class="img-circle" alt="User Image Profile">
+            
+            <span class="mt-1"><b>{{ user.first_name }} {{user.last_name}}</b></span>
+            <span> {{ user.email }} </span>
+        
+            <!-- 		
+            <a href="#" class="btn btn-main w-100 btn-36">
+                <b>Premium Account</b>
+            </a> -->
+
+            <!-- BOTONES EDITAR Y LOGEARSE -->
+            <div class="d-flex-col mt-1 w-100">
+                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100">
+                    <p class="font-sm"><b>Editar Datos</b></p>
+                    <i class="ri-settings-4-line font-lg"></i>
+                </button>
+            
+                <form class="form-close-profile" method="POST" action="{% url 'close_session' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn gap-1 btn-secondary border-secondary p-border-bot btn-36 w-100">
+                        <i class="ri-door-open-fill font-lg"></i>
+                        <span class="font-md">Cerrar Sesión</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tarjeta Info Contacto -->
+        <div class="border-hover bg-primary d-flex-col w-100 align-start gap-2 p-3 d-desktop-flex">
+            <p class="bold-main">Contacto</p>
+
+            <div class="d-flex-col w-100">
+                <div class="d-flex gap-1 border-secondary p-border-top btn-36 w-100 not-border-bottom">
+                    <i class="ri-mail-line font-lg ms-2"></i>
+                    <span class="text-truncate">{{ user.email|default:"No hay E-mail." }}</span>
+                </div>
+    
+                <div class="d-flex gap-1 border-secondary btn-36 w-100">
+                    <i class="ri-phone-line font-lg ms-2"></i>
+                    <span>
+                        {% if user.phone %} +54 9 {{ user.phone }}
+                        {% else %} No hay número.
+                        {% endif %}
+                    </span>
+                </div>
+    
+                <div class="d-flex gap-1 border-secondary p-border-bot btn-36 w-100">
+                    <i class="ri-home-4-line font-lg ms-2"></i>
+                    <span>{{ user.address|default:"No hay dirección." }}</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO del perfil -->
+    <div class="border-secondary">
+        <!-- BANNER -->
+        <div class="cont-banner-profile">
+            <img src="https://i.pinimg.com/736x/3b/da/58/3bda585ceabcae86a826c57305d1ff39.jpg" 
+                class=" img-cover" alt="BANNER PROFILE">
+        </div>
+
+        <!-- ITEMS BANNER -->
+        <div class="d-grid w-100 cont-tabs">
+            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="first-tab">
+                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <i class="ri-time-line font-lg"></i>
+                <p class="font-md"><b>Pedidos Pendientes</b></p>
+            </button>
+
+            <button class="btn btn-alt gap-1 white-border-right-left btn-40 w-100 btn-tabs" data-tab="favorites-tab">
+                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <i class="ri-heart-line font-lg"></i> 
+                <p class="font-md"><b>Productos Favoritos</b></p>   
+            </button>
+
+            <button class="btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="third-tab">
+                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <i class="ri-store-2-line font-lg"></i> 
+                <p class="font-md"><b>Mis Compras</b></p>   
+            </button>
+        </div>
+
+        <!-- DASHBOARD PRODUCTOS -->
+        <div class="tab-content p-2" id="first-tab"></div>
+
+        <div class="tab-content p-2" id="favorites-tab"></div>
+
+        <div class="tab-content p-2" id="third-tab"></div>
+    </div>
+
+</div>
+
+{% endblock main_content %}
+
+
+{% block extra_scripts %}
+
+    <!-- JavaScript for Product Page -->
+    <script>
+        window.TEMPLATE_URLS = {
+            // users/urls.py
+            profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+
+            // favorites/urls.py
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+            
+            // products/urls.py
+            addToCart: "{% url 'cart_add_product' %}",
+            productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
+            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}"
+        };
+    </script>
+
+    <!-- Swiper JS sirve para el carousel -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+    <script src="{% static 'products/js/products_cards.js' %}"></script>
+
+    <script src="{% static 'products/js/products_carousel.js' %}"></script>
+
+    <script src="{% static 'users/js/profile.js' %}"></script>
+{% endblock extra_scripts %}

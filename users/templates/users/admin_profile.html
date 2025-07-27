@@ -1,0 +1,157 @@
+
+
+{% extends "home/base.html" %}
+
+{% load static %}
+{% load custom_filters %}
+
+<!-- For More CSS Modules -->
+{% block extra_head %}
+
+    <title> Admin | {{ user.first_name }} {{ user.last_name }}</title>
+
+    <link href="{% static 'users/css/admin_profile.css' %}" rel="stylesheet">
+
+{% endblock extra_head %}
+
+
+<!-- Contenido principal de la pagina -->
+{% block main_content %}
+
+<div class="d-grid cont-grid-11-13">
+
+    <!-- tarjeta del usuario e INFO CONTACTO -->
+    <aside class="d-flex-col gap-2">
+
+        <!-- Columna perfil + botones edit y logout -->
+        <div class="border-hover bg-primary d-flex-col w-100 align-center gap-1 p-3">
+
+            <img src="https://i.pinimg.com/736x/80/8d/03/808d03843400c4392b7891c1a6428104.jpg" 
+            class="img-circle" alt="User Image Profile">
+            
+            <span class="mt-1"><b>{{ user.first_name }} {{user.last_name}}</b></span>
+            <span> {{ user.email }} </span>
+            <span> <b class="bold-green">Rol:</b> <b class="bold-main text-capitalize">{{ user.role }} </b></span>
+        
+            <!-- 		
+            <a href="#" class="btn btn-main w-100 btn-36">
+                <b>Premium Account</b>
+            </a> -->
+
+            <a href="{% url 'main_dashboard' %}" class="btn btn-40 w-100 gap-1 btn-main">
+                <i class="ri-dashboard-horizontal-line font-xl"></i>
+                <strong class="text-md">Panel de control</strong>
+            </a>
+
+            <!-- BOTONES EDITAR Y LOGEARSE -->
+            <div class="d-flex-col mt-1 w-100">
+                <button class="btn gap-1 btn-secondary border-secondary p-border-top btn-36 w-100">
+                    <p class="font-sm"><b>Editar Datos</b></p>
+                    <i class="ri-settings-4-line font-lg"></i>
+                </button>
+            
+                <form class="form-close-profile" method="POST" action="{% url 'close_session' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn gap-1 btn-secondary border-secondary p-border-bot btn-36 w-100">
+                        <i class="ri-door-open-fill font-lg"></i>
+                        <span class="font-md">Cerrar Sesión</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tarjeta Info Contacto -->
+        <div class="border-hover bg-primary d-flex-col w-100 align-start gap-2 p-3 d-desktop-flex">
+            <p class="bold-main">Datos Tienda</p>
+
+            <div class="d-flex-col w-100">
+                <div class="d-flex gap-1 border-secondary p-border-top btn-36 w-100 not-border-bottom">
+                    <i class="ri-mail-line font-lg ms-2"></i>
+                    <span class="text-truncate">{{ store.email|default:"No hay E-mail." }}</span>
+                </div>
+    
+                <div class="d-flex gap-1 border-secondary btn-36 w-100">
+                    <i class="ri-phone-line font-lg ms-2"></i>
+                    <span>
+                        {% if store.cellphone %} +54 9 {{ store.cellphone }}
+                        {% else %} No hay número.
+                        {% endif %}
+                    </span>
+                </div>
+    
+                <div class="d-flex gap-1 border-secondary p-border-bot btn-36 w-100">
+                    <i class="ri-home-4-line font-lg ms-2"></i>
+                    <span>{{ store.address|default:"No hay dirección." }}</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO del perfil -->
+    <div class="border-secondary">
+        <!-- BANNER -->
+        <div class="cont-banner-profile">
+            <img src="https://i.pinimg.com/736x/3b/da/58/3bda585ceabcae86a826c57305d1ff39.jpg" 
+                class=" img-cover" alt="BANNER PROFILE">
+        </div>
+
+        <!-- ITEMS BANNER -->
+        <div class="d-grid w-100 cont-tabs">
+            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="first-tab">
+                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <i class="ri-time-line font-lg"></i>
+                <p class="font-md"><b>Pedidos Pendientes</b></p>
+            </button>
+
+            <button class="btn btn-alt gap-1 white-border-right-left btn-40 w-100 btn-tabs" data-tab="users-tab">
+                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <i class="ri-heart-line font-lg"></i> 
+                <p class="font-md"><b>Usuarios</b></p>   
+            </button>
+
+            <button class="btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="store-data-tab">
+                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <i class="ri-store-2-line font-lg"></i> 
+                <p class="font-md"><b>Datos Tienda</b></p>   
+            </button>
+        </div>
+
+        <!-- DASHBOARD HEADERS Y BANNERS { % include "users/tabs/admin_headers.html" % }-->
+        <div class="tab-content p-2" id="first-tab"></div>
+
+        <!-- DASHBOARD STORE DATA  { % include "users/tabs/admin_store.html" % }-->
+        
+
+        <div class="tab-content p-2" id="users-tab"></div>
+
+        <div class="tab-content p-2" id="store-data-tab"></div>
+    </div>
+
+</div>
+
+{% endblock main_content %}
+
+
+{% block extra_scripts %}
+
+    <!-- JavaScript for Product Page -->
+    <script>
+        window.TEMPLATE_URLS = {
+            // users/urls.py
+            profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
+
+            // home/urls.py
+            storeUpdate: "{% url 'update_store' 0 %}".replace('0/', '{store_id}/'),
+
+            // payments/urls.py
+            shipmentUpdate: "{% url 'update_shipment' 0 %}".replace('0/', '{shipment_id}/'),
+            paymentUpdate: "{% url 'update_payment' 0 %}".replace('0/', '{payment_id}/'),
+
+            // users
+            userRoleUpdate: "{% url 'user_edit_role' 0 %}".replace('0/', '{user_id}/')
+        };
+    </script>
+
+    <script src="{% static 'users/js/admin_profile.js' %}"></script>
+
+{% endblock extra_scripts %}

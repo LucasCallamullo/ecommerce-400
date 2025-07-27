@@ -1,0 +1,112 @@
+
+
+/* esto es para los select hechos con Choices.js options categories, subcategories, brands */
+.choices,
+.choices__inner {
+    width: 100%;
+    font-weight: bolder;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    color: var(--text-primary) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+/* Sobrescribe estilos de Choices.js     color: var(--black-color) !important; */
+.choices__input,
+.choices__list,
+.choices__item {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Borde azul para el select */
+.choices__inner {
+    border-radius: none !important;
+    border: 2px solid var(--main-color) !important;
+}
+
+/* Borde más oscuro al enfocar */
+.choices.is-focused .choices__inner {
+    border-color: var(--main-color) !important;
+}
+
+/* Borde rojo para el dropdown */
+.choices__list--dropdown {
+    border: 2px solid var(--main-color) !important;
+    border-top: none !important;
+}
+
+/* Borde superior cuando el dropdown está arriba */
+.choices__list--dropdown.choices__list--above {
+    border-top: 2px solid var(--main-color) !important;
+    border-bottom: none !important;
+}
+
+
+/* Borde inferior entre opciones */
+.choices__list--dropdown .choices__item, 
+.choices__list[aria-expanded] .choices__item {
+    border-bottom: 1px solid var(--text-secondary) !important;
+    
+}
+
+/* Eliminar borde del último item */
+.choices__list--dropdown .choices__item:last-child,
+.choices__list[aria-expanded] .choices__item:last-child {
+    border-bottom: none !important;
+}
+
+
+/* Efecto hover básico */
+.choices__list--dropdown .choices__item--selectable:hover,
+.choices__list[aria-expanded] .choices__item--selectable:hover {
+    background-color: var(--text-secondary) !important;
+    color: var(--bg-primary) !important;
+}
+
+/* Estilo para el input de búsqueda */
+.choices__input {
+    border: none !important;
+    border-bottom: 2px solid var(--main-color) !important; /* Borde rojo */
+
+    padding: 8px !important;
+    color: var(--text-primary) !important;
+
+    font-size: 14px !important;
+    box-shadow: none !important;
+    transition: border-color 0.3s ease;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 35px !important;
+}
+
+/* Cambio de color al enfocar */
+.choices__input:focus {
+    border-bottom-color: var(--main-color) !important; /* Borde azul al enfocar */
+    outline: none !important;
+}
+
+/* Placeholder del input */
+.choices__input::placeholder {
+    color: var(--text-primary) !important;
+    opacity: 1 !important;
+}
+
+/* Cambiar el color de la flecha del select */
+.choices[data-type*="select-one"]::after {
+    border-color: var(--text-primary) transparent transparent !important;
+}
+
+/* Cuando el dropdown está abierto */
+.choices[data-type*="select-one"].is-open::after {
+    border-color: transparent transparent var(--text-primary) !important;
+}
+
+/* Cambiar el placeholder    color: var(--black-color) !important; */
+.choices__input::placeholder {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}

@@ -1,0 +1,51 @@
+
+
+<form class="d-flex-col-row justify-center align-center gap-2 mt-1 mb-3" id="form-user-table-tab">
+    <strong class="bold-main">Filtrar por Email:</strong>
+
+    <div class="cont-user-search">
+        <input type="search" name="search" placeholder="Buscar usuario...">
+        <button class="btn" type="submit">
+            <i class="ri-user-search-line font-lg search-icon"></i>
+        </button>
+    </div>
+
+    <select class="w-min" name="role">
+        {% for value, label in choices %}
+            <option value="{{value}}" {% if value == choice|default:'buyer' %}selected{% endif %}>
+                {{label}}es
+            </option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="cont-table-user border-bot-second">
+    <strong class="d-desktop-flex">Nombre</strong>
+    <strong class="d-desktop-flex">Apellido</strong>
+    <strong>Email</strong>
+    <strong>Rol</strong>
+    <span></span>
+</div>
+
+{% for user in users %}
+    <form class="cont-table-user border-bot-second form-user-role" data-index="{{user.id}}">
+        <span class="d-desktop-flex">{{user.first_name}}</span>
+        <span class="d-desktop-flex">{{user.last_name}}</span>
+
+        <strong>{{user.email}}</strong>
+
+        <!-- Select para editar el rol -->
+        <select name="role">
+            {% for value, label in choices %}
+                <option value="{{value}}" {% if user.role == value %}selected{% endif %}>
+                    {{label}}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button class="btn btn-32 w-100 gap-1 btn-alt" type="submit"> 
+            <i class="ri-edit-box-line font-lg d-desktop-flex"></i>
+            <strong>Editar</strong>
+        </button>
+    </form>
+{% endfor %}

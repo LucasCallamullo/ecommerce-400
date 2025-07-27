@@ -1,0 +1,101 @@
+
+
+{% load static %}
+{% load custom_filters %}
+
+{% if carrito.items %}
+  
+    <div class="d-desktop-grid cart-row row-header border-bot-prim">
+        <span class="images"></span>
+        <strong class="name">Producto</strong>
+        <strong class="price">Precio</strong>
+        <strong class="quantity">Cantidad</strong>
+        <strong class="subtotal">SubTotal</strong>
+        <span class="actions"></span>
+    </div>
+
+    {% for key, value in carrito.items %}
+        <div class="cart-row {% if forloop.first %}border-top-tablets{% endif %}">
+            <!-- Imagen del producto -->
+            <div class="image cont-img-100-off">
+                <img class="img-scale-down" src="{{ value.image }}" alt="{{ value.name }}">
+            </div>
+
+            <!-- Nombre del producto -->
+            <div class="name justify-start">
+                <a class="text-start bolder font-sm main-ref" href="{% url 'product_detail' value.id None %}">
+                    {{ value.name }}
+                </a>
+            </div>
+
+            <!-- Precio -->
+            <div class="price">
+                <p class="font-md bolder">$ {{value.price|intdot}}</p>
+                <i class="ri-close-line font-md bolder"></i>
+                <p class="font-md bolder">{{ value.qty }}</p>
+                <i class="ri-equal-line font-md bolder"></i>
+            </div>
+
+            <!-- Contador -->
+            <div class="quantity">
+                <div class="cont-numeric-cart-detail cont-space-between justify-self-end">
+                    <form class="form-to-less" data-index="{{value.id}}" data-stock="{{value.stock}}">
+                        <button class="btn btn-28 scale-on-touch cart-view-minus" type="submit">
+                            <i class="ri-subtract-fill font-lg text-primary"></i>
+                        </button>
+                    </form>
+
+                    <span class="cart-item-qty cart-view-input-qty" readonly> {{value.qty}} </span>
+                    
+                    <form class="form-to-add" data-index="{{value.id}}" data-stock="{{value.stock}}">
+                        <button class="btn btn-28 scale-on-touch cart-view-plus" type="submit">
+                            <i class="ri-add-fill font-lg text-primary"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Subtotal -->
+            <div class="subtotal">
+                <p class="d-tablet-flex bolder"> SubTotal: </p>
+                <p class="bolder">$ {{ value.price|multiply:value.qty }}</p>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="actions gap-1">
+                <!-- Botón de la corazon -->
+                <form class="form-to-like" data-index="{{value.id}}">
+                    {% if value.id in favorite_product_ids %}
+                        <button type="submit" class="btn btn-32 btn-like liked form-to-like">
+                            <i class="ri-heart-fill font-xl"></i>
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-32 btn-like form-to-like">
+                            <i class="ri-heart-line font-xl"></i>
+                        </button>
+                    {% endif %}
+                </form>
+                
+                <form class="form-to-delete" data-index="{{value.id}}">
+                    <button type="submit" class="btn btn-32 btn-like">
+                        <i class="ri-close-fill font-xl"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+
+{% else %}
+    
+    <div class="d-flex-col justify-center mt-2">
+        <h1>Tu carrito esta vacío</h1>
+        <div class="w-100 justify-center">
+            <img src="{% static 'img/cart-view.png' %}" alt="Cartt">
+        </div>
+    </div>
+
+    <a class="btn btn-main w-50" href="{% url 'product_list' %}">
+        <b>Ver todos nuestros productos.</b>
+    </a>
+
+{% endif %}

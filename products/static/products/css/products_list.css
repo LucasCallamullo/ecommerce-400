@@ -1,0 +1,82 @@
+
+/* Estilos para el buscador de la sidebar lateral */
+#form-product-input {
+  transition: box-shadow 0.3s ease;
+}
+
+#form-product-input:focus-within {
+    box-shadow: 0 0 6px 2px var(--main-color);
+}
+
+.cont-product-list {
+    width: 100%;
+    max-width: 100%;
+}
+
+.cont-product-cards {
+    padding: 0;
+    margin: 0;
+    gap: 0;
+    row-gap: 24px;
+    column-gap: 12px;
+}
+
+/*
+    Some class of products_cards.css overwritten
+*/
+.product__card {
+    width: 100%;
+    height: 410px;
+    max-height: 410px;
+    position: relative;
+    overflow: visible;
+    flex-shrink: 0;
+    margin: 0 !important;
+
+}
+
+.product-card__extender-btn {
+    position: absolute;
+
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    
+    opacity: 1;    /* edit mobile */
+    pointer-events: auto;        /* edit mobile */
+    height: 50px;    /* edit mobile */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);    /* edit mobile */
+    z-index: 20;     /* edit mobile */
+}
+
+@media (min-width: 992px) {
+    .product__card {
+        width: 100%;
+        height: 360px;
+        max-height: 360px;
+    }
+
+    .cont-product-list {
+        width: 75%;
+        max-width: 75%;
+    }
+
+    .product-card__extender-btn {
+        bottom: -50px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(50px); /* 50px hacia abajo */
+        height: 50px; /* Puedes mantener la altura real */
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Mostrar el extensor y el botón al pasar el mouse */
+    .product__card:hover .product-card__extender-btn,
+    .product-card__extender-btn:hover {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0); /* Vuelve a su posición normal */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        
+    }
+}

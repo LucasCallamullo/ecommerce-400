@@ -1,0 +1,170 @@
+
+
+{% extends "home/base.html" %}
+
+{% load static %}
+{% load custom_filters %}
+
+
+{% block extra_head %}
+    <!-- Add extra head (style.css, title, etc) content here -->
+     <title>Dashboard | Admin</title>
+     <link href="{% static 'dashboard/css/dash_form_basic.css' %}" rel="stylesheet">
+     <link href="{% static 'dashboard/css/dashboard.css' %}" rel="stylesheet">
+     <link href="{% static 'dashboard/css/choices.css' %}" rel="stylesheet">
+
+    <!-- CSS CHOICES -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+    <!-- Update multiple images -->
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+
+{% endblock extra_head %}
+
+
+
+{% block main_content %}
+
+<div class="cont-100 align-stretch">
+
+    <aside class="dashboard bg-color d-flex-col justify-start align-start gap-2" id="dashboard" data-state="closed">
+        <!-- Botón para abrir/cerrar menú -->
+        <button class="btn text-white btn-dashboard mt-1 border-bot-white">
+            <i class="ri-menu-line font-xl"></i>
+            <strong class="d-flex justify-start align-center font-md border-bot-white">Menú</strong>
+        </button>
+        
+        <!-- Botones del menú -->
+        {% if user.role == 'admin' or user.role == 'seller' %}
+            <!-- Simular Venta -->
+            <button class="btn btn-main btn-dashboard" data-section="sells">
+                <i class="ri-price-tag-3-line font-xl"></i>
+                <strong class="d-flex justify-start align-center font-md"> Simular Venta</strong>
+            </button>
+
+            <!-- Pedidos -->
+            <button class="btn btn-main btn-dashboard" data-section="orders">
+                <i class="ri-shopping-bag-line font-xl"></i>
+                <strong class="d-flex justify-start align-center font-md"> Pedidos</strong>
+            </button>
+        {% endif %}
+
+        {% if user.role == 'admin' %}
+        <!-- Productos -->
+        <button class="btn btn-main btn-dashboard" data-section="products">
+            <i class="ri-product-hunt-line font-xl"></i>
+            <strong class="d-flex justify-start align-center font-md"> Productos</strong>
+        </button>
+
+        <!-- Cateogrias - SubCategorias - Brands -->
+        <button class="btn btn-main btn-dashboard" data-section="categories">
+            <i class="ri-copyright-line font-xl"></i>
+            <strong class="d-flex justify-start align-center font-md"> Categorías+ </strong>
+        </button>
+
+        <!-- Store -->
+        <button class="btn btn-main btn-dashboard" data-section="store">
+            <i class="ri-store-2-line font-xl"></i>
+            <strong class="d-flex justify-start align-center font-md"> Tienda </strong>
+        </button>
+
+        <!-- Estadisticas -->
+        <button class="btn btn-main btn-dashboard" data-section="statistics">
+            <i class="ri-line-chart-line font-xl"></i>
+            <strong class="d-flex justify-start align-center font-md">Estadísticas</strong>
+        </button>
+        {% endif %}
+
+        <a class="btn btn-main btn-dashboard" href="{% url 'profile_user' %}">
+            <i class="ri-shield-user-line font-xl"></i>
+            <strong class="d-flex justify-start align-center font-md">Perfil</strong>
+        </a>
+    </aside>
+    
+    <!-- Secciones que se mostrarán dinámicamente -->
+    <section id="sells" class="dashboard-section"></section>
+
+    <section id="orders" class="dashboard-section"></section>
+
+{% if user.role == 'admin' %}
+    <!-- Products -->
+    <section id="products" class="dashboard-section"></section>
+    
+    <!-- Cateogrias - SubCategorias - Brands -->
+    <section id="categories" class="dashboard-section"></section>
+
+    <!-- Store -->
+    <section id="store" class="dashboard-section"></section>
+
+    <!-- Estadisticas -->
+    <section id="statistics" class="dashboard-section"></section>
+{% endif %}
+
+    <!-- 	To use it on modals	 -->
+    <div class="overlay" id="overlay-dashboard"></div>
+
+</div>
+    
+{% endblock main_content %}
+
+
+
+{% block extra_scripts %}
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/compressorjs@1.2.1/dist/compressor.min.js"></script> 
+
+<!-- Scripts accept multiple files images from mobile   -->
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script> 
+
+<!-- JS CHOICES.js -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+    
+<!--
+    <script src="https://unpkg.com/filepond@latest/dist/filepond.min.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview@latest/dist/filepond-plugin-image-preview.min.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-resize@latest/dist/filepond-plugin-image-resize.min.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-transform@latest/dist/filepond-plugin-image-transform.min.js"></script>
+    -->
+
+    <!-- Const URLs	 -->
+    <script>
+        window.TEMPLATE_URLS = {
+            // dashboard/urls.py
+            getDashSection: "{% url 'get-dashboard' 0 %}".replace('0/', '{section_name}/'),
+
+            // products/urls_api.py    -    section products
+            filterProducts: "{% url 'dash-filter-products' %}",
+            createProduct: "{% url 'product-create-api' %}",
+            updateProduct: "{% url 'product-update-api' 0 %}".replace('0/', '{product_id}/'),
+            imageProducts: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/'),
+
+            // products/urls_api.py - section categories - create dynamic urls in js endpoints/categories
+            genericUpdateImages: "{% url 'upload-images-api' %}"
+
+            // home/urls_api.py - section store - create dynamic urls in js endpoints/headers
+            
+        };
+    </script>
+    
+    <!-- Add extra scripts.js here -->
+    <script src="{% static 'dashboard/js/generic/forms_utils.js' %}"></script>
+    <script src="{% static 'dashboard/js/generic/modal_form.js' %}"></script>
+    <script src="{% static 'dashboard/js/endpoints/images.js' %}"></script>
+
+    <script src="{% static 'dashboard/js/events/products.js' %}"></script>
+    <script src="{% static 'dashboard/js/endpoints/products.js' %}"></script>
+
+    <script src="{% static 'dashboard/js/events/categories.js' %}"></script>
+    <script src="{% static 'dashboard/js/endpoints/categories.js' %}"></script>
+
+    <script src="{% static 'dashboard/js/events/headers.js' %}"></script>
+    <script src="{% static 'dashboard/js/endpoints/headers.js' %}"></script>
+
+
+    
+    <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+
+     
+{% endblock extra_scripts %}

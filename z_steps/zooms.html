@@ -1,0 +1,118 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zoom con Panzoom</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+
+    .thumbs {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .thumbs img {
+      width: 100px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .thumbs img:hover {
+      border-color: #007bff;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .cont-images-zoom img {
+      max-width: 90vw;
+      max-height: 90vh;
+      cursor: grab;
+      transition: transform 0.2s ease;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px; right: 20px;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="thumbs">
+    <img src="https://i.pinimg.com/736x/9b/40/4e/9b404ed9be05664d650d29cb31eb6032.jpg" 
+    data-full="https://i.pinimg.com/736x/9b/40/4e/9b404ed9be05664d650d29cb31eb6032.jpg" />
+    <img src="https://via.placeholder.com/400x300/28a745/ffffff?text=Imagen+2" data-full="https://via.placeholder.com/1200x900/28a745/ffffff?text=Zoom+2" />
+    <img src="https://via.placeholder.com/400x300/ffc107/000000?text=Imagen+3" data-full="https://via.placeholder.com/1200x900/ffc107/000000?text=Zoom+3" />
+  </div>
+
+  <div class="modal" id="zoomModal">
+    <div class="close-btn" id="closeBtn">&times;</div>
+    <div class="cont-images-zoom" id="zoomContainer">
+      <img id="zoomedImage" src="" alt="Zoomed" />
+    </div>
+  </div>
+
+  <!-- Panzoom CDN -->
+  <script src="https://unpkg.com/@panzoom/panzoom/dist/panzoom.min.js"></script>
+
+  <script>
+    const thumbs = document.querySelectorAll('.thumbs img');
+    const zoomModal = document.getElementById('zoomModal');
+
+
+    const zoomedImage = document.getElementById('zoomedImage');
+
+    const zoomContainer = document.getElementById('zoomContainer');
+
+    
+    const closeBtn = document.getElementById('closeBtn');
+
+    let panzoom;
+
+    thumbs.forEach(img => {
+      img.addEventListener('click', () => {
+        const fullSrc = img.dataset.full;
+        zoomedImage.src = fullSrc;
+        zoomModal.classList.add('open');
+
+        // Destruir el panzoom anterior si existía
+        if (panzoom) panzoom.destroy();
+
+        // Reaplicar panzoom al nuevo contenido
+        panzoom = Panzoom(zoomedImage, {
+          maxScale: 3,
+          minScale: 1,
+          contain: 'outside'
+        });
+
+        zoomedImage.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
+      });
+    });
+
+    closeBtn.addEventListener('click', () => {
+      zoomModal.classList.remove('open');
+      zoomedImage.src = '';
+      if (panzoom) panzoom.destroy();
+    });
+  </script>
+</body>
+</html>

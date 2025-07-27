@@ -1,0 +1,197 @@
+
+
+
+
+
+
+.cont-text-page {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.cont-payment-waiting {
+    padding: 8px 0px 8px 0px;
+    height: min-content;
+}
+
+.cont-grid-data {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+}
+
+.cont-image,
+.cont-image img {
+    width: 100%;
+    height: 250px;
+    padding: 0;
+    object-fit: scale-down;
+}
+
+.icon-payments {
+	font-size: 10vh;
+}
+
+.red {
+	color: red;
+}
+
+.green {
+	color: green
+}
+
+
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+	.cont-grid-data {
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
+
+.container-mp {
+    display: flex;
+    width: 40%;
+    margin-right: 30%;
+}
+
+
+
+/*
+        TODO PARA MOSTRAR LA ORDEN PREVIO AL PAGO
+*/
+.modal-header {
+	height: 52px;
+    padding-left: 4px;
+	border-bottom: 2px solid var(--text-secondary);
+}
+
+.container-order-table {
+    overflow-y: auto;
+	width: 100%;
+	height: min-content;
+}
+
+.footer-order-table {
+	border-top: 2px solid var(--text-secondary);
+	border-bottom: 2px solid var(--text-secondary);
+	height: 50px;
+	max-height: 50px;
+    
+	background-color: var(--bg-primary);
+}
+
+.cart-view-header {
+	display: none;
+}
+
+.cart-row {
+    display: grid;
+	grid-template-columns: 0.75fr 1fr 0.25fr 1fr;
+	grid-row: 1.2fr 0.4fr 0.4fr; 
+
+	row-gap: 4px;
+	column-gap: 8px;
+
+    height: 140px;
+    max-height: 140px;
+    border-bottom: 1px solid var(--text-secondary);
+
+	grid-template-areas: 
+        "image name name name"
+        "image price price quantity"
+        "image subtotal subtotal subtotal";
+}
+
+/* Asignar áreas a los elementos */
+.cart-row div:nth-child(1) { grid-area: image; } /* Imagen */
+.cart-row div:nth-child(2) { grid-area: name; } /* Nombre */
+.cart-row div:nth-child(3) { grid-area: price; } /* Precio */
+.cart-row div:nth-child(4) { grid-area: quantity; } /* Cantidad */
+.cart-row div:nth-child(5) { grid-area: subtotal; } /* Subtotal */
+
+/* Precio */ /* Cantidad */  /* Subtotal */
+
+.cart-row div:nth-child(3), 
+.cart-row div:nth-child(4),
+.cart-row div:nth-child(5) {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+
+
+.cart-row div {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.cart-row-order {
+    height: 100px !important;
+}
+
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .cart-row-order {
+        height: 50px !important;
+    }
+
+    .footer-order-table {
+		padding-left: 4px;
+		padding-right: 8px;
+	}
+
+	.modal-header {
+		height: 65px;
+		max-height: 65px;
+		padding-left: 4px;
+		padding-right: 4px;
+	}
+
+	.cart-view-header {
+		background-color: var(--bg-primary);
+	
+		display: grid;
+		grid-template-columns: 0.5fr 2.5fr 0.75fr 0.75fr 0.75fr;
+	
+		padding-top: 8px;
+		padding-bottom: 8px;
+        padding-right: 8px;
+		column-gap: 16px;
+		border-bottom: 1px solid var(--text-secondary);
+	}
+
+	.cart-row {
+		grid-template-columns: 0.5fr 2.5fr 0.75fr 0.75fr 0.75fr;
+		column-gap: 16px;
+
+		grid-template-areas: none; /* Eliminamos las áreas definidas para móvil */
+        grid-template-rows: none;
+
+		height: 120px;
+		max-height: 120px;
+	}
+
+	/* Resetear las asignaciones de áreas para desktop */
+    .cart-row div {
+		padding-top: 16px;
+        grid-area: auto !important;
+    }
+
+	/* Precio */ /* Cantidad */ /* Subtotal */
+	.cart-row div:nth-child(3), 
+	.cart-row div:nth-child(4),
+	.cart-row div:nth-child(5) {
+		display: flex;
+		justify-content: flex-end;
+		align-items: flex-start;
+	}
+}
+
+.image-container {
+	padding: 0;
+	height: 100%;
+	width: 100%;
+}

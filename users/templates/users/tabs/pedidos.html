@@ -1,0 +1,29 @@
+
+
+
+<div class="order-container">
+    <h1 class="order-title">Lista de Pedidos</h1>
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th class="order-header">Número de Factura</th>
+                <th class="order-header">Fecha</th>
+                <th class="order-header">Estado</th>
+                <th class="order-header">Resumen (Precio Total)</th>
+                <th class="order-header">Factura</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr class="order-row">
+                    <td class="order-cell">{{order.id}} {{ order.invoice.invoice_number }} </td>
+                    <td class="order-cell"> {{ order.created }} </td>
+                    <td class="order-cell"><span class="order-status order-status-pending"> {{ order.status }} </span></td>
+                    <td class="order-cell">$ {{ order.invoice.calc_total }} </td> 
+                    <td class="order-cell"><a href="#" class="order-link"> Ver Factura </a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+

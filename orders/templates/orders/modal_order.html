@@ -1,0 +1,96 @@
+
+{% load static %}
+{% load custom_filters %}
+
+<div class="cont-modal-order">
+
+    <div class="cont-space-between h-40 w-100">
+        <h2 class="bold-main"> Tu Pedido </h2>
+        <button class="btn btn-close btn-32">
+            <i class="ri-close-fill font-xl"></i>
+        </button>
+    </div>
+
+
+    <div class="bg-primary border-primary d-flex-col scroll-y">
+        <div class="d-desktop-grid cart-row row-header border-bot-prim">
+            <span class="images"></span>
+            <strong class="name">Producto</strong>
+            <strong class="price">Precio</strong>
+            <strong class="quantity">Cantidad</strong>
+            <strong class="subtotal">SubTotal</strong>
+        </div>
+
+        {% for key, value in carrito.items %}
+            <div class="cart-row {% if forloop.first %}border-top-tablets{% endif %}">
+                <!-- Imagen del producto -->
+                <div class="image cont-img-100-off">
+                    <img class="img-scale-down" src="{{ value.image }}" alt="{{ value.name }}">
+                </div>
+
+                <!-- Nombre del producto -->
+                <div class="name justify-start">
+                    <a class="text-start bolder font-sm main-ref" href="{% url 'product_detail' value.id None %}">
+                        {{ value.name }}
+                    </a>
+                </div>
+
+                <!-- Precio -->
+                <div class="price">
+                    <p class="font-md bolder">$ {{value.price|intdot}}</p>
+                    <i class="ri-close-line font-md bolder"></i>
+                    
+                </div>
+
+                <!-- Contador -->
+                <div class="quantity font-md bolder">
+                    <p>
+                        {{ value.qty }}
+                        <i class="ri-equal-line"></i>
+                    </p>
+                </div>
+
+                <!-- Subtotal -->
+                <div class="subtotal">
+                    <p class="d-mobile-flex bolder"> SubTotal: </p>
+                    <p class="bolder">$ {{ value.price|multiply:value.qty }}</p>
+                </div>
+
+            </div>
+        {% endfor %}
+    </div>
+
+
+
+    <div class="d-grid cont-grid-122 p-0">
+
+        <div class="cont-space-between-row bolder font-sm gap-2">
+            <span>Método de Pago:</span>
+            <span class="payment-method">Ninguno</span>
+        </div>
+
+        <div class="d-flex-col-row justify-self-end gap-2">
+            <div class="cont-space-between bolder font-sm gap-2">
+                <span>Método de Envío:</span>
+                <span class="shipment-method"> Ninguno</span>
+            </div>
+            <i class="ri-subtract-fill font-lg d-desktop-flex"></i>
+            <div class="cont-space-between bolder font-sm gap-2">
+                <span>Precio de Envío:</span>
+                <span id="shipment-price"> Ninguno</span>
+            </div>
+        </div>
+        
+        <div class="grid-col-all cont-space-between">
+            <button class="btn btn-main btn-40 w-min px-2" id="btn-confirm-order-modal"> 
+                <b class="font-md text-truncate">Confirmar Pedido </b>
+            </button>
+            
+            <div class="d-flex gap-1">
+                <b class="font-md">Total:</b>
+                <b class="font-md">$ {{total_price|intdot}}</b>
+            </div>
+        </div>
+    </div>
+
+</div>

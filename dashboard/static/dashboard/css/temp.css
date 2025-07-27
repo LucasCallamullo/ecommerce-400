@@ -1,0 +1,708 @@
+
+
+:root {
+    --height-childs-row-search: 40px;
+}
+
+/* solo selecciona a los dos primers hijos */
+/* #products > div:nth-child(-n+2) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+
+    height: 90px;
+    max-height: 90px;
+    gap: 10px
+}
+*/
+
+/*
+.btn-filter,
+.btn-grids {
+    height: var(--height-childs-row-search);
+    max-height: var(--height-childs-row-search);
+
+    width: var(--height-childs-row-search);
+
+    border: 1px solid var(--text-secondary);
+    border-radius: 4px;
+    
+}
+
+.btn-filter {
+    height: var(--height-childs-row-search) !important;
+    max-height: var(--height-childs-row-search) !important;
+    position: relative;
+    width: min-content;
+    padding: 0px 8px;
+}
+
+.active-main,
+.btn-filter.active-main {
+    border: 2px solid var(--main-color);
+    color: var(--main-color);
+}
+*/
+
+
+.cont-filters {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 12px;
+    
+    position: absolute;
+    top: calc( 100% + 1px );
+    
+    left: 0;
+    width: 250px;
+    padding: 8px;
+
+    border: 1px solid var(--text-primary) !important;
+    background-color: var(--bg-primary);
+
+    height: 0; /* Inicia sin altura */
+    opacity: 0;
+    overflow: hidden; /* Oculta el contenido mientras se expande */
+    visibility: hidden;
+    cursor: auto;
+    
+    transition: height 0.3s ease-out, opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+/* Estado abierto */
+.cont-filters[data-state="open"] {
+    height: 275px;
+    opacity: 1;
+    visibility: visible;
+    transition: height 0.3s ease-out, opacity 0.3s ease;
+}
+
+/* Estado cerrado */
+.cont-filters[data-state="closed"] {
+    height: 0;
+    opacity: 0;
+    
+    /* Retrasa la ocultación hasta que termine la animación */
+    transition: height 0.3s ease-out, opacity 0.3s ease, visibility 0s linear 0.3s;
+    visibility: hidden;
+}
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    /* solo selecciona a los dos primers hijos 
+    #products > div:nth-child(-n+2) {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+
+        height: 50px;
+        max-height: 50px;
+    }    */
+
+    .cont-filters {
+        left: auto;
+        right: 0;
+        width: 270px;
+        padding: 12px;
+        transform: none;
+    }
+}
+
+.btn-select-filters {
+    position: absolute;
+    bottom: 6px;
+    right: calc(50% - 45px);
+
+    height: 40px;
+    width: 90px;
+}
+
+.grid-products {
+    display: grid;
+    grid-template-columns: 1.5fr;
+    padding-left: 4px;
+    text-align: start;
+    border: 1px solid black;
+    font-size: var(--text-mobile);
+}
+
+.grid-products .header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-weight: bolder;
+    gap: 8px;
+    height: 36px;
+}
+
+.grid-products .row-table {
+    height: 75px;
+    cursor: pointer;
+}
+
+.grid-products .row-table span {
+    padding-top: 4px;
+}
+
+.grid-products img {
+    height: 75px;
+    max-height: 75px;
+    width: 75px;
+    max-width: 75px;
+    object-fit: scale-down;
+}
+
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    /* section table */
+    .grid-products {
+        display: grid;
+        grid-template-areas:
+            "items category status sales date stock price";
+
+        grid-template-columns: 1.5fr 0.65fr 0.65fr 0.4fr 0.6fr 0.4fr 0.6fr; 
+        gap: 12px;
+        font-size: var(--font-small-plus);
+    }
+
+    /* Encabezados */
+    .grid-products .header {
+        display: flex !important;
+        font-weight: bolder;
+        padding: 8px;
+        gap: 4px;
+    }
+
+    .grid-products .header button:active i,
+    .grid-products .header button:hover i {
+        color: var(--main-light-color);
+    }
+
+    /* Asignar las áreas de cada celda */
+    /* Asignar áreas a los elementos */
+    .grid-products div:nth-child(1) { grid-area: items; } /* Imagen y Name */
+    .grid-products div:nth-child(2) { grid-area: category; } /* category */
+    .grid-products div:nth-child(3) { grid-area: status; text-align: end; } /* Available */
+    .grid-products div:nth-child(4) { grid-area: sales; } /* sales */
+    .grid-products div:nth-child(5) { grid-area: date; } /* date update */
+    .grid-products div:nth-child(6) { 
+        grid-area: stock; 
+        justify-content: flex-end !important;
+        text-align: end !important; 
+    } /* stock */
+    .grid-products div:nth-child(7) { 
+        grid-area: price; 
+        justify-content: flex-end !important;
+        text-align: end !important; 
+    } /* price */
+
+    .p-grid { padding: 8px; }
+
+    .grid-products img {
+        height: 75px;
+        max-height: 75px;
+        width: 75px;
+        max-width: 75px;
+        object-fit: scale-down;
+    }
+
+    .status {
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 6px;
+        font-size: 12px;
+        max-width: 90%;
+    }
+    .status::before {
+        content: '';
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    /* Estado activo */
+    .status.active {
+        color: #2ba972;
+        background-color: rgba(43, 169, 114, 0.2);
+    }
+    .status.active::before {
+        background-color: #2ba972;
+    }
+    /* Estado deshabilitado */
+    .status.disabled {
+        color: #59719d;
+        background-color: rgba(89, 113, 157, 0.2);
+    }
+    .status.disabled::before {
+        background-color: #59719d;
+    }
+}
+
+.image-previews {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 12px;
+    row-gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+}
+
+.image-previews img.new-image {
+    height: 180px;
+    max-height: 180px;
+    width: 100%;
+    object-fit: scale-down;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .row-product-1 {
+        /* name price discount subtotal stock available */
+        display: grid;
+        grid-template-columns: 1.9fr 0.55fr 0.6fr 0.55fr 0.3fr 0.6fr;
+        gap: 16px;
+        grid-template-areas: 
+            "name price discount subtotal stock status";
+    }
+
+    .row-product-2 {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+
+    .row-product-img {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        column-gap: 16px;
+    }
+
+    .row-product-5 {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+
+    .row-product-6 {
+        grid-template-columns: 1fr 1fr;
+        column-gap: 16px;
+    }
+
+    .image-previews {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .image-previews img.new-image {
+        height: 210px;
+        max-height: 210px;
+    }
+}
+
+
+
+/* asigno nombre a los hijos con los que trabajo  en la row 1 */
+.row-product-1 .d-flex-col:nth-child(1) { grid-area: name; } /* name */
+.row-product-1 .d-flex-col:nth-child(2) { grid-area: status; } /* Available */
+.row-product-1 .d-flex-col:nth-child(3) { grid-area: price; } /* price */
+.row-product-1 .d-flex-col:nth-child(4) { grid-area: discount; } /* discount */
+.row-product-1 .d-flex-col:nth-child(5) { grid-area: subtotal; } /* subtotal */
+.row-product-1 .d-flex-col:nth-child(6) { grid-area: stock; } /* stock */
+
+.row-modal-product input[type="checkbox"] {
+    height: 26px !important;
+    width: 26px !important;
+}
+
+.row-modal-product input[type="checkbox"] {
+    height: 26px !important;
+    width: 26px !important;
+}
+
+
+.row-product-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.row-product-2 > * {
+    min-width: 0;
+}
+
+.subcat-modal-cont[data-state="closed"] {
+    display: none;
+}
+
+.subcat-modal-cont[data-state="open"] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+
+/* row modal con un texttarea */
+.row-product-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    border-top: 1px solid var(--text-primary);
+    padding-top: 10px;
+}
+
+.row-product-4 textarea,
+.row-product-4 .description-preview {
+    max-width: 100%;
+    padding: 10px 4px;
+    width: 100%;
+    height: 150px;
+    border: 2px solid var(--text-secondary);
+    overflow-y: auto;
+}
+
+.row-product-5 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 8px;
+    padding: 8px 4px;
+}
+
+/* row modal con img and buttons */
+.row-product-6 {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 8px;
+    max-width: 100%;
+}
+
+.row-product-6 > * {
+    min-width: 0;
+}
+
+.row-product-6 .btn-close,
+.row-product-6 .btn-main {
+    padding: 4px;
+    height: 36px;
+    width: 100%;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .row-product-img {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        column-gap: 16px;
+    }
+
+    .row-product-5 {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    }
+
+    .row-product-6 {
+        grid-template-columns: 1fr 1fr;
+        column-gap: 16px;
+    }
+}
+
+
+/* edit imgs products */
+.row-product-img {
+    display: grid;
+    max-width: 100%;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: 12px;
+}
+
+
+.row-product-img .d-flex-col img {
+    height: 240px;
+    max-height: 240px;
+    width: 100%;
+    max-width: 100%;
+    object-fit: scale-down;
+    border: 1px solid var(--text-secondary);
+}
+
+
+
+/*
+<form class="modal" id="form-modal-table" data-table="table-products" data-action="update">
+    {% csrf_token %}
+
+    <div class="container-space-between">
+        <b class="text-medium bold-main modal-title"></b>
+        <button type="button" class="btn btn-close" id="form-modal-close"> 
+            <i class="ri-close-fill icon-small"></i>
+        </button>   
+    </div>
+
+    <input type="hidden" class="modal-id" name="id"/>
+
+    <!--   FILA 1 FORMULARIO 		 -->
+    <div class="row-product-1">
+        <label class="d-flex-col gap-1">
+            <b>Nombre:</b>
+            <input type="text" class="modal-name" name="name"/>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <b>Disponible:</b>
+            <div class="d-flex-s">
+                <input type="checkbox" class="modal-available" name="available"/>
+            </div>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <b>Precio:</b>
+            <input type="text" class="modal-price" name="price"/>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <b>Descuento:</b>
+            <input type="text" class="modal-discount" name="discount"/>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <b>SubTotal:</b>
+            <input type="text" class="modal-subtotal" name="subtotal"/>
+        </label>
+
+        <label class="d-flex-col gap-1">
+            <b>Stock:</b>
+            <input type="text" class="modal-stock" name="stock"/>
+        </label>
+    </div>
+
+    <!--   FILA 2 FORMULARIO 		 -->
+    <div class="row-product-2">
+        <!-- Categorias select -->
+        <label class="d-flex-col gap-1">
+            <b>Categoría:</b>
+        
+            <select class="category-select modal-category" name="category">
+                <option value="0">Sin Categoría</option>
+                {% for category, subcategories in categories.items %}
+                    <option value="{{ category.id }}">
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        
+        <!-- subcategorias select -->
+        <div class="d-flex-col gap-1">
+
+            <!-- Campo oculto que enviará la subcategoría seleccionada -->
+            <input type="hidden" name="subcategory" class="selected-subcategory" value="0">
+
+            {% for category, subcategories in categories.items %}
+                {% if subcategories %}
+                <label class="subcat-container gap-1 subcat-cont-{{category.id}}" data-state="closed">
+                    <b>Subcategoría:</b>
+                    <select class="subcat-select modal-subcategory-{{category.id}}">
+                        <option value="0">Sin Subcategoría</option>
+                        {% for subcat in subcategories %}
+                            <option value="{{subcat.id}}">
+                                {{ subcat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- BRANDS -->
+        <label class="d-flex-col gap-1">
+            <b>Marca:</b>
+            <select class="modal-brand" name="brand">
+                <option value="0">Sin Marca</option>
+                {% for brand in brands %}
+                    <option value="{{ brand.id }}">
+                        {{ brand.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+            
+    <!--   FILA 3 FORMULARIO 		 -->
+    <b> Imagenes del Producto: </b>
+    <div class="row-product-img mb-1 modal-images-cont">
+
+    </div>
+
+    <!--   FILA 4 FORMULARIO 		 -->
+    <div class="row-product-4 text-mobile">
+        <div class="d-flex-col gap-1">
+            <b>Descripción del Producto: (*)</b>
+            <textarea class="text-mobile modal-description"></textarea>
+        </div>
+
+        <div class="d-flex-col gap-1">
+            <b>Vista Previa de la Descripción:</b>
+            <div class="cont-border description-preview"></div>
+        </div>
+    </div>
+
+    <div class="row-product-5 cont-border mb-1"> 
+        <b>(*) Simbolos:</b>
+        <span>**Negrita**</span>
+        <span>-- Linea en blanco</span>
+        <span>* listado</span>
+
+        <span>*- listado</span>
+        <span>(*) auxiliar</span>
+    </div>
+    
+    <!--   FILA 5 FORMULARIO 		 -->
+    <div class="row-product-6">
+        <div class="d-flex-col gap-1">
+            <div class="d-flex gap-1">
+                <b> Nueva Imagen Preview </b>
+                <i class="ri-corner-right-down-line icon-small"></i>
+            </div>
+            <div class="border-main cont-img-previews"></div>  <!-- Contenedor para las previsualizaciones -->
+            <!-- <img class="border-main new-image image-previews" src="" alt="Todavía no cargaste una nueva Imagen"> -->
+        </div>
+
+        <div class="d-flex-col gap-4">
+            <!-- Añade multiple y name como array -->
+            <input type="file" class="image-input" name="images">
+            <!-- 	<input type="file" id="image-input" name="image" multiple accept="image/*"  capture="camera">	 -->
+            
+            <div class="container-space-between gap-1">
+                <button class="btn gap-1 btn-main text-mobile" type="submit"> 
+                    <i class="ri-edit-2-line"></i>
+                    <b>Aplicar Cambios</b>
+                </button>
+
+                <button class="btn btn-close text-mobile form-modal-cancel" type="button">
+                    <b>Cancelar</b>
+                </button>
+            </div>
+
+            <div>
+                <p><b>(*)</b> Recorda siempre mirar bien las imagenes subidas y/o eliminadas...</p>
+                <p><b>(**)</b> Si cancelas perderás los cambios realizados...</p>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<div class="overlay" id="overlay-table"></div> 
+*/
+
+
+
+
+
+
+
+
+/* 
+    Form headers images n banners images
+*/
+
+
+
+/* 
+    form content modal headers n banners
+*/
+#upload-form .d-flex-s {
+    flex-direction: column;
+}
+
+#upload-form .d-flex-s .w-50 {
+    width: 100%;
+    max-width: 100%;
+}
+
+#image-input {
+    width: 100%;
+    max-width: 100%;
+}
+
+.modal-image-container {
+    height: 200px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.modal-image-container img {
+    max-height: 200px;
+    width: 100%;
+    max-width: 100%;
+}
+
+#upload-form input {
+    height: 40px;
+    padding: 4px 8px;
+}
+
+#upload-form .btn-alt,
+#upload-form section .btn-close {
+    width: 250px;
+    height: 40px;
+    padding: 8px 16px;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #007bff; /* Cambia el color del check */
+    cursor: pointer;
+}
+
+#cont-delete-btn[data-state='closed'] {
+    display: none;
+}
+
+#cont-delete-btn[data-state='open'] {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 4px 16px;
+    height: min-content;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 993px) {
+    .cont-headers {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .header-image-container:hover .image-overlay {
+        opacity: 1;
+        z-index: 1;
+        pointer-events: all;
+    }
+
+    #upload-form .d-flex-s {
+        flex-direction: row;
+    }
+
+    .modal-image-container,
+    #upload-form .d-flex-s .w-50 {
+        width: 50%;
+        max-width: 50%;
+    }
+
+    #upload-form input:hover {
+        cursor: pointer;
+    }
+
+    #cont-delete-btn[data-state='open'] {
+        flex-direction: row;
+        height: 50px;
+        gap: 64px;
+    }
+}
+
