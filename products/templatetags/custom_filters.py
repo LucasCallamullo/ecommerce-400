@@ -67,3 +67,33 @@ def multiply(value, arg):
     except (ValueError, TypeError):
         return 0
     
+    
+MONTHS_ABBR = {
+    1: "ene.",
+    2: "feb.",
+    3: "mar.",
+    4: "abr.",
+    5: "may.",
+    6: "jun.",
+    7: "jul.",
+    8: "ago.",
+    9: "sep.",
+    10: "oct.",
+    11: "nov.",
+    12: "dic.",
+}
+
+@register.filter
+def short_date(value):
+    """
+    Convierte un datetime o date en formato corto: '28 jul.'
+    """
+    if not value:
+        return ''
+    
+    try:
+        day = value.day
+        month = MONTHS_ABBR.get(value.month, '')
+        return f"{day} {month} {value.year}"
+    except AttributeError:
+        return ''

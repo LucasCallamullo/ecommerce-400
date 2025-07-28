@@ -31,28 +31,18 @@ def payment_order_create(request, order_id):
     if not context:
         render(request, "payments/fail_payments.html", {"error": "Order Not Found."})
     
-    items = context['items']
     payment = context['payment']
-    shipment_method = context['shipment_method']
-    discount = 1    # future discount logic
+    discount = context['discount']   # future discount logic
     
     # id = 3 --> mercado pago API
     if payment.id == 3:
         preference_id, total_cart = utils_for_mp.create_preference_data(order, discount)  
     else:
         preference_id = None
-        total_cart = 0
-        for item in items:
-            subtotal = float(item.price * item.quantity)
-            total_cart += subtotal
-        total_cart -= float(discount)
-        total_cart += float(shipment_method.price)
         
     # More context stuff
     context['preference_id'] = preference_id    # esto es para crear el brick en el front asociado al monto
     context['public_key'] = settings.MERCADO_PAGO_PUBLIC_KEY        # mandamos nuestra clave publica al front
-    context['discount'] = discount
-    context['total_cart'] = total_cart    # this is calculated with discount and thats stuffs
     
     return render(request, "orders/order_detail.html", context)
     # get date and hours in Argentina

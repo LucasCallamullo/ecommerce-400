@@ -86,6 +86,12 @@
     text-overflow: ellipsis;
 }
 
+.text-break {
+	word-break: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+
 /*
 .text-truncate-fade {
     display: -webkit-box;

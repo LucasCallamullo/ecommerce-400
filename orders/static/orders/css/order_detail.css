@@ -44,12 +44,6 @@
 	font-size: 86px;
 }
 
-.text-break {
-	word-break: break-word;
-	overflow-wrap: break-word;
-	white-space: normal;
-}
-
 .bold-blue {
 	color: rgb(81, 81, 250);
 	font-weight: bolder;

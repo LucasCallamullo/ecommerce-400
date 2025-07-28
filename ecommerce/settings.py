@@ -91,11 +91,12 @@ INSTALLED_APPS = [
     
     'cart',
     'products',
-    'dashboard',
-    'favorites',
-    
     'orders',
     'payments',
+    
+    'dashboard',
+    'profiles',
+    'favorites',
 ]
  
 MIDDLEWARE = [
@@ -199,7 +200,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1',
 ]
 
-BASE_URL_PAGE = "https://c71a0e86d33b.ngrok-free.app"
+BASE_URL_PAGE = "https://bbd91747ffed.ngrok-free.app"
 
 
 if DEBUG:

@@ -1,6 +1,6 @@
 
 
-from orders.models import StatusOrder, InvoiceOrder
+from orders.models import StatusOrder, Invoice
 
 from cart.carrito import Carrito
 
@@ -76,7 +76,7 @@ def confirm_order(request, payment_mp, order):
             total_cart = carrito.total_price
 
             # Crear factura
-            invoice = InvoiceOrder.objects.create(
+            invoice = Invoice.objects.create(
                 f_type="B",
                 name= f"{order_data.get("first_name", "")} {order_data.get("last_name", "")}",
                 dni=order_data.get("dni", ""),

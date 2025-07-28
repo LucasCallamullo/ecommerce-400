@@ -68,14 +68,9 @@
 }
 
 
-
-
-
 /*
-        ADMIN PROFILE STUFF
+    ADMIN PROFILE STUFF
 */
-/* Ocupa todo el ancho de columnas del grid */
-/* grid form for shipment */
 .shipments-form,
 .payments-form {
     display: grid;
@@ -90,7 +85,7 @@
 }
 
 /* Styles for large desktops (mín. 993px to max. infinite) */
-@media (min-width: 993px) {
+@media (min-width: 992px) {
     .shipments-form,
     .payments-form {
         grid-template-columns: 0.8fr 0.25fr 0.2fr 1.15fr 0.25fr;
@@ -99,7 +94,16 @@
     }
 }
 
+#store-data-tab input[type="checkbox"] {
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
+}
 
+
+/* 
+    users section 
+*/
 .cont-table-user {
     display: grid;
     grid-template-columns: 1.25fr 0.75fr 0.25fr;
@@ -115,8 +119,6 @@
     text-overflow: ellipsis;
     white-space: nowrap; /* Evita que el texto se divida en varias líneas */
 }
-
-
 
 /* Contenedor del buscador */
 .cont-user-search {
@@ -162,4 +164,16 @@
         height: 48px;
         column-gap: 16px;
     }
+}
+
+
+/* 
+    Orders section 
+*/
+.cont-grid-orders {
+    /* id     date    status.name    price    href */
+    padding: 0;
+    gap: 16px;
+    column-gap: 16px;
+    grid-template-columns: 0.4fr 0.6fr 1.1fr 1.1fr 0.5fr;
 }

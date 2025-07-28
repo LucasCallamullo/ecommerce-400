@@ -232,7 +232,7 @@ def get_default_subcategory():
 def get_default_brand():
     return PBrand.get_default_model_or_id()
     
-from products.filters import OptimizedQuerySet
+from decimal import Decimal, ROUND_HALF_UP
 class Product(models.Model):
     # For future user ratings
     # stars = models.DecimalField(max_digits=4, decimal_places=2, default=0.0)
@@ -333,6 +333,17 @@ class Product(models.Model):
         """
         return round(float(self.price) * (1 - float(self.discount) / 100), 2)
     
+    @property
+    def calc_discount(self):
+        """For templates - returns float rounded to 2 decimals."""
+        return round(float(self.price) * (1 - float(self.discount) / 100), 2)
+
+    def calc_discount_decimal(self):
+        """For internal logic - returns Decimal rounded to 2 decimals."""
+        price = Decimal(self.price)
+        discount = Decimal(self.discount) / Decimal(100)
+        discounted_price = price * (Decimal(1) - discount)
+        return discounted_price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     
     
     

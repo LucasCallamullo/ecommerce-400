@@ -1,3 +1,5 @@
+
+
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../static/js/forms.js" />
 
@@ -238,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Automatically trigger click on the second tab to show it on page load
-    const firstTab = menuItems[1];
+    const firstTab = menuItems[0];
     if (firstTab) {
         firstTab.click();
     }

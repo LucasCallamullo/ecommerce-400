@@ -84,55 +84,60 @@ class ItemOrder(models.Model):
 class Order(models.Model):
     user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='orders')
     
-    # Foreign Key associated
+    # Foreign Keys
     status = models.ForeignKey('StatusOrder', on_delete=models.SET_NULL, null=True, default=2)
     payment = models.ForeignKey('PaymentMethod', on_delete=models.SET_NULL, null=True)
     shipment = models.ForeignKey('ShipmentOrder', on_delete=models.SET_NULL, null=True)
-    invoice = models.ForeignKey('InvoiceOrder', on_delete=models.SET_NULL, null=True)
     
-    # OrderItem asociados, se accede con la relacion inversa order.items.all()
+    # Temporal fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     expire_at = models.DateTimeField(null=True, blank=True)
     
+    # Pricing fields moved from Invoice to Order
+    shipment_cost = models.DecimalField(max_digits=9, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=9, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # total = float(
+    #     sum(item.quantity * item.price) 
+    #     + shipment..method.price 
+    #     - discount (maybe coupon or from page product)
+    #    )
+    
+    # Customer info
     name = models.CharField(max_length=100, blank=True, null=True)
     dni = models.CharField(max_length=30, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     cellphone = models.CharField(max_length=15, blank=True, null=True)
-    detail_order = models.CharField(max_length=150, blank=True, null=True)
-    
+    detail_order = models.TextField(blank=True, null=True)
+
     class Meta:
         ordering = ['-created_at']  # ordenar por fecha si agregas `de created`
     
 
-class InvoiceOrder(models.Model):
-    # data from form to new order
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+class Invoice(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.PROTECT, related_name='invoice')
+    user = models.ForeignKey('users.CustomUser', on_delete=models.PROTECT, related_name='invoices')
     
-    # save this data for analitics
-    shipment_cost = models.DecimalField(max_digits=9, decimal_places=2, default=0)
-    discount = models.DecimalField(max_digits=9, decimal_places=2, default=0)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    total_mp = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
-    # after create we associeted with the id
+    # Datos administrativos
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     invoice_number = models.CharField(max_length=30, unique=True, blank=True, null=True)
     
-    # mercado pago data
-    mp_data = models.JSONField(blank=True, null=True)
-    
-    f_type = models.CharField(
+    # Campos calculados copiados de su orden.
+    fiscal_total = models.DecimalField(max_digits=10, decimal_places=2)
+    fiscal_type = models.CharField(
         max_length=1, 
-        choices=[
-            ('A', 'A'),
-            ('B', 'B'),
-            ('C', 'C')
-        ],
+        choices=[('A', 'A'), ('B', 'B'), ('C', 'C')],
         default="B"
     )
+    
+    # Datos de procesamiento de pago (mercado pago, paypal, etc)
+    payment_processor_data = models.JSONField(blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    
+    # maybe for analitycs
+    total_mp = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    @property
-    def calc_total(self):
-        total = self.total
-        return float(total + self.shipment_cost - self.discount)

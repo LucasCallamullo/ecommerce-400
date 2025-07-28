@@ -220,8 +220,8 @@
                     <strong class="name text-start">Envío</strong>
                     <!-- Precio -->
                     <strong class="price d-desktop-flex">
-                        {% if shipment_method.price|intdot < 1 %}
-                            $ {{ shipment_method.price|intdot }}
+                        {% if shipment_cost|intdot < 1 %}
+                            $ {{ shipment_cost|intdot }}
                         {% else %}
                             Gratis
                         {% endif %}
@@ -234,8 +234,8 @@
                     </div>
                     <!-- Subtotal -->
                     <strong class="subtotal">
-                        {% if shipment_method.price|intdot == 0 %}
-                            $ {{ shipment_method.price|intdot }}
+                        {% if shipment_cost|intdot == 0 %}
+                            $ {{ shipment_cost|intdot }}
                         {% else %}
                             Gratis
                         {% endif %}

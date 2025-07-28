@@ -4,16 +4,12 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
-from django.contrib.auth import authenticate, login, logout
-from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.contrib.auth import login, logout
 
 from users.serializers import *
 from users.permissions import IsAdminOrSuperUser
 from users.models import CustomUser
 from products.utils import valid_id_or_None
-
 
 
 class UserRoleEditView(APIView):
@@ -68,18 +64,6 @@ class LoginView(APIView):
 
     Receives the form data from "widget_login.html" and validates it using the WidgetLoginSerializer.
     If the data is valid, the user is authenticated and logged in to the Django session.
-
-    On success, it returns a response with the redirect URL and a success message.
-    On error, it returns the serializer errors to be displayed to the user.
-
-    **POST Method**
-    - Request: `data` (containing the email and password of the user).
-    
-    - Success Response: A JSON object with:
-      - `message`: A message indicating the login was successful.
-
-    - Error Response: 
-      - A JSON object with errors as "detail" to handle unsuccessful responses.
     """
     def post(self, request):
         serializer = WidgetLoginSerializer(data=request.data)
@@ -96,13 +80,7 @@ class LoginView(APIView):
 
 
 class CloseView(APIView):
-    """
-    View that allows a logged-in user to log out.
-
-    **POST Method**
-    - Success Response: A JSON object with:
-      - `redirect_url`: The URL to which the user will be redirected after logging out.
-    """
+    """ View that allows a logged-in user to log out. """
     permission_classes = [IsAuthenticated]  # Only authenticated users can log out
 
     def post(self, request):

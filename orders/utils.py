@@ -27,11 +27,11 @@ def get_order_detail_context(order_id, user):
             Order.objects
             .select_related('payment', 'shipment', 'shipment__method', 'status')
             .only(
-                'id', 'created_at', 'expire_at', 'name', 'email', 
+                'id', 'created_at', 'expire_at', 'name', 'email', 'shipment_cost', 'total', 'discount', 
                 'shipment__id', 'shipment__address', 
                 'status__id', 'status__name',
                 'payment__id', 'payment__name', 'payment__time', 
-                'shipment__method__id', 'shipment__method__price', 'shipment__method__name'
+                'shipment__method__id', 'shipment__method__name'
             )
             .get(id=order_id, user=user)
         )
@@ -42,23 +42,29 @@ def get_order_detail_context(order_id, user):
     shipment_method = order.shipment.method          # get method envio associeted with the order
     payment = order.payment                          # get payment from order created
     status = order.status                            # get status from order created
-    
+
     items = (             # get items from order
         ItemOrder.objects    
         .filter(order=order)
         .select_related('product')  # trae todos los datos del producto relacionados
         .only('quantity', 'price', 'product__id', 'product__name', 'product__main_image')
     )
-    
+
     context = {
         # order stuff
         'items': items,
-        'shipment_method': shipment_method,
+        
         'date': order.created_at,
         'expire_date': order.expire_at,
-        'address': order.shipment.address,
+        
         'order_email': order.email,
         'complete_name': order.name,
+        'total_cart': order.total,
+        'discount': order.discount,
+        'shipment_cost': order.shipment_cost,
+        
+        'shipment_method': shipment_method,
+        'address': order.shipment.address,
         'status': status,
         'payment': payment
     }
@@ -67,6 +73,7 @@ def get_order_detail_context(order_id, user):
 
 
 def create_order_pending(order_data, user, products, cart_items):
+    from decimal import Decimal
     """
     # example on order data
     order_data = {
@@ -143,6 +150,14 @@ def create_order_pending(order_data, user, products, cart_items):
         
         # crear order items
         order_items = []
+        
+        # update post
+        subtotal = 0
+        shipment_cost = shipping_method.price
+        # maybe more logic like coupon model in the future
+        # discount = Decimal(order_data.get("discount", "0"))    
+        discount = Decimal("2.00")
+        
         for item in cart_items:
             product = products.get(item.product_id)
             
@@ -150,17 +165,30 @@ def create_order_pending(order_data, user, products, cart_items):
                 transaction.set_rollback(True)
                 return None, Response({'detail': 'Productos no validos.'}, status=status.HTTP_400_BAD_REQUEST)
             
+            # Calcular subtotal de productos
+            price_decimal = product.calc_discount_decimal()
+            subtotal += ( price_decimal * item.quantity )    # get float price
+            
             order_items.append(ItemOrder(
                 order=new_order,
                 product=product,
                 quantity=item.quantity,
-                price=product.price
+                price=price_decimal
             ))
                 
         ItemOrder.objects.bulk_create(order_items)
         
         # Eliminar items del carrito solo si todo lo anterior salió bien
         CartItem.objects.filter(id__in=[item.id for item in cart_items]).delete()
+        
+    # Calcular total
+    total = subtotal + shipment_cost - discount
+
+    # Actualizar la orden con estos campos
+    new_order.shipment_cost = shipment_cost
+    new_order.discount = discount
+    new_order.total = total
+    new_order.save(update_fields=["shipment_cost", "discount", "total"])
         
     return new_order, None
     
@@ -185,7 +213,7 @@ def confirm_stock_availability(cart_items):
             Product.objects
             .filter(id__in=product_ids)
             .select_for_update()
-            .only('id', 'name', 'stock', 'stock_reserved', 'available', 'price')
+            .only('id', 'name', 'stock', 'stock_reserved', 'available', 'price', 'discount')
             .in_bulk()
         )
 

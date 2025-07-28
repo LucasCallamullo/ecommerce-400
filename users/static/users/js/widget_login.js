@@ -55,7 +55,7 @@ async function widgetUserForms(form, action) {
                         openAlert("Login exitoso!" || data.message, "green", 1000);
                         url = window.BASE_URLS.profileUser;
                     } else if (action === 'Close') {
-                        openAlert(data.message || "Sesión cerrada", "red", 1000);
+                        openAlert("Cerraste sesión." || data.message, "red", 1000);
                         // Default url = "/" → go to home
                     } else if (action === 'Register') {
                         openAlert("Cuenta creada con éxito!" || data.message, "green", 1000);

@@ -1,5 +1,7 @@
 
 
+
+
 {% extends "home/base.html" %}
 
 {% load static %}
@@ -10,7 +12,7 @@
 
     <title> Admin | {{ user.first_name }} {{ user.last_name }}</title>
 
-    <link href="{% static 'users/css/admin_profile.css' %}" rel="stylesheet">
+    <link href="{% static 'profiles/css/adm_profile.css' %}" rel="stylesheet">
 
 {% endblock extra_head %}
 
@@ -97,34 +99,31 @@
 
         <!-- ITEMS BANNER -->
         <div class="d-grid w-100 cont-tabs">
-            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="first-tab">
-                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="orders-tab">
+                <p class="font-md bolder">Pedidos</p>
                 <i class="ri-time-line font-lg"></i>
-                <p class="font-md"><b>Pedidos Pendientes</b></p>
             </button>
 
             <button class="btn btn-alt gap-1 white-border-right-left btn-40 w-100 btn-tabs" data-tab="users-tab">
-                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
-                <i class="ri-heart-line font-lg"></i> 
-                <p class="font-md"><b>Usuarios</b></p>   
+                <p class="font-md bolder">Roles Usuarios</p>   
+                <i class="ri-user-settings-fill font-lg"></i>
             </button>
 
             <button class="btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="store-data-tab">
-                <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
+                <p class="font-md bolder">Datos Tienda</p>   
                 <i class="ri-store-2-line font-lg"></i> 
-                <p class="font-md"><b>Datos Tienda</b></p>   
             </button>
         </div>
 
         <!-- DASHBOARD HEADERS Y BANNERS { % include "users/tabs/admin_headers.html" % }-->
-        <div class="tab-content p-2" id="first-tab"></div>
+        <div class="tab-content bg-primary p-2" id="orders-tab"></div>
 
         <!-- DASHBOARD STORE DATA  { % include "users/tabs/admin_store.html" % }-->
         
 
-        <div class="tab-content p-2" id="users-tab"></div>
+        <div class="tab-content bg-primary p-2" id="users-tab"></div>
 
-        <div class="tab-content p-2" id="store-data-tab"></div>
+        <div class="tab-content bg-primary p-2" id="store-data-tab"></div>
     </div>
 
 </div>
@@ -137,7 +136,7 @@
     <!-- JavaScript for Product Page -->
     <script>
         window.TEMPLATE_URLS = {
-            // users/urls.py
+            // profiles/urls.py
             profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
 
             // home/urls.py
@@ -147,11 +146,11 @@
             shipmentUpdate: "{% url 'update_shipment' 0 %}".replace('0/', '{shipment_id}/'),
             paymentUpdate: "{% url 'update_payment' 0 %}".replace('0/', '{payment_id}/'),
 
-            // users
+            // users/urls
             userRoleUpdate: "{% url 'user_edit_role' 0 %}".replace('0/', '{user_id}/')
         };
     </script>
 
-    <script src="{% static 'users/js/admin_profile.js' %}"></script>
+    <script src="{% static 'profiles/js/adm_profile.js' %}"></script>
 
 {% endblock extra_scripts %}
