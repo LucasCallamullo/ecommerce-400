@@ -84,9 +84,9 @@
 
         <!-- we limit the page container to the main content. -->
         <div class="cont-page"> 
-            <!--  -->	
+            <!--  	
             <button class="btn btn-main mb-2" onclick="forceReload()">Recargar sin caché</button>
-            
+            -->
             {% block main_content %}
         
             {% endblock main_content %}
@@ -162,6 +162,10 @@
             substractToCart: "{% url 'cart_substract_product' %}",
             deleteToCart: "{% url 'cart_remove_product' %}",
 
+            // order/urls
+            resumeOrder: "{% url 'resume-order' %}",
+
+            // users/urls
             profileUser: "{% url 'profile_user' %}"
         };
 

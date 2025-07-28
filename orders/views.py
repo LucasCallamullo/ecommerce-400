@@ -2,8 +2,36 @@ from django.shortcuts import render
 
 # Create your views here.
 from orders.models import ShipmentMethod, PaymentMethod
+from orders import utils
 
-def order(request):
+def order_detail(request, order_id):
+    user = request.user
+    if not user.is_authenticated:    # Stupids checks for problematic users
+        return render(request, "payments/fail_payments.html", {"error": "Debes iniciar sesión para pagar."})
+
+    order, context = utils.get_order_detail_context(order_id, user)
+    if not context:
+        render(request, "payments/fail_payments.html", {"error": "Order Not Found."})
+    
+    items = context['items']
+    shipment_method = context['shipment_method']
+    discount = 1    # future discount logic
+    
+    total_cart = 0
+    for item in items:
+        subtotal = float(item.price * item.quantity)
+        total_cart += subtotal
+    total_cart -= float(discount)
+    total_cart += float(shipment_method.price)
+        
+    # More context stuff
+    context['discount'] = discount
+    context['total_cart'] = total_cart    # this is calculated with discount and thats stuffs
+    
+    return render(request, "orders/order_detail.html", context)
+
+
+def resume_order(request):
     """ 
         Esta vista se llama para ver el formulario (se valida con serializers), ver opciones
         de metodos de pago y envío, y actuar en consecuencia segun el metodo de pago y envío.
@@ -50,4 +78,4 @@ def order(request):
         'provinces': PROVINCIAS_CHOICES
     }
     
-    return render(request, "orders/order_page.html", context)
+    return render(request, "orders/resume_order.html", context)

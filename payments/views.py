@@ -5,22 +5,20 @@ import mercadopago
 from django.conf import settings
 from django.shortcuts import render
 
-from datetime import timedelta
 from payments import utils
 from payments import utils_for_mp
 
 
-
 from orders.models import Order, ItemOrder
+from orders.utils import get_order_detail_context
 
+from datetime import timedelta
 from django.utils import timezone
 from django.template.defaultfilters import date
 
 sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
 
-
-def payment_view(request, order_id):
-    from products.utils import valid_id_or_None
+def payment_order_create(request, order_id):
     """
         Esta función es principalmente para permitir el pago mediante tarjetas o transferencia de forma 
         segura para el cliente a partir de la API de mercado pago
@@ -29,26 +27,15 @@ def payment_view(request, order_id):
     if not user.is_authenticated:    # Stupids checks for problematic users
         return render(request, "payments/fail_payments.html", {"error": "Debes iniciar sesión para pagar."})
 
-    # Optimización de consultas con select_related
-    order_id = valid_id_or_None(order_id)
-    if not order_id:
-        return render(request, "payments/fail_payments.html", {"error": "Order ID invalido."})
+    order, context = get_order_detail_context(order_id, user)
+    if not context:
+        render(request, "payments/fail_payments.html", {"error": "Order Not Found."})
     
-    try:
-        order = (
-            Order.objects
-            .select_related('payment', 'shipment', 'shipment__method', 'status')
-            .get(id=order_id, user=user)
-        )
-    except Order.DoesNotExist:
-        return render(request, "payments/fail_payments.html", {"error": "Order Not Found."})
-    
-    # obtener info de la order
-    shipment_method = order.shipment.method    # get method envio associeted with the order
-    payment = order.payment              # get payment from order created
-    items = ItemOrder.objects.filter(order=order)    # get items from order
-    
+    items = context['items']
+    payment = context['payment']
+    shipment_method = context['shipment_method']
     discount = 1    # future discount logic
+    
     # id = 3 --> mercado pago API
     if payment.id == 3:
         preference_id, total_cart = utils_for_mp.create_preference_data(order, discount)  
@@ -61,33 +48,18 @@ def payment_view(request, order_id):
         total_cart -= float(discount)
         total_cart += float(shipment_method.price)
         
-    # get date and hours in Argentina
-    date = (order.created_at - timedelta(hours=3)).strftime("%d/%m/%Y")
-    hour = (order.created_at - timedelta(hours=3)).strftime("%H:%M")
-
-    context = {
-        'preference_id': preference_id,    # esto es para crear el brick en el front asociado al monto
-        'public_key': settings.MERCADO_PAGO_PUBLIC_KEY,    # mandamos nuestra clave publica al front
-        
-        # order stuff
-        'items': items,        
-        'shipment_method': shipment_method,    
-        'discount': discount,    
-        
-        'date': date,
-        'hour': hour,
-        'expire_date': order.expire_at,
-        'address': order.shipment.address,
-        'order_email': order.email,
-        'complete_name': order.name,
-        'status': order.status,
-        'payment': payment,
-        
-        # more data info
-        'total_cart': total_cart,    # this is calculated with discount and thats stuffs
-    }
+    # More context stuff
+    context['preference_id'] = preference_id    # esto es para crear el brick en el front asociado al monto
+    context['public_key'] = settings.MERCADO_PAGO_PUBLIC_KEY        # mandamos nuestra clave publica al front
+    context['discount'] = discount
+    context['total_cart'] = total_cart    # this is calculated with discount and thats stuffs
     
-    return render(request, "payments/payments_page.html", context)
+    return render(request, "orders/order_detail.html", context)
+    # get date and hours in Argentina
+    # date = (order.created_at - timedelta(hours=3)).strftime("%d/%m/%Y")
+    # hour = (order.created_at - timedelta(hours=3)).strftime("%H:%M")
+
+
 
 
     # merchant_order_id = request.GET.get("merchant_order_id")
@@ -141,8 +113,6 @@ def success(request):
         'payment_mp': payment_mp
     }
     
-
-
     return render(request, 'payments/success.html', contexto)
 
 

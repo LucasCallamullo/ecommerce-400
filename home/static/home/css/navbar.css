@@ -49,11 +49,11 @@ Styles for large desktops (mín. 993px to max. infinite)
 }
 
 /* Desktop (min. 993px) */
-@media (min-width: 993px) {
+@media (min-width: 992px) {
     /* containers from top nav bar in desktop mode */
     .top-nav {
-        height: 134px;    /*  204px - 134 = 70px; */
-        max-height: 134px;
+        height: 110px;    /*  204px - 134 = 70px; */
+        max-height: 110px;
     }
 
     .grid-navbar-top {
@@ -109,7 +109,7 @@ Styles for large desktops (mín. 993px to max. infinite)
 /* ========================================================================
     Main Nav Bar - DESKTOP
 ======================================================================== */
-@media (min-width: 993px) {
+@media (min-width: 992px) {
     .main-nav {
         width: 100%;
         position: relative;

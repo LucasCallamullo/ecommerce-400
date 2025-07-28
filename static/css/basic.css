@@ -120,7 +120,7 @@
 @media (min-width: 992px) {
     :root {
         /* heigths 25vh */
-        --height-header: 204px;
+        --height-header: 180px;    /* 204px */
         --height-item-main-nav: 48px;
         --padding-container-page: 7%;     /* padding responsive useful some times */
     }

@@ -193,7 +193,7 @@ function eventFormOrder(form) {
     confirmButton.addEventListener('click', () => {
         if (!flag) {
             flag = flagsOrdersConfirm();
-            return;
+            if (!flag) return;
         }
         btnOpenModal.click();
     });
@@ -205,14 +205,14 @@ function eventFormOrder(form) {
     confirmButtonModal.addEventListener('click', () => {
         if (!flag) {
             flag = flagsOrdersConfirm();
-            return;
+            if (!flag) return;
         }
         btnClose.click();
         btnFormSubmit.click();
     });
 
-    const paymentSection = form.querySelector('#payment-methods-section');
-    const shippingSection = form.querySelector('#shipping-methods-section');
+    const paymentSection = document.querySelector('#payment-methods-section');
+    const shippingSection = document.querySelector('#shipping-methods-section');
 
     /**
      * Validates if a radio input in a section is selected properly.

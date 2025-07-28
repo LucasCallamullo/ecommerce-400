@@ -4,7 +4,7 @@ from django.urls import path
 from payments import views
 
 urlpatterns = [
-    path('payment-view/<int:order_id>/', views.payment_view, name='payment-view'),
+    path('orden-compra/<int:order_id>/', views.payment_order_create, name='payment-order-create'),
 
     path('success/', views.success, name='payment_success'),
     path('failure/', views.failure, name='payment_failure'),

@@ -1,0 +1,222 @@
+
+
+
+
+.hr-custom {
+    display: block;
+    overflow: hidden;
+    border: none;
+    height: 6px;
+    background: linear-gradient(
+        to right,
+        var(--main-color),    /* Inicio (color principal) */
+        var(--main-color),    /* Inicio (color principal) */
+        var(--main-light-color),    /* Inicio (color principal) */
+        var(--white-color),   /* Punto intermedio */
+        var(--main-light-color),
+        var(--main-color),
+        var(--main-color) 100% /* Extendemos el color principal hasta el 70% */
+    );
+    background-size: 200% 100%; 
+    margin: 16px 0;
+    animation: gradientScroll 4s linear infinite; /* Aumentamos la duración para más fluidez */
+    will-change: background-position;
+	filter: blur(0.5px); /* Difumina el corte (opcional) */
+	
+}
+
+@keyframes gradientScroll {
+    100% {
+        background-position: 0% 50%;   /* Inicio */
+    }
+    0% {
+        background-position: 100% 50%; /* Final */
+    }
+}
+
+.hr-primary {
+	border: none;
+    height: 6px;
+	background: var(--text-primary);
+}
+
+.icon-title {
+	font-size: 86px;
+}
+
+.text-break {
+	word-break: break-word;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+
+.bold-blue {
+	color: rgb(81, 81, 250);
+	font-weight: bolder;
+}
+
+.cont-grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.cont-data-order {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	width: 100%;
+	column-gap: 0px;
+	row-gap: 16px;
+}
+
+.justify-self-center {
+	align-self: center;
+}
+
+@media (min-width: 992px) {
+	.cont-data-order {
+		width: 50%;
+		grid-template-columns: 1fr 1fr;
+		column-gap: 0px;
+	}
+
+	.gap-cond {
+		gap: 64px;
+	}
+}
+
+/* 
+	Estilos generales para el Table products
+*/
+.cart-row {
+    display: grid;
+    grid-template-columns: 0.5fr 0.5fr 0.3fr 0.7fr; 
+    grid-template-rows: 1.3fr 0.6fr 0.1fr; 
+    grid-template-areas:
+        "image name name name"
+        "image price quantity subtotal"
+        "image . . .";
+
+    padding: 0;
+    gap: 0;
+    row-gap: 0;
+    column-gap: 0;
+    height: 100px;
+    max-height: 100px;
+    border-bottom: 2px solid var(--text-primary);
+    border-left: 2px solid var(--text-primary);
+    border-right: 2px solid var(--text-primary);
+}
+
+.row-header {
+	height: 40px !important;
+	padding-bottom: 6px;
+	border-top: 2px solid var(--text-primary);
+}
+
+.border-top-tablets {
+    border-top: 2px solid var(--text-primary);
+}
+
+/* Asignar áreas a los elementos */
+.cart-row .subtotal,
+.cart-row .quantity,
+.cart-row .price {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Imagen */
+.cart-row .image { grid-area: image; }
+
+ /* Nombre */
+.cart-row .name { 
+    grid-area: name;
+    padding-top: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+ /* Precio */
+.cart-row .price { 
+    grid-area: price;
+	padding-left: 12px;
+}
+
+/* Cantidad */
+.cart-row .quantity { 
+    grid-area: quantity;
+} 
+
+/* Subtotal */
+.cart-row .subtotal { 
+    grid-area: subtotal;
+	justify-content: flex-end;
+	padding-right: 12px;
+} 
+
+.lil-40 {
+	height: 42px !important;
+	padding-top: 0px;
+	grid-template-columns: 0.5fr 0.5fr 0.3fr 0.7fr; 
+    grid-template-areas:
+        "image name . subtotal"
+}
+
+/* Styles for large desktops (mín. 993px to max. infinite) */
+@media (min-width: 992px) {
+	.cart-row {
+        grid-template-columns: 1fr 2fr 0.8fr 0.7fr 1.5fr;
+        grid-template-rows: none;
+        grid-template-areas: "image name price quantity subtotal";
+        height: 90px;
+        max-height: 90px;
+    }
+
+    .cart-row .cont-img-100-off {
+        height: calc(100% + 2px);
+        max-height: calc(100% + 2px);
+        border-bottom: 2px solid var(--black-color); 
+        z-index: 1;
+    }
+
+	/* Asignar áreas a los elementos */
+	.cart-row .subtotal,
+	.cart-row .quantity,
+	.cart-row .price {
+		align-items: flex-start;
+		gap: 8px;
+		padding: 0px;
+		padding-top: 8px;
+	}
+
+	.cart-row .name { 
+        padding-top: 8px;
+        padding-left: 10px;
+        padding-right: 8px;
+	}
+
+    .cart-row .subtotal {
+        justify-content: flex-end;
+		padding-right: 16px;
+    }
+
+	.cart-row .price,
+	.cart-row .quantity {
+		justify-content: center;
+	}
+
+    .border-top-tablets {
+        border-top: none;
+    }
+
+	.lil-40 {
+		padding-top: 0;
+	}
+}
+
+.container-mp {
+    display: flex;
+    width: 40%;
+    margin-right: 30%;
+}

@@ -209,8 +209,7 @@ function widgetCartButtons() {
 function widgetCartOpenEvent() {
     // Define the pages where the cart widget should NOT be activated
     const blockedPages = [
-        "/order/",       // Blocked: order page
-        "/payment-view/" // Blocked: payment view page
+        window.BASE_URLS.resumeOrder       // Blocked: order page
     ];
 
     // Get the current page path

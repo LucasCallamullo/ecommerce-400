@@ -6,7 +6,7 @@
 
 {% block extra_head %}
 	<title>Finalizar Pedido | {{store.name}}</title>
-	<link rel="stylesheet" href="{% static 'orders/css/order_page.css' %}">
+	<link rel="stylesheet" href="{% static 'orders/css/resume_order.css' %}">
 {% endblock %}
 
 
@@ -217,13 +217,13 @@
     <script>
         window.TEMPLATE_URLS = {
             // payments/urls.py
-            paymentPage: "{% url 'payment-view' 0 %}".replace('0/', '{order_id}/'),
+            paymentPage: "{% url 'payment-order-create' 0 %}".replace('0/', '{order_id}/'),
 
 			// orders/urls_api
 			validOrder: "{% url 'valid_order_form' %}"
         };
     </script>
 
-	<script src="{% static 'orders/js/order_page.js' %}"> </script>
+	<script src="{% static 'orders/js/resume_order.js' %}"> </script>
 
 {% endblock %}

@@ -14,11 +14,60 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 
+from products.utils import valid_id_or_None
+
+def get_order_detail_context(order_id, user):
+    # Optimización de consultas con select_related
+    order_id = valid_id_or_None(order_id)
+    if not order_id:
+        return None, None
+    
+    try:
+        order = (
+            Order.objects
+            .select_related('payment', 'shipment', 'shipment__method', 'status')
+            .only(
+                'id', 'created_at', 'expire_at', 'name', 'email', 
+                'shipment__id', 'shipment__address', 
+                'status__id', 'status__name',
+                'payment__id', 'payment__name', 'payment__time', 
+                'shipment__method__id', 'shipment__method__price', 'shipment__method__name'
+            )
+            .get(id=order_id, user=user)
+        )
+    except Order.DoesNotExist:
+        return None, None
+    
+    # get selected relateds for context
+    shipment_method = order.shipment.method          # get method envio associeted with the order
+    payment = order.payment                          # get payment from order created
+    status = order.status                            # get status from order created
+    
+    items = (             # get items from order
+        ItemOrder.objects    
+        .filter(order=order)
+        .select_related('product')  # trae todos los datos del producto relacionados
+        .only('quantity', 'price', 'product__id', 'product__name', 'product__main_image')
+    )
+    
+    context = {
+        # order stuff
+        'items': items,
+        'shipment_method': shipment_method,
+        'date': order.created_at,
+        'expire_date': order.expire_at,
+        'address': order.shipment.address,
+        'order_email': order.email,
+        'complete_name': order.name,
+        'status': status,
+        'payment': payment
+    }
+    
+    return order, context
+
+
 def create_order_pending(order_data, user, products, cart_items):
     """
-    esta funcion nos sirve para almacenar y guardar todos los datos en la base de datos y asociarlo
-    segun corresponda con cada base de datos
-    
     # example on order data
     order_data = {
         "first_name": "Lucas",
