@@ -2,29 +2,62 @@
 
 {% load custom_filters %}
 
+<h1 class="bold-main mt-1 mb-2 font-xxl">Lista de Pedidos</h1>
 
-<h1 class="bold-main mt-1 mb-3">Lista de Pedidos</h1>
+{% if is_admin %}
+    <form class="d-flex-col-row justify-center align-center gap-2 mt-1 mb-3" id="form-order-table">
+        <strong class="bold-main">Filtrar por N° Orden:</strong>
 
-<div class="d-grid cont-grid-orders">
+        <div class="cont-user-search">
+            <input type="search" name="search" placeholder="Buscar N° Orden...">
+            <button class="btn" type="submit">
+                <i class="ri-price-tag-3-line font-lg search-icon"></i>
+            </button>
+        </div>
 
-    <div class="text-center bolder text-break text-secondary font-md">Orden</div>
-    <div class="text-start bolder text-break text-secondary font-md">Fecha</div>
-    <div class="text-center bolder text-break text-secondary font-md">Estado</div>
-    <div class="text-center bolder text-break text-secondary font-md">Resumen</div>
-    <div class="text-start bolder text-break text-secondary font-md">Factura</div>
+        <select class="w-min" name="status">
+            {% for status in status_orders %}
+                <option value="{{ status.id }}" {% if status.id == status_id|default:2 %}selected{% endif %}>
+                    {{ status.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+{% endif %}
 
+{% if orders %}
+    <div class="d-grid cont-table-orders bolder text-break font-md text-secondary">
+        <div class="text-center">Orden</div>
+        <div class="text-start d-desktop-block">Fecha</div>
+        <div class="text-center">Estado</div>
+        <div class="text-center">Resumen</div>
+        <div class="text-start d-desktop-block">Factura</div>
+    </div>
+{% endif %}
+
+
+<div class="d-grid cont-table-orders mt-2 bolder font-md">
     {% for order in orders %}
+        <a class="text-center row-order bold-main underline-anim" 
+            href="{% url 'order-detail' order.id %}"><span># {{ order.id }}</span>
+        </a>
 
-        <div class="text-center bold-main text-break"># {{ order.id }}</div>
-        <div class="text-start bolder text-break">{{ order.created_at|short_date }}</div>
+        <div class="text-start row-order bolder d-desktop-block">{{ order.created_at|short_date }}</div>
+        <div class="text-center row-order bold-orange text-truncate">{{ order.status__name }}</div>
+        <div class="text-center row-order bolder">$ {{ order.total|intdot }}</div>
 
-        <div class="text-center bold-orange text-break">{{ order.status__name }}</div>
-
-        <div class="text-center bolder text-break">$ {{ order.total|intdot }}</div>
-        <a class="text-start bold-main text-break" href="#">Ver Orden</a>
-        
+        <a class="text-start row-order bold-main underline-anim d-desktop-block" 
+            href="{% url 'order-detail' order.id %}"><span>Ver Orden</span>
+        </a>
+    {% empty %}
+    
+        <h3 class="grid-col-all mt-1 text-break font-lg">Todavía no realizaste ninguna orden.</h3>
+        <h4 class="grid-col-all text-break font-md">Mira nuestros productos:</h4>
+        <div class="grid-col-all justify-self-center">
+            <a href="{% url 'product_list' %}" class="w-min text-truncate btn btn-main gap-2 px-2 py-1">
+                <i class="ri-shopping-cart-2-line font-lg"></i>
+                <span class="bolder font-md">Todos los Productos</span>
+            </a>
+        </div>
     {% endfor %}
 </div>
-
-
-

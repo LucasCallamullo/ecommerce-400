@@ -7,7 +7,7 @@
 
 <!-- For More CSS Modules -->
 {% block extra_head %}
-    <title> Home </title>
+    <title> Home | {{ store.name }} </title>
 
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
@@ -29,7 +29,7 @@
         <div class="swiper-wrapper w-100 h-100">
             {% for image in headers_active %}
                 <div class="swiper-slide">
-                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ image.id }}">
+                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ image.id }}" loading="lazy">
                 </div>
             {% endfor %}
         </div>

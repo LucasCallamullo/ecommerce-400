@@ -20,7 +20,7 @@
  * @param {string} method - The HTTP method to use (e.g., "PATCH", "POST").
  * @throws {Error} Throws if the server response is not OK.
  */
-async function formToSubmit(jsonData, url, method) {
+async function formProfileAdmToSubmit(jsonData, url, method) {
     const response = await fetch(url, {
         method: method,
         headers: {
@@ -53,7 +53,7 @@ async function formToSubmit(jsonData, url, method) {
  * Each form uses `handleGenericFormBase` to ensure:
  *   - Double submit prevention
  *   - Spinner animation (optional)
- *   - CSRF protection via `formToSubmit`
+ *   - CSRF protection via `formProfileAdmToSubmit`
  *   - JSON body submission with PATCH method
  * 
  * @param {HTMLElement} container - The container that holds all store tab forms.
@@ -61,39 +61,32 @@ async function formToSubmit(jsonData, url, method) {
 function storeTabEvents(container) {
 
     // Bind submit for the main store data form
-    const form = container.querySelector('.form-store-grid');
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await handleGenericFormBase({
-            form: form,
-            submitCallback: async () => {
-                try {
-                    const jsonData = sanitizeFormData(form);
-                    const url = window.TEMPLATE_URLS.storeUpdate.replace('{store_id}', form.dataset.index);
-                    await formToSubmit(jsonData, url, 'PATCH');
-                } catch (err) {
-                    throw new Error("Error Valid Form");
-                }
-            },
-            // Spinner animation config (optional)
-            flag_anim: true,
-            time_anim: 1000
-        });
-    });
+    if (container.dataset.listened === 'true') return;
+    container.dataset.listened = 'true';
 
-    // Bind submit for each shipment method form
-    const formShipments = container.querySelectorAll('.shipments-form');
-    formShipments.forEach(form => {
-        form.addEventListener('submit', async (e) => {
+    container.addEventListener('submit', async (e) => {
+        const form = e.target;
+
+        // Send Forms update Store Info, Payment Method or Shipment Method
+        if (form.matches('.form-store-grid') || form.matches('.shipments-form') || form.matches('.payments-form')) {
             e.preventDefault();
+
+            const objectId = form.dataset.index;
+            let url;
+            if (form.matches('.form-store-grid')) {
+                url = window.TEMPLATE_URLS.storeUpdate.replace('{store_id}', objectId);
+            } else if (form.matches('.shipments-form')) {
+                url = window.TEMPLATE_URLS.shipmentUpdate.replace('{shipment_id}', objectId);
+            } else {
+                url = window.TEMPLATE_URLS.paymentUpdate.replace('{payment_id}', objectId);
+            }
 
             await handleGenericFormBase({
                 form: form,
                 submitCallback: async () => {
                     try {
                         const jsonData = sanitizeFormData(form);
-                        const url = window.TEMPLATE_URLS.shipmentUpdate.replace('{shipment_id}', form.dataset.index);
-                        await formToSubmit(jsonData, url, 'PATCH');
+                        await formProfileAdmToSubmit(jsonData, url, 'PATCH');
                     } catch (err) {
                         throw new Error("Error Valid Form");
                     }
@@ -101,90 +94,168 @@ function storeTabEvents(container) {
                 flag_anim: true,
                 time_anim: 1000
             });
-        });
-    });
-
-    // Bind submit for each payment method form
-    const formPayments = container.querySelectorAll('.payments-form');
-    formPayments.forEach(form => {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            await handleGenericFormBase({
-                form: form,
-                submitCallback: async () => {
-                    try {
-                        const jsonData = sanitizeFormData(form);
-                        const url = window.TEMPLATE_URLS.paymentUpdate.replace('{payment_id}', form.dataset.index);
-                        await formToSubmit(jsonData, url, 'PATCH');
-                    } catch (err) {
-                        throw new Error("Error Valid Form");
-                    }
-                },
-                flag_anim: true,
-                time_anim: 1000
-            });
-        });
+        }
     });
 }
 
 
 /**
  * Handles events related to the users tab:
- * - Submits role-edit forms with PATCH requests.
- * - Submits the user filter form (with search and role select) via GET.
- * - Automatically submits the filter form when the role select changes.
- * 
+ * - Submits individual role-edit forms via PATCH requests using a generic handler.
+ * - Submits the main user filter/search form via GET request to update the user list.
+ * - Automatically submits the filter form when the role select is changed.
+ *
  * @param {HTMLElement} container - The container element holding the users tab content.
  * @param {string} tabId - The current tab identifier (used to build URLs).
  */
 function usersTabEvents(container, tabId) {
-    // Forms to edit user roles
-    const formUserEdits = container.querySelectorAll('.form-user-role');
-    formUserEdits.forEach(form => {
-        form.addEventListener('submit', async (e) => {
+    // Prevent attaching duplicate event listeners
+    if (container.dataset.listened === 'true') return;
+    container.dataset.listened = 'true';
+
+    /**
+     * Handle submit events for both individual user forms and the main filter form.
+     */
+    container.addEventListener('submit', async (e) => {
+        const form = e.target;
+
+        // If the form is an individual role-edit form
+        if (form.matches('.form-user-role')) {
             e.preventDefault();
 
             await handleGenericFormBase({
                 form: form,
                 submitCallback: async () => {
                     try {
+                        // Convert form data into a JSON object
                         const jsonData = sanitizeFormData(form);
+
+                        // Build the endpoint URL using the user ID from the form's dataset
                         const url = window.TEMPLATE_URLS.userRoleUpdate.replace('{user_id}', form.dataset.index);
-                        await formToSubmit(jsonData, url, 'PATCH');
+
+                        // Submit the form using a PATCH request
+                        await formProfileAdmToSubmit(jsonData, url, 'PATCH');
                     } catch (err) {
                         throw new Error("Error Valid Form");
                     }
                 },
-                // Optional: enable spinner animation on submit button
-                flag_anim: true,
-                time_anim: 1000    // or 0 is optional if flag is true
+                flag_anim: true,    // Enable animation after successful submission
+                time_anim: 1000     // Animation duration (ms)
             });
-        });
+        }
+
+        // If the form is the main filter/search form
+        if (form.matches('#form-user-table-tab')) {
+            e.preventDefault();
+
+            // Serialize form data as query string
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData).toString();
+
+            await getTabContentAJAX({ container, tabId, params, isPanel: false })
+        }
     });
 
-    // Filter form for users table (search + role select)
-    const formTable = container.querySelector('#form-user-table-tab');
-    const select = formTable.querySelector("select[name='role']");
-    formTable.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    /**
+     * Automatically submit the main filter form when the role select changes.
+     */
+    container.addEventListener('change', (e) => {
+        if (e.target.matches("select[name='role']")) {
+            const form = e.target.closest('form');
+            if (form?.matches('#form-user-table-tab')) {
+                form.requestSubmit();
+            }
+        }
+    });
+}
 
-        const formData = new FormData(formTable);
+
+
+/**
+ * Initializes event listeners for the "Orders" tab content.
+ * This function ensures that listeners are only attached once per tab load.
+ *
+ * @param {HTMLElement} container - The DOM element that contains the orders tab content.
+ * @param {string} tabId - The ID of the current active tab (used for URL resolution).
+ */
+function ordersTabEvents(container, tabId) {
+    // Avoid attaching duplicate event listeners if already initialized
+    if (container.dataset.listened === 'true') return;
+    container.dataset.listened = 'true';
+
+    /**
+     * Handle form submission inside the container.
+     * Submits the form via AJAX and updates the container with new content.
+     */
+    container.addEventListener('submit', async (e) => {
+        const form = e.target.closest('form#form-order-table');
+        if (!form) return;
+
+        e.preventDefault(); // Prevent default form submission
+
+        // Serialize form data into query parameters
+        const formData = new FormData(form);
         const params = new URLSearchParams(formData).toString();
-        const url = window.TEMPLATE_URLS.profileTabs.replace('{tab_name}', tabId);
 
-        const response = await fetch(`${url}?${params}`);
+        await getTabContentAJAX({ container, tabId, params, isPanel: false })
+    });
+
+    /**
+     * Handle changes in the status dropdown.
+     * When a select element named 'status' is changed, submit the form automatically.
+     */
+    container.addEventListener('change', (e) => {
+        if (e.target.matches("select[name='status']")) {
+            const form = e.target.closest('form');
+            if (form) form.requestSubmit(); // Submit the form programmatically
+        }
+    });
+}
+
+
+/**
+ * Loads dynamic tab content via AJAX and inserts it into the specified container.
+ * Also initializes the corresponding event handlers for interactive tabs.
+ *
+ * @async
+ * @function getTabContentAJAX
+ * @param {Object} options - Configuration object.
+ * @param {HTMLElement} options.container - The DOM element where the tab content will be injected.
+ * @param {string} options.tabId - The identifier of the tab (used to build the URL and initialize tab-specific logic).
+ * @param {string} [options.params=''] - Optional query parameters to append to the URL.
+ * @param {boolean} [options.isPanel=true] - Indicates whether tab-specific event setup should be run.
+ *
+ * @returns {Promise<void>}
+ */
+async function getTabContentAJAX({ container, tabId, params = '', isPanel = true } = {}) {
+    // Construye la URL base reemplazando el nombre del tab
+    const base_url = window.TEMPLATE_URLS.profileTabs.replace('{tab_name}', tabId);
+    const url = (params) ? `${base_url}?${params}` : base_url;
+
+    try {
+        // Realiza la solicitud al servidor
+        const response = await fetch(url);
         const data = await response.json();
-
-        // Clear the container and inject the new HTML content
+    
+        // Limpia el contenido actual del contenedor e inserta el nuevo HTML
         container.innerHTML = data.html;
-        usersTabEvents(container, tabId);
-    });
+    
+        // Inicializa eventos específicos según el tab activo
+        if (isPanel) {
+            if (tabId === 'store-data-tab') {
+                storeTabEvents(container);
+            } else if (tabId === 'users-tab') {
+                usersTabEvents(container, tabId);
+            } else if (tabId === 'orders-tab') {
+                ordersTabEvents(container, tabId);
+            }
+        }
 
-    // When the role select changes, submit the filter form automatically
-    select.addEventListener('change', () => {
-        formTable.requestSubmit();
-    });
+    } catch (error) {
+        // Manejo de errores en caso de fallo en la carga
+        console.error('Error loading content:', error);
+        container.innerHTML = '<p>Algo salió mal recargue la página.</p>';
+    }
 }
 
 
@@ -199,51 +270,41 @@ function usersTabEvents(container, tabId) {
  */
 document.addEventListener('DOMContentLoaded', () => {
     
-    const menuItems = document.querySelectorAll('.btn-tabs');
+
+    const contBtnTabs = document.querySelector('.cont-tabs');
+    const btnTabs = document.querySelectorAll('.btn-tabs');
     const divTabs = document.querySelectorAll('.tab-content');
+    
+    contBtnTabs.addEventListener('click', async function (e) {
 
-    menuItems.forEach(btn => {
-        btn.addEventListener('click', async function (e) {
-            e.preventDefault();
+        const btn = e.target.closest('.btn-tabs');
+        if (!btn) return; // Si no se hizo click en un .btn-tabs, ignorar
 
-            // Remove 'active' class from all tab buttons
-            menuItems.forEach(i => i.classList.remove('active'));
-            btn.classList.add('active');
+        // Opcional: evitar repetir acción si ya está activo
+        if (btn.classList.contains('active')) return;
 
-            const tabId = btn.getAttribute('data-tab');
-            const container = document.getElementById(tabId);
+        // Remove 'active' class from all tab buttons
+        btnTabs.forEach(btn => btn.classList.remove('active'));
+        btn.classList.add('active');
 
-            // Hide all tab content divs and show only the selected one
-            divTabs.forEach(div => div.style.display = 'none');
-            container.style.display = 'block';
+        const tabId = btn.dataset.tab;
+        const container = document.getElementById(tabId);
 
-            try {
-                const url = window.TEMPLATE_URLS.profileTabs.replace('{tab_name}', tabId);
-                const response = await fetch(url);
-                const data = await response.json();
-            
-                // Clear the container and insert the returned HTML content
-                container.innerHTML = data.html;
-            
-                // Call event setup functions based on active tab
-                if (tabId === 'store-data-tab') {
-                    storeTabEvents(container);
-                } else if (tabId === 'users-tab') {
-                    usersTabEvents(container, tabId);
-                }
+        // Hide all tab content divs and show only the selected one
+        divTabs.forEach(div => div.style.display = 'none');
+        container.style.display = 'block';
 
-            } catch (error) {
-                console.error('Error loading content:', error);
-                container.innerHTML = '<p>Error loading content.</p>';
-            }
-        });
-    });
+        await getTabContentAJAX({ container, tabId })
+    })
 
     // Automatically trigger click on the second tab to show it on page load
-    const firstTab = menuItems[0];
+    const firstTab = btnTabs[0];
     if (firstTab) {
-        firstTab.click();
+        const tabId = firstTab.dataset.tab;
+        const container = document.getElementById(tabId);
+        getTabContentAJAX({ container, tabId })
     }
+    
 
     const formsClose = document.querySelectorAll('.form-close-profile');
     formsClose.forEach((form) => {

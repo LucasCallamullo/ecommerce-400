@@ -72,11 +72,11 @@
                         <!-- stock -->
                         <div class="ms-2 me-2 cont-space-between">
                             {% if not product.available or product.stock == 0 %}
-                                <b class="bold-red font-sm">No disponible</b>
+                                <b class="bold-red font-sm">No disponible {{product.stock}}</b>
                             {% elif product.stock <= 3 %}
-                                <b class="bold-orange font-sm">Stock Bajo</b>
+                                <b class="bold-orange font-sm">Stock Bajo {{product.stock}}</b>
                             {% else %}
-                                <b class="bold-green font-sm">Disponible</b>
+                                <b class="bold-green font-sm">Disponible {{product.stock}}</b>
                             {% endif %}
                         
                         <!-- </div>    container stars - likes

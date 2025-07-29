@@ -1,7 +1,5 @@
 
 
-
-
 .img-circle {
     border-radius: 50%; 
     width: 150px;
@@ -21,9 +19,8 @@
     border-top: none !important;
 }
 
-
 /*
-            Segunda columna dashboards y demas
+    Segunda columna dashboards y demas
 */
 .cont-banner-profile {
     width: 100%;
@@ -77,77 +74,38 @@
 
 
 
-
 /* =========================================================================================
             TAB PERSONALIZADO DE ORDERS
-/* ========================================================================================= */
-.order-container {
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+========================================================================================= */
+.cont-table-orders {
+    /* id     status.name    price  */
+    padding: 0;
+    gap: 16px;
+    column-gap: 0;
+    grid-template-columns: 0.4fr 1.1fr 0.9fr;
 }
 
-.order-title {
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
+.row-order {
+    height: 32px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--text-primary);
 }
 
-.order-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
+.cont-table-orders .underline-anim span::after {
+    background-color: var(--main-light-color);
 }
 
-.order-header {
-    background-color: #007bff;
-    color: #fff;
-    padding: 15px;
-    text-align: left;
-}
 
-.order-row {
-    border-bottom: 1px solid #ddd;
-}
+/* Styles for large desktops (mín. 992px to max. infinite) */
+@media (min-width: 992px) {
+    .cont-table-user {
+        grid-template-columns: 0.7fr 0.7fr 1.7fr 0.7fr 0.4fr;
+        height: 48px;
+        column-gap: 16px;
+    }
 
-.order-row:nth-child(even) {
-    background-color: #f9f9f9;
+    .cont-table-orders {
+        /* id     date    status.name    price    href */
+        grid-template-columns: 0.4fr 0.6fr 1.1fr 1.1fr 0.5fr;
+    }
 }
-
-.order-cell {
-    padding: 15px;
-    color: #555;
-}
-
-.order-status {
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.order-status-pending {
-    background-color: #ffc107;
-    color: #000;
-}
-
-.order-status-completed {
-    background-color: #28a745;
-    color: #fff;
-}
-
-.order-status-cancelled {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-.order-link {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.order-link:hover {
-    text-decoration: underline;
-}
-

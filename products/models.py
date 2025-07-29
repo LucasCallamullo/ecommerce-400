@@ -311,9 +311,11 @@ class Product(models.Model):
         
     def make_stock_reserved(self, quantity):
         """ Method for products to reserve stock for different payment orders """
-        if not self.available or self.stock <= quantity:
+        print(f'Available {self.available} - Stock: {self.stock} - Cantidad: {quantity}')
+        if not self.available or self.stock < quantity:
             return False
         
+        print('reservo el stock')
         self.stock -= quantity
         self.stock_reserved += quantity
         return True
@@ -322,16 +324,6 @@ class Product(models.Model):
         self.stock += quantity
         self.stock_reserved -= quantity
         self.save()
-
-    @property
-    def calc_discount(self):
-        """
-        Calculate the price of the product after applying the discount percentage.
-
-        Returns:
-            float: The final price after discount.
-        """
-        return round(float(self.price) * (1 - float(self.discount) / 100), 2)
     
     @property
     def calc_discount(self):

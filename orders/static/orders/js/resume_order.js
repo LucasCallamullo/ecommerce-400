@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             closeCallback: () => {
                 // Redirect user to the payment page with the correct order ID in the URL
+                if (!order_id) return; 
                 const url = window.TEMPLATE_URLS.paymentPage.replace('{order_id}', `${order_id}`);
                 window.location.href = url;
             },

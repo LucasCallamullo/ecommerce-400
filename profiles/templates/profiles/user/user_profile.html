@@ -75,8 +75,10 @@
                 <div class="d-flex gap-1 border-secondary btn-36 w-100">
                     <i class="ri-phone-line font-lg ms-2"></i>
                     <span>
-                        {% if user.phone %} +54 9 {{ user.phone }}
-                        {% else %} No hay número.
+                        {% if user.phone %}
+                            {{ user.phone }}
+                        {% else %} 
+                            No hay número.
                         {% endif %}
                     </span>
                 </div>
@@ -99,7 +101,7 @@
 
         <!-- ITEMS BANNER -->
         <div class="d-grid w-100 cont-tabs">
-            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="first-tab">
+            <button class="active btn btn-alt gap-1 btn-40 w-100 btn-tabs" data-tab="orders-tab">
                 <!-- 		 <a class="gap-2 text-white" data-content="First Tab">  </a>-->
                 <i class="ri-time-line font-lg"></i>
                 <p class="font-md"><b>Pedidos Pendientes</b></p>
@@ -119,7 +121,7 @@
         </div>
 
         <!-- DASHBOARD PRODUCTOS -->
-        <div class="tab-content p-2" id="first-tab"></div>
+        <div class="tab-content p-2" id="orders-tab"></div>
 
         <div class="tab-content p-2" id="favorites-tab"></div>
 

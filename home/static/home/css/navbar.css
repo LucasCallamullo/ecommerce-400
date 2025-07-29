@@ -130,36 +130,6 @@ Styles for large desktops (mín. 993px to max. infinite)
         background-color: var(--main-light-color);
     }
 
-    .nav__link {
-        position: relative;
-        color: var(--white-color);
-        
-        font-weight: bolder;
-        transition: opacity .4s;
-    }
-    
-    .nav__link span {
-        position: relative;
-        transition: margin .4s;
-    }
-    
-    .nav__link span::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: -6px;
-        width: 0;
-        height: 2px;
-        background-color: var(--white-color);
-        transition: width .4s ease-out;
-    }
-    
-    /* Animation link on hover */
-    .nav__link:hover span::after { width: 100%; }
-    
-    /* Sibling fade animation */
-    .nav__list:has(.nav__link:hover) .nav__link:not(:hover) { opacity: .4; }
-
     /* ============================================= 
         fixed-nav in desktop css
     ============================================= */

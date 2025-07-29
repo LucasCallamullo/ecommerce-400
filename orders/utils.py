@@ -20,56 +20,72 @@ def get_order_detail_context(order_id, user):
     # Optimización de consultas con select_related
     order_id = valid_id_or_None(order_id)
     if not order_id:
-        return None, None
+        return None
     
-    try:
-        order = (
-            Order.objects
-            .select_related('payment', 'shipment', 'shipment__method', 'status')
-            .only(
-                'id', 'created_at', 'expire_at', 'name', 'email', 'shipment_cost', 'total', 'discount', 
-                'shipment__id', 'shipment__address', 
-                'status__id', 'status__name',
-                'payment__id', 'payment__name', 'payment__time', 
-                'shipment__method__id', 'shipment__method__name'
-            )
-            .get(id=order_id, user=user)
+    order = (
+        Order.objects
+        .filter(id=order_id, user=user)
+        .values(
+            'id', 'created_at', 'expire_at', 'email', 'name', 'shipment_cost', 'total', 'discount_coupon',
+            'shipment__id', 'shipment__address', 
+            'status__id', 'status__name',
+            'payment__id', 'payment__name', 'payment__time', 
+            'shipment__method__id', 'shipment__method__name'
         )
-    except Order.DoesNotExist:
-        return None, None
-    
-    # get selected relateds for context
-    shipment_method = order.shipment.method          # get method envio associeted with the order
-    payment = order.payment                          # get payment from order created
-    status = order.status                            # get status from order created
-
-    items = (             # get items from order
-        ItemOrder.objects    
-        .filter(order=order)
-        .select_related('product')  # trae todos los datos del producto relacionados
-        .only('quantity', 'price', 'product__id', 'product__name', 'product__main_image')
+        .first()
     )
-
-    context = {
-        # order stuff
-        'items': items,
-        
-        'date': order.created_at,
-        'expire_date': order.expire_at,
-        
-        'order_email': order.email,
-        'complete_name': order.name,
-        'total_cart': order.total,
-        'discount': order.discount,
-        'shipment_cost': order.shipment_cost,
-        
-        'shipment_method': shipment_method,
-        'address': order.shipment.address,
-        'status': status,
-        'payment': payment
-    }
     
-    return order, context
+    if not order:
+        return None
+    
+    # Extraemos y eliminamos datos de forma limpia
+    shipment = {
+        'id': order.pop('shipment__id'),
+        'address': order.pop('shipment__address'),
+        'method': {
+            'id': order.pop('shipment__method__id'),
+            'name': order.pop('shipment__method__name'),
+        }
+    }
+
+    payment = {
+        'id': order.pop('payment__id'),
+        'name': order.pop('payment__name'),
+        'time': order.pop('payment__time'),
+    }
+
+    status = {
+        'id': order.pop('status__id'),
+        'name': order.pop('status__name'),
+    }
+        
+    items_data = (
+        ItemOrder.objects
+        .filter(order_id=order_id)
+        .values(
+            'quantity', 'final_price', 'original_price', 'discount',
+            'product__id', 'product__name', 'product__main_image'
+        )
+    )
+    
+    processed_items = []
+    for item in items_data:
+        product = {
+            'id': item.pop('product__id'),
+            'name': item.pop('product__name'),
+            'main_image': item.pop('product__main_image'),
+        }
+        item['product'] = product
+        processed_items.append(item)
+    
+    context = {
+        'items': processed_items,
+        'order': order,
+        'shipment': shipment,
+        'payment': payment,
+        'status': status
+    }
+    return context
 
 
 def create_order_pending(order_data, user, products, cart_items):
@@ -144,7 +160,6 @@ def create_order_pending(order_data, user, products, cart_items):
             cellphone=order_data.get("cellphone", ""),
             dni=order_data.get("dni", ""),
             detail_order=order_data.get("detail_order", ""),
-            invoice=None, # primero será null y se creara despues una vez confirmado el pago
             expire_at=expire_at
         )
         
@@ -156,7 +171,7 @@ def create_order_pending(order_data, user, products, cart_items):
         shipment_cost = shipping_method.price
         # maybe more logic like coupon model in the future
         # discount = Decimal(order_data.get("discount", "0"))    
-        discount = Decimal("2.00")
+        discount_coupon = Decimal("2.00")
         
         for item in cart_items:
             product = products.get(item.product_id)
@@ -167,13 +182,15 @@ def create_order_pending(order_data, user, products, cart_items):
             
             # Calcular subtotal de productos
             price_decimal = product.calc_discount_decimal()
-            subtotal += ( price_decimal * item.quantity )    # get float price
+            subtotal += ( price_decimal * item.quantity )    # get decimal * int = decimal
             
             order_items.append(ItemOrder(
                 order=new_order,
                 product=product,
+                discount=product.discount,
+                original_price=product.price,
                 quantity=item.quantity,
-                price=price_decimal
+                final_price=price_decimal
             ))
                 
         ItemOrder.objects.bulk_create(order_items)
@@ -182,11 +199,11 @@ def create_order_pending(order_data, user, products, cart_items):
         CartItem.objects.filter(id__in=[item.id for item in cart_items]).delete()
         
     # Calcular total
-    total = subtotal + shipment_cost - discount
+    total = subtotal + shipment_cost - discount_coupon
 
     # Actualizar la orden con estos campos
     new_order.shipment_cost = shipment_cost
-    new_order.discount = discount
+    new_order.discount_coupon = discount_coupon
     new_order.total = total
     new_order.save(update_fields=["shipment_cost", "discount", "total"])
         
@@ -208,7 +225,7 @@ def confirm_stock_availability(cart_items):
         # CASO 3: Bloqueo concurrente de productos
         # Obtenemos y bloqueamos todos los productos necesarios en una sola consulta
         # Esto previene condiciones de carrera en operaciones concurrentes
-        product_ids = [item.product.id for item in cart_items]
+        product_ids = [item.product_id for item in cart_items]
         products = (
             Product.objects
             .filter(id__in=product_ids)

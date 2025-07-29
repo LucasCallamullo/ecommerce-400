@@ -108,3 +108,35 @@
 
 .scroll-y { overflow-y: auto; }
 .scroll-x { overflow-x: auto; }
+
+
+@media (min-width: 992px) {
+    .underline-anim {
+        position: relative;
+        color: var(--white-color);
+        font-weight: bolder;
+        transition: opacity .4s;
+    }
+
+    .underline-anim span {
+        position: relative;
+        transition: margin .4s;
+    }
+
+    .underline-anim span::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -6px;
+        width: 0;
+        height: 2px;
+        background-color: var(--white-color);    /* this is only you have to change */
+        transition: width .4s ease-out;
+    }
+    
+    /* Animation link on hover */
+    .underline-anim:hover span::after { width: 100%; }
+    
+    /* Sibling fade animation */
+    .underline-anim:has(.underline-anim:hover) .underline-anim:not(:hover) { opacity: .4; }
+}

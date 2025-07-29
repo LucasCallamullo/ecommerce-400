@@ -5,7 +5,7 @@
 
 
 {% block extra_head %}
-    <title> Orden | {{store.name}}</title>
+    <title> Orden | {{ store.name }}</title>
 
     <!-- Update multiple images -->
     <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
@@ -27,7 +27,7 @@
             <i class="ri-check-double-line font-xxl bold-green"></i>
             <div class="d-flex-col gap-1 text-start">
                 <p class="font-md bolder">Fecha Creación</p>
-                <p class="font-sm text-secondary">{{ date }}.</p>
+                <p class="font-sm text-secondary">{{ order.created_at }}.</p>
             </div>
         </div>
 
@@ -37,7 +37,7 @@
             <div class="d-flex-col gap-1 text-start">
                 <p class="font-md bolder">{{ status.name }}</p>
                 {% if status.id == 2 %}
-                    <p class="font-sm text-secondary">Hasta el {{ expire_date }}.</p>
+                    <p class="font-sm text-secondary">Hasta el {{ order.expire_at }}.</p>
                 {% elif status.id == 4 %}
                     <p class="font-sm text-secondary">Acérquese al local para retirar su pedido.</p>
                 {% endif %}
@@ -80,7 +80,7 @@
                 <p class="text-start ms-2 mb-2">
                     <i class="ri-corner-down-right-fill font-md"></i>
                     debe realizar el pago en el local 
-                    y se completará su venta tiene <b> {{payment.time}}hs para retirarlo.</b>
+                    y se completará su venta tiene <b> {{ payment.time }}hs para retirarlo.</b>
                 </p>
                      
                 <p class="text-start font-md"> 
@@ -114,7 +114,7 @@
                 <div class="d-flex-col gap-1">
                     <p class="text-start"> 
                         Si abonas por <b>TRANSFERENCIA*</b> 
-                        carga el comprobante dentro de {{payment.time}}hs de haber 
+                        carga el comprobante dentro de {{ payment.time }}hs de haber 
                         realizado el pedido, caso contrario será cancelado, sin excepción.
                     </p>
 
@@ -136,7 +136,7 @@
                     a nuestro Whatsapp. 
                     
                     Si abonas por <b>CRIPTOMONEDA</b> 
-                    carga el comprobante dentro de {{payment.time}}hs de haber 
+                    carga el comprobante dentro de {{ payment.time }}hs de haber 
                     realizado el pedido, caso contrario será cancelado, sin excepción.
                 </p>
             {% endif %}
@@ -192,8 +192,16 @@
                 </div>
 
                 <!-- Precio -->
-                <div class="price font-md bolder">
-                    <p>$ {{item.price|intdot}}</p>
+                <div class="price font-md">
+                    <div class="d-flex-col bolder">
+                        {% if item.discount > 0 %}
+                            <div class="d-flex gap-1">    
+                                <p class="font-sm bold-green">- %{{ item.discount|intdot }}</p>
+                                <p class="font-sm text-line-through text-secondary">$ {{ item.original_price|intdot }}</p>
+                            </div>
+                        {% endif %}
+                        <p>$ {{ item.final_price|intdot }}</p>
+                    </div>
                 </div>
 
                 <!-- Contador -->
@@ -207,7 +215,7 @@
 
                 <!-- Subtotal -->
                 <strong class="subtotal bold-green">
-                    $ {{ item.price|multiply:item.quantity }}
+                    $ {{ item.final_price|multiply:item.quantity }}
                 </strong>
             </div>
 
@@ -220,8 +228,8 @@
                     <strong class="name text-start">Envío</strong>
                     <!-- Precio -->
                     <strong class="price d-desktop-flex">
-                        {% if shipment_cost|intdot < 1 %}
-                            $ {{ shipment_cost|intdot }}
+                        {% if order.shipment_cost|intdot < 1 %}
+                            $ {{ order.shipment_cost|intdot }}
                         {% else %}
                             Gratis
                         {% endif %}
@@ -234,15 +242,15 @@
                     </div>
                     <!-- Subtotal -->
                     <strong class="subtotal">
-                        {% if shipment_cost|intdot == 0 %}
-                            $ {{ shipment_cost|intdot }}
+                        {% if order.shipment_cost|intdot == 0 %}
+                            $ {{ order.shipment_cost|intdot }}
                         {% else %}
                             Gratis
                         {% endif %}
                     </strong>
                 </div>
 
-                {% if discount > 0 %}
+                {% if order.discount_coupon > 0 %}
                 <div class="cart-row lil-40">
                     <!-- Imagen del producto -->
                     <div class="d-flex justify-center"><i class="ri-discount-percent-line font-xxl"></i></div>
@@ -250,7 +258,7 @@
                     <strong class="name text-start">Descuento</strong>
                     <!-- Precio -->
                     <strong class="price d-desktop-flex">
-                        $ {{ discount|intdot }}
+                        $ {{ order.discount_coupon|intdot }}
                     </strong>
                     <!-- Contador -->
                     <div class="quantity font-md bolder d-desktop-flex">
@@ -260,7 +268,7 @@
                     </div>
                     <!-- Subtotal -->
                     <strong class="subtotal bold-red">
-                        - $ {{ discount|intdot }}
+                        - $ {{ order.discount_coupon|intdot }}
                     </strong>
                 </div>
                 {% endif %}
@@ -270,7 +278,7 @@
         <!-- Completamos con otros datos -->
         <div class="cont-space-between w-100 p-2 border-primary">
             <strong class="font-xl">Total</strong>
-            <strong class="font-xl">$ {{ total_cart|intdot }}</strong>
+            <strong class="font-xl">$ {{ order.total|intdot }}</strong>
         </div>
     </div>
 
@@ -288,11 +296,11 @@
                 <p class="bold-orange">{{ status.name }}</p>
 
                 <p class="bolder">Fecha Creación:</p>
-                <p class="bold-green text-break">{{ date }}</p>
+                <p class="bold-green text-break">{{ order.created_at }}</p>
 
                 {% if status.id == 2 %}
                     <p class="bolder text-break">Fecha Cancelación: <span class="bold-red">(*)</span></p>
-                    <p class="bold-orange text-break">{{expire_date}}</p>
+                    <p class="bold-orange text-break">{{ order.expire_at }}</p>
                 {% endif %}
 
                 <p class="bolder">Método de pago:</p>
@@ -301,22 +309,22 @@
 
             <div class="cont-data-order h-min">
                 <p class="bolder text-break">Método de envío:</p>
-                <p class="bold-blue text-break">{{ shipment_method.name }}</p>
+                <p class="bold-blue text-break">{{ shipment.method.name }}</p>
 
                 <p class="bolder">Dirección de retiro:</p>
                 <p class="text-break bolder">
-                    {% if shipment_method.id == 1 %}
+                    {% if shipment.method.id == 1 %}
                         {{ store.address }}
                     {% else %}
-                        {{ address }}
+                        {{ shipment.address }}
                     {% endif %}
                 </p>
             
                 <p class="bolder">Nombre:</p>
-                <p class="text-break">{{ complete_name }}</p>
+                <p class="text-break">{{ order.name }}</p>
 
                 <p class="bolder">Email:</p>
-                <p class="text-break">{{ order_email }}</p>
+                <p class="text-break">{{ order.email }}</p>
             </div>
         </div>
 
@@ -333,7 +341,7 @@
     <p class="mt-4 p-2 text-start"> Te saluda atentamente, el equipo de <span class="bold-main">{{ store.name }}</span>.</p>
     
     <!-- brick de mercado pago -->
-    <div id="payment-info" hidden data-index="{{payment.id}}"></div>
+    <div id="payment-info" hidden data-index="{{ payment.id }}"></div>
     {% if payment.id == 3 %}
         <div class="container-mp"> 
             <div id="wallet_container"></div>

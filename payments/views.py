@@ -27,15 +27,17 @@ def payment_order_create(request, order_id):
     if not user.is_authenticated:    # Stupids checks for problematic users
         return render(request, "payments/fail_payments.html", {"error": "Debes iniciar sesión para pagar."})
 
-    order, context = get_order_detail_context(order_id, user)
-    if not context:
+    context = get_order_detail_context(order_id, user)
+    if context is None:
         render(request, "payments/fail_payments.html", {"error": "Order Not Found."})
     
     payment = context['payment']
-    discount = context['discount']   # future discount logic
     
     # id = 3 --> mercado pago API
-    if payment.id == 3:
+    print(f'El id es {payment['id']}')
+    if payment['id'] == 3:
+        order = context['order']  
+        discount = context['discount']   # future discount logic
         preference_id, total_cart = utils_for_mp.create_preference_data(order, discount)  
     else:
         preference_id = None
