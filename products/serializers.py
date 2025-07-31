@@ -356,4 +356,94 @@ class PBrandSerializer(BaseModelSerializer):
         }
         
         
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class BrandListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    slug = serializers.CharField(required=False, allow_null=True)
+    name = serializers.CharField(required=False, allow_null=True)
+    image_url = serializers.URLField(required=False, allow_null=True)
+
+class CategoryListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    slug = serializers.CharField(required=False, allow_null=True)
+    name = serializers.CharField(required=False, allow_null=True)
+    image_url = serializers.URLField(required=False, allow_null=True)
+
+class SubcategoryListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    slug = serializers.CharField(required=False, allow_null=True)
+    name = serializers.CharField(required=False, allow_null=True)
+    image_url = serializers.URLField(required=False, allow_null=True)
+
+
+class ProductListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    slug = serializers.CharField(required=False, allow_null=True)
+    name = serializers.CharField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    price_list = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    available = serializers.BooleanField(required=False, allow_null=True)
+    stock = serializers.IntegerField()
+    discount = serializers.DecimalField(max_digits=5, decimal_places=2)
+    updated_at = serializers.DateTimeField(required=False, allow_null=True)
+    main_image = serializers.CharField(required=False, allow_null=True)
+    
+    is_favorited = serializers.SerializerMethodField()
+    brand = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
+    subcategory = serializers.SerializerMethodField()
+
+    def get_is_favorited(self, obj):
+        favorites_ids = self.context.get('favorites_ids', set())
+        return obj['id'] in favorites_ids
+
+    def _get_related_data(self, obj, prefix, default_fields, serializer_class, context_key=None):
+        if not obj.get(f'{prefix}__id') or obj.get(f'{prefix}__is_default'):
+            return None
+
+        keys = self.context.get(context_key or f'{prefix}_fields', default_fields)
+        data = {key: obj.get(f'{prefix}__{key}') for key in keys if obj.get(f'{prefix}__{key}') is not None}
+
+        serializer = serializer_class(data)
+        return serializer.data
+
+    def get_brand(self, obj):
+        return self._get_related_data(
+            obj=obj,
+            prefix='brand',
+            default_fields=['id', 'slug', 'name'],
+            serializer_class=BrandListSerializer,
+            context_key='brand_fields'
+        )
+
+    def get_category(self, obj):
+        return self._get_related_data(
+            obj=obj,
+            prefix='category',
+            default_fields=['id', 'slug', 'name'],
+            serializer_class=CategoryListSerializer,
+            context_key='category_fields'
+        )
+
+    def get_subcategory(self, obj):
+        return self._get_related_data(
+            obj=obj,
+            prefix='subcategory',
+            default_fields=['id', 'slug', 'name'],
+            serializer_class=SubcategoryListSerializer,
+            context_key='subcategory_fields'
+        )

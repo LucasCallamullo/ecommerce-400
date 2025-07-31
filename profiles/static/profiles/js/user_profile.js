@@ -5,9 +5,6 @@
 /// <reference path="../../../../static/js/base.js" />
 
 
-// ================================================================================
-//                        Profile home Handle ajax 
-// ================================================================================
 /// <reference path="../../../../products/static/products/js/products_cards.js" />
 /// <reference path="../../../../products/static/products/js/products_carousel.js" />
 
@@ -109,15 +106,24 @@ async function getTabContentAJAX({ container, tabId, params = '', isPanel = true
         const data = await response.json();
     
         // Limpia el contenido actual del contenedor e inserta el nuevo HTML
-        container.innerHTML = data.html;
+        // container.innerHTML = data.html;
+        // container.innerHTML = `<pre>${JSON.stringify(data.products, null, 2)}</pre>`;
+
     
         // Inicializa eventos específicos según el tab activo
         if (isPanel) {
-            if (tabId === 'store-data-tab') {
-                storeTabEvents(container);
-            } else if (tabId === 'users-tab') {
-                usersTabEvents(container, tabId);
+            if (tabId === "favorites-tab") {
+                const products = data.products;
+                createCarouselCards(container, products);
+                // initSwiperFavorites();
+                // assignProductCardsForms(container);
+                assignProductCardsModals(container);
+            } else if (tabId === 'orders-tab') {
+                const orders = data.orders;
+                const isAdmin = data.is_admin;
+                createTableOrders(container, orders, isAdmin);
             }
+
         }
 
     } catch (error) {

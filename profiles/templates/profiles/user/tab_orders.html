@@ -39,7 +39,7 @@
 <div class="d-grid cont-table-orders mt-2 bolder font-md">
     {% for order in orders %}
         <a class="text-center row-order bold-main underline-anim" 
-            href="{% url 'order-detail' order.id %}"><span># {{ order.id }}</span>
+            href="{% url 'order-detail' order.id %}"># {{ order.id }}
         </a>
 
         <div class="text-start row-order bolder d-desktop-block">{{ order.created_at|short_date }}</div>
@@ -47,7 +47,7 @@
         <div class="text-center row-order bolder">$ {{ order.total|intdot }}</div>
 
         <a class="text-start row-order bold-main underline-anim d-desktop-block" 
-            href="{% url 'order-detail' order.id %}"><span>Ver Orden</span>
+            href="{% url 'order-detail' order.id %}">Ver Orden
         </a>
     {% empty %}
     

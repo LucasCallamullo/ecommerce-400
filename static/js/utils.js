@@ -2,6 +2,144 @@
 /// <reference path="../js/alerts.js" />
 
 
+
+function analizarHTML() {
+    console.time("⏱️ Tiempo de análisis");
+
+    // Contar nodos del DOM
+    let totalNodos = 0;
+    (function contar(node) {
+        totalNodos++;
+        node = node.firstChild;
+        while (node) {
+            contar(node);
+            node = node.nextSibling;
+        }
+    })(document.documentElement);
+
+    console.log(`🧱 Total de nodos en el DOM: ${totalNodos}`);
+
+    // Tamaño aproximado del HTML
+    const html = document.documentElement.innerHTML;
+    const bytes = new Blob([html]).size;
+    const kb = (bytes / 1024).toFixed(2);
+    const mb = (bytes / (1024 * 1024)).toFixed(2);
+
+    console.log(`📄 Tamaño del HTML:`);
+    console.log(`→ Bytes: ${bytes}`);
+    console.log(`→ KB: ${kb}`);
+    console.log(`→ MB: ${mb}`);
+
+    // Elementos con muchos hijos
+    const elementosConMuchosHijos = [...document.querySelectorAll("*")]
+        .map(el => ({ tag: el.tagName, count: el.children.length, el }))
+        .filter(item => item.count > 50)
+        .sort((a, b) => b.count - a.count);
+
+    if (elementosConMuchosHijos.length > 0) {
+        console.log(`🔎 Elementos con muchos hijos (más de 50):`);
+        elementosConMuchosHijos.forEach(({ tag, count, el }) => {
+            console.log(`→ <${tag}> con ${count} hijos`, el);
+        });
+    } else {
+        console.log("✅ No se encontraron elementos con más de 50 hijos.");
+    }
+
+    console.timeEnd("⏱️ Tiempo de análisis");
+}
+
+analizarHTML();
+
+
+
+
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function deepEscape(obj) {
+    if (typeof obj === 'string') return escapeHTML(obj);
+    if (Array.isArray(obj)) return obj.map(deepEscape);
+    if (typeof obj === 'object' && obj !== null) {
+        const escaped = {};
+        for (const key in obj) {
+            escaped[key] = deepEscape(obj[key]);
+        }
+        return escaped;
+    }
+    return obj;
+}
+
+
+function shortDate(dateStr) {
+    const MONTHS_ABBR = {
+        0: "ene.",
+        1: "feb.",
+        2: "mar.",
+        3: "abr.",
+        4: "may.",
+        5: "jun.",
+        6: "jul.",
+        7: "ago.",
+        8: "sep.",
+        9: "oct.",
+        10: "nov.",
+        11: "dic."
+    };
+
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date)) return '';  // Manejo de fecha inválida
+
+    const day = date.getDate();
+    const month = MONTHS_ABBR[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+}
+
+
+
+
+
+
+
+/**
+ * Formats a number by adding dots as thousand separators.
+ * 
+ * @param {number|string} number - The number to be formatted (can be an integer, float, or string).
+ * @returns {string} The formatted number as a string with dots as thousand separators.
+ */
+function formatNumberWithPoints(number) {
+    // If the value is null, undefined, or an empty string, return a blank space
+    if (number === null || number === undefined || number === "") return " ";
+
+    // Convert the string value to a number
+    const price = parseFloat(number);
+    
+    // Check if the price is 0
+    if (price === 0) return 'Gratis';
+
+    // If the number is an integer, format it with thousand separators using dots
+    if (Number.isInteger(price)) return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    // If the number has decimals, format it by separating thousands with dots and decimals with a comma
+    let [integerPart, decimalPart] = price.toString().split(".");
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    
+    return decimalPart ? `${integerPart},${decimalPart}` : integerPart;
+}
+
+
+
+
+
 /**
  * Dark Mode Event Listener.
  * 
@@ -77,31 +215,4 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-}
-
-
-/**
- * Formats a number by adding dots as thousand separators.
- * 
- * @param {number|string} number - The number to be formatted (can be an integer, float, or string).
- * @returns {string} The formatted number as a string with dots as thousand separators.
- */
-function formatNumberWithPoints(number) {
-    // If the value is null, undefined, or an empty string, return a blank space
-    if (number === null || number === undefined || number === "") return " ";
-
-    // Convert the string value to a number
-    const price = parseFloat(number);
-    
-    // Check if the price is 0
-    if (price === 0) return 'Gratis';
-
-    // If the number is an integer, format it with thousand separators using dots
-    if (Number.isInteger(price)) return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    // If the number has decimals, format it by separating thousands with dots and decimals with a comma
-    let [integerPart, decimalPart] = price.toString().split(".");
-    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    
-    return decimalPart ? `${integerPart},${decimalPart}` : integerPart;
 }

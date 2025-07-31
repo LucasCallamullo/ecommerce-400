@@ -13,6 +13,10 @@ from orders.models import ShipmentMethod, PaymentMethod, StatusOrder
 from users.models import CustomUser
 from django.db.models import Prefetch
 
+
+from products.serializers import ProductListSerializer
+
+
 def profile_tabs_user(user, tab_name):
     if tab_name == 'orders-tab':
         orders = (
@@ -20,11 +24,11 @@ def profile_tabs_user(user, tab_name):
             .values('id', 'created_at', 'total', 'status__name')
             .order_by('-updated_at')
         )
-        
         context = { 
-            'orders': orders,
+            'orders': list(orders),
             'is_admin': False 
         }
+        return context
         html = render_to_string('profiles/user/tab_orders.html', context)
         return html
         
@@ -32,22 +36,17 @@ def profile_tabs_user(user, tab_name):
     if tab_name == 'favorites-tab':
         products = (
             utils.get_favs_products(user, return_qs=True)
-            .selected_related_w_only(
-                fk_fields=('category', 'subcategory', 'brand'),
-                only_fields=(filters.PRODUCT_CARDS_LIST)
-            )
-            .order_by('-created_at')
+            .select_related('category', 'subcategory', 'brand')
+            .only(*filters.PRODUCT_CARDS_LIST)
         )
-        
-        context = {'products': products}
-        html = render_to_string('profiles/user/tab_favorites.html', context)
-        return html
+        serializer = ProductListSerializer(products, many=True)
+        return {'products': serializer.data}
 
 
     if tab_name == 'third-tab':
-        context = {"none": None}
-        html = render_to_string('profiles/user/tab_invoices.html', context)
-        return html
+        context = {"invoices": None}
+        # html = render_to_string('profiles/user/tab_invoices.html', context)
+        return context
 
 
 def profile_tabs_admin(request, tab_name):

@@ -1,14 +1,15 @@
 
 
 # Create your views here.
-from django.shortcuts import render, get_object_or_404
-from django.http import Http404, JsonResponse
+from django.shortcuts import render
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 
 from products.models import Product, PCategory, PSubcategory
 from products import filters, utils
-from favorites import utils as fav_utils
+from products.serializers import ProductListSerializer
 
+from favorites.utils import get_favs_products
 from users.permissions import admin_or_superuser_required
 
 
@@ -26,39 +27,61 @@ def product_list(request, cat_slug=None, subcat_slug=None):
         subcat_slug (str, optional): Slug field of the subcategory to filter by. Defaults to None.
     """
     # obtener un set de ids para comparacion en template
-    favs_products_ids = fav_utils.get_favs_products(request.user)
+    favorites_ids = get_favs_products(request.user)
     
     # Obtener el número de página desde la URL
-    page_number = request.GET.get('page')     
+    page_number = request.GET.get('page')
     
     if not cat_slug and not subcat_slug:
         # If no parameters are received, it means the direct category is being called
         products = Product.objects.filter(available=True)
         context = {
             'products': filters.get_paginator(products=products, page_num=page_number),
-            'favorite_product_ids': favs_products_ids
+            'favorite_product_ids': favorites_ids
         }
         return render(request, "products/products_list.html", context)
 
-    # El método `.first()` devuelve el primer objeto que coincide con el filtro o None 
-    # si no encuentra ninguno.
-    category = (
-        PCategory.objects
-        .filter(slug=cat_slug, is_default=False)
-        .only('id', 'name', 'slug')
-        .first() if cat_slug else None
-    )
+
+    category = None
+    if cat_slug:
+        category = (
+            PCategory.objects.filter(slug=cat_slug, is_default=False)
+            .values('id', 'name', 'slug').first()
+        )
     
-    subcategory = ( 
-        PSubcategory.objects
-        .filter(slug=subcat_slug, is_default=False)
-        .only('id', 'name', 'slug')
-        .first() if subcat_slug else None
-    )
+    subcategory = None
+    if subcat_slug:
+        subcat_slug = (
+            PSubcategory.objects.filter(slug=subcat_slug, is_default=False)
+            .values('id', 'name', 'slug').first()
+        )
 
     # Aplicar optimizaciones
     products = filters.get_products_filters({'category': category, 'subcategory': subcategory})
+    products = products.values(*filters.VALUES_CARDS_LIST).order_by('price')
     
+    page = filters.get_paginator(products=products, page_num=page_number, quantity=3)
+
+    # Paso 4: Serializar los productos de la página actual
+    serializer = ProductListSerializer(page.object_list, many=True, context={'favorites_ids': favorites_ids})
+    
+    context = {
+        'products': serializer.data,
+        'pagination': {
+            'page': page.number,
+            'has_next': page.has_next(),
+            'has_previous': page.has_previous(),
+            'next_page': page.next_page_number() if page.has_next() else None,
+            'previous_page': page.previous_page_number() if page.has_previous() else None,
+            'total_pages': page.paginator.num_pages
+        },
+        'category': category if category else None,
+        'subcategory': subcategory if subcategory else None,
+        'favorite_product_ids': favorites_ids
+    }
+    
+    return render(request, "products/products_list.html", context)
+
     # 3. Verificación de existencia (consulta a DB sólo si el ID es válido)
     optimized_products = (
         products
@@ -66,16 +89,6 @@ def product_list(request, cat_slug=None, subcat_slug=None):
         .only(*filters.PRODUCT_CARDS_LIST)
         .order_by('-created_at')
     )
-    
-    context = {
-        # 'products': products,
-        'products': filters.get_paginator(products=optimized_products, page_num=page_number),
-        'category': category if category else None,
-        'subcategory': subcategory if subcategory else None,
-        'favorite_product_ids': favs_products_ids
-    }
-    
-    return render(request, "products/products_list.html", context)
 
 
 def product_top_search(request):
@@ -86,7 +99,7 @@ def product_top_search(request):
     # with the topQuery call from the sidebar in product_list.html
     """
     # obtener un set de ids para comparacion en template
-    favs_products_ids = fav_utils.get_favs_products(request.user)
+    favs_products_ids = get_favs_products(request.user)
     
     # We normalize the top query for comparison
     top_query = request.GET.get('topQuery', '')
@@ -110,9 +123,6 @@ def product_top_search(request):
     #    'asc': request.GET.get('asc', None)
     
     context = filters.get_context_filtered_products(request)
-    
-    
-    
     
     context['favorite_product_ids'] = favs_products_ids
     

@@ -31,9 +31,10 @@ def profile_tabs(request, tab_name):
         return JsonResponse({'detail': 'No estás registrado..'}, status=404)
     
     if user.role == 'buyer':
-        html = utils_tabs.profile_tabs_user(user, tab_name)
-        if html:
-            return JsonResponse({'html': html})
+        context = utils_tabs.profile_tabs_user(user, tab_name)
+        if context:
+            # return JsonResponse({'html': html})
+            return JsonResponse(context, status=200)
     
     elif user.role == 'admin':
         html = utils_tabs.profile_tabs_admin(request, tab_name)

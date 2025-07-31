@@ -143,6 +143,9 @@
 
             // favorites/urls.py
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+
+            // orders/urls.py
+            orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
             
             // products/urls.py
             addToCart: "{% url 'cart_add_product' %}",
@@ -157,8 +160,12 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
 
     <script src="{% static 'products/js/products_cards.js' %}"></script>
-
     <script src="{% static 'products/js/products_carousel.js' %}"></script>
+    <script src="{% static 'products/js/components/products_carousel.js' %}"></script>
 
+
+    <script src="{% static 'profiles/js/tab_orders.js' %}"></script>
+    
     <script src="{% static 'profiles/js/user_profile.js' %}"></script>
+
 {% endblock extra_scripts %}

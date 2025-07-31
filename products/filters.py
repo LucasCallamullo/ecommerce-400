@@ -33,8 +33,9 @@ PRODUCT_FIELDS_DETAIL_VIEW = (
     'brand__slug', 'brand__name', 'brand__is_default'
 )
 
+
 PRODUCT_CARDS_LIST = (
-    'id', 'slug', 'name', 'price', 'price_list', 'stock',
+    'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
     'discount', 'updated_at', 'main_image',
     'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
     'category__slug', 'category__name', 'category__is_default',
@@ -42,37 +43,15 @@ PRODUCT_CARDS_LIST = (
 )
 
 
-class OptimizedQuerySet(models.QuerySet):
-    
-    def selected_related_w_only(self: models.QuerySet, fk_fields: tuple= None, only_fields: tuple= None):
-        """ 
-        Encadenamiento de methodos 'Django Styles' --> Ejemplo de uso:
-        products = (
-            Product.objects
-            .all()  # Opcional: .filter(...) si necesitas filtros base
-            .selected_related_w_only(
-                fk_fields=('category', 'subcategory', 'brand'),
-                only_fields=('id', 'name', 'category__name', ...)
-            )
-            .prefetch_images_all(model_image)
-        )
-        """
-        if fk_fields:
-            self = self.select_related(*fk_fields)
-        if only_fields:
-            self = self.only(*only_fields)
-        return self
+VALUES_CARDS_LIST = (
+    'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
+    'discount', 'updated_at', 'main_image',
+    'subcategory__id', 'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
+    'category__id', 'category__slug', 'category__name', 'category__is_default',
+    'brand__id', 'brand__slug', 'brand__name', 'brand__is_default'
+)
 
-    def prefetch_images_all(self: models.QuerySet, model_images: object):
-        """ obtiene un modelo de imagenes asociado de muchos a uno ejemplo "ProductImage" """
-        return self.prefetch_related(
-            Prefetch(
-                'images',
-                queryset=model_images.objects.only('id', 'image_url', 'main_image'),
-                to_attr='images_all'
-            )
-        )
-    
+
 
 def get_context_filtered_products(request) -> dict:
     """
@@ -95,19 +74,24 @@ def get_context_filtered_products(request) -> dict:
     """
     cat_id = utils.valid_id_or_None(request.GET.get('category')) 
     subcat_id = utils.valid_id_or_None(request.GET.get('subcategory'))
-    query = request.GET.get('query')
+    query = request.GET.get('query', '')
     
-    top_query = request.GET.get('topQuery')
+    top_query = request.GET.get('topQuery', '')
     if not top_query:
-        top_query = request.GET.get('lastQuery')
+        top_query = request.GET.get('lastQuery', '')
 
     # Forzar que solo sea '0', '1' o '2', si no es válido, usar '1'
     available = request.GET.get('available')
     available = available if available in ('0', '1', '2') else '1'
 
-    category = PCategory.objects.filter(id=cat_id).first() if cat_id else None
-    subcategory = PSubcategory.objects.filter(id=subcat_id).first() if subcat_id else None
-
+    category = None
+    if cat_id:
+        category = PCategory.objects.filter(id=cat_id).values('id', 'name', 'slug').first()
+        
+    subcategory = None
+    if subcat_id:
+        subcategory = PSubcategory.objects.filter(id=subcat_id).values('id', 'name', 'slug').first()
+    
     products = get_products_filters({
         'category': category,
         'subcategory': subcategory,
@@ -143,47 +127,46 @@ def get_products_filters(filters: dict) -> QuerySet:
     Returns:
         QuerySet[Product]: Filtered queryset (may be empty if no matches).
     """
-    get_all = filters.get('get_all', False)   # if u want different value
+    get_all = filters.get('get_all', False)      # if u want different value
     available = filters.get('available', True)   # if u want different value
     category = filters.get('category')           # <- default: None
-    subcategory = filters.get('subcategory')     # <- default: None
-    query = filters.get('query')                 # <- default: None
-    top_query = filters.get('top_query')         # <- default: None
+    subcategory = filters.get('subcategory')  
+    query = filters.get('query')               
+    top_query = filters.get('top_query')        
 
     # Si all está activo, no se filtra por disponibilidad
     products = Product.objects.all() if get_all else Product.objects.filter(available=available)
 
     if category:
-        products = products.filter(category=category)
+        cat_id = category['id']
+        products = products.filter(category_id=cat_id)
 
     if subcategory:
-        products = products.filter(subcategory=subcategory)
+        subcat_id = category['id']
+        products = products.filter(subcategory_id=subcat_id)
 
-    if query:
+    if query or top_query:
+        chain = f'{query} {top_query}'
+
         # 1. Creamos una lista de condiciones Q (consultas) para cada palabra en la búsqueda:
-        queries = [Q(normalized_name__icontains=word) for word in query.split()]
+        #    - Cada Q busca coincidencias parciales (icontains) en el campo normalized_name
+        #    - Ejemplo: si query = "zapatilla nike", crea [Q(normalized_name__icontains='zapatilla'), Q(...='nike')]
+        queries = [Q(normalized_name__icontains=word) for word in chain.split()]
 
-        # 2. Extraemos la última condición Q de la lista para usarla como base:
+        # 2. Extraemos la última condición Q como base para combinar las demás:
+        #    - Usamos pop() para evitar modificar la lista mientras iteramos
         query_filter = queries.pop()
 
-        # 3. Combinamos todas las condiciones Q restantes usando OR (|):
-        #    - Recorremos las condiciones Q que quedaron en la lista
-        #    - El operador |= va "sumando" condiciones con OR lógico
-        #    - Ejemplo: query_filter = (Q por 'zapatilla') | (Q por 'nike')
+        # 3. Combinamos todas las condiciones Q usando AND lógico (&):
+        #    - Esto obliga a que todas las palabras de búsqueda estén presentes en el nombre normalizado
+        #    - Ejemplo: query_filter = (Q por 'zapatilla') & (Q por 'nike')
         for q in queries:
-            # query_filter |= q
-            query_filter &= q  # AND lógico: todas las palabras deben aparecer
+            query_filter &= q
+            # query_filter |= q    # OR LOGICO capaz alguna vez me sirve...
 
         # 4. Aplicamos el filtro combinado al queryset de productos:
-        #    - La consulta SQL resultante tendrá una cláusula WHERE con múltiples LIKE unidos por OR
-        #    - Ejemplo: WHERE normalized_name LIKE '%zapatilla%' OR normalized_name LIKE '%nike%'
-        products = products.filter(query_filter)
-        
-    if top_query:
-        queries = [Q(normalized_name__icontains=word) for word in top_query.split()]
-        query_filter = queries.pop()
-        for q in queries:
-            query_filter |= q
+        #    - La consulta SQL resultante tendrá una cláusula WHERE con múltiples LIKE unidos por AND
+        #    - Ejemplo: WHERE normalized_name LIKE '%zapatilla%' AND normalized_name LIKE '%nike%'
         products = products.filter(query_filter)
 
     return products
@@ -371,16 +354,9 @@ def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> 
     """
     Paginates a Django QuerySet and returns a Page object for the requested page number.
 
-    This is a reusable utility function that handles pagination with proper error handling.
-    It's particularly useful for views that need paginated results while maintaining
-    all the benefits of Django's QuerySets.
-
     Args:
         products: Django QuerySet to be paginated.
-        page_num: Current page number (defaults to 1). Can be:
-                  - An integer (1-based index)
-                  - A string that can be converted to an integer
-                  - Any other value will fallback to page 1
+        page_num: Current page number (defaults to 1).
         quantity: Number of items per page (defaults to 48).
 
     Returns:
@@ -390,16 +366,7 @@ def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> 
         - paginator: Associated Paginator object
         - has_next/has_previous: Boolean flags
         - next_page_number/previous_page_number: Methods
-
-    Raises:
-        ValueError: If quantity is <= 0.
-        TypeError: If products is not a QuerySet.
     """
-    # Input validation
-    # if quantity <= 0:
-    #    raise ValueError("Quantity per page must be positive")
-    # if not isinstance(products, QuerySet):
-    #    raise TypeError("Expected a Django QuerySet")
     paginator = Paginator(products, quantity)
     
     if page_num is None:
