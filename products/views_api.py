@@ -39,10 +39,17 @@ class ProductAPIView(APIView):
             user = request.user
             favorites_ids = get_favs_products(user)
             context = filters.get_context_filtered_products(request)
-            products = context['products'].values(*filters.VALUES_CARDS_LIST)
-            serializer = ProductListSerializer(products, many=True, context={'favorites_ids': favorites_ids})
+            products = context['products'].values(*filters.VALUES_CARDS_LIST).order_by('price')
+            
+            # Serializar los productos de la página actual    page.object_list
+            page_num = request.GET.get('page')
+            products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=5)
+            context['pagination'] = pagination
+            
+            serializer = ProductListSerializer(products_page, many=True, context={'favorites_ids': favorites_ids})
+            context['products'] = serializer.data
 
-            return Response({"products": serializer.data}, status=status.HTTP_200_OK)
+            return Response(context, status=status.HTTP_200_OK)
     
     def post(self, request):
         serializer = ProductSerializer(data=request.data, context={'user': request.user})
@@ -209,16 +216,13 @@ class ProductImagesView(APIView):
         if error:
             return error
         
-        images = ProductImage.objects.filter(product=product).only('image_url').order_by('-main_image')
+        images = ProductImage.objects.filter(product=product, main_image=False).values_list('image_url', flat=True)
 
-        # 3. Procesamiento eficiente de imágenes
-        image_urls = [img.image_url for img in images if img.image_url]
-        
         return Response({
             'product_id': product_id,
-            'image_urls': image_urls,
-            'count': len(image_urls)
-        })
+            'images': images,
+            'count': len(images)
+        }, status=status.HTTP_200_OK)
         
     def _get_product(self, product_id):
         # 1. Validar datos de entrada

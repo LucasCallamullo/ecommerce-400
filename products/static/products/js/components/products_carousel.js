@@ -186,7 +186,7 @@ function createCarouselCards(container, products) {
             </div>` 
             : `<b> $ ${price}</b>`
 
-        const cardHTML = `
+        const cardHTML = /*html*/`
             <article class="swiper-slide product__card">
                 <button class="btn corner-box" data-product='{
                     "id": "${prod.id}",

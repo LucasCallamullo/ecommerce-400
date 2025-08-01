@@ -398,7 +398,7 @@ class ProductListSerializer(serializers.Serializer):
     price_list = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     available = serializers.BooleanField(required=False, allow_null=True)
     stock = serializers.IntegerField()
-    discount = serializers.DecimalField(max_digits=5, decimal_places=2)
+    discount = serializers.IntegerField()
     updated_at = serializers.DateTimeField(required=False, allow_null=True)
     main_image = serializers.CharField(required=False, allow_null=True)
     

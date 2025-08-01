@@ -1,0 +1,136 @@
+
+
+{% load custom_filters %}
+
+
+{% for product in products %}
+    <article class="product__card w-100 relative">
+
+        <button class="btn corner-box" data-product='{
+            "id": "{{ product.id|escape_data }}",
+            "name": "{{ product.name|escape_data }}",
+            "slug": "{{ product.slug|escape_data }}",
+
+            "cat": "{{ product.category.name|escape_data }}",
+            "catSlug": "{{ product.category.slug|escape_data }}",
+
+            "subcat": "{{ product.subcategory.name|escape_data }}",
+            "subcatSlug": "{{ product.subcategory.slug|escape_data }}",
+
+            "brand": "{{ product.brand.name|escape_data }}",
+            "brandSlug": "{{ product.brand.slug|escape_data }}",
+
+            "stock": "{{ product.stock|escape_data }}",
+            "price": "{{ product.price|escape_data }}",
+            "discount": "{{ product.discount|escape_data }}",
+
+            "image": "{{ product.main_image|escape_data }}"
+        }'>
+            <i class="ri-focus-mode font-xl"></i>
+        </button>
+        
+        <!-- Contenedor de productos -->
+        <div class="d-grid h-100 w-100 product-card__info">
+
+            <a href="{% url 'product_detail' product.id product.slug %}" class="cont-img-100">
+                <img class="img-scale-down" src="{{ product.main_image }}" alt="{{ product.name }}">
+            </a>
+
+            <a class="px-2 text-start text-truncate-multiline font-md bolder" 
+            href="{% url 'product_detail' product.id product.slug %}">
+                {{ product.name }}
+            </a>
+
+            <!-- stock -->
+            <div class="d-grid px-2 cont-grid-2 gap-2 align-center font-sm">
+                {% if not product.available or product.stock == 0 %}
+                    <p class="text-start text-truncate bold-red">No disponible</p>
+                {% elif product.stock <= 3 %}
+                    <p class="text-start text-truncate bold-orange">Stock Bajo</b>
+                {% else %}
+                    <p class="text-start text-truncate bold-green">Disponible</p>
+                {% endif %}
+            
+                <!-- Botón de la corazon -->
+                <form class="justify-self-end form-btn__like" data-index="{{product.id}}">
+                    {% if product.is_favorited %}
+                        <button class="btn btn-36 btn-like liked" type="submit">
+                            <i class="ri-heart-fill font-xl"></i>
+                        </button>
+                    {% else %}
+                        <button class="btn btn-36 btn-like" type="submit">
+                            <i class="ri-heart-line font-xl"></i>
+                        </button>
+                    {% endif %}
+                </form>
+            
+                {% if product.discount %}
+                    <p class="text-start bolder">Descuento:</p>
+                    <p class="justify-self-end h-min bold-red">%{{product.discount}} OFF</p>
+                
+                    <p class="text-start text-line-through text-secondary bolder">Normal:</p>
+                    <p class="justify-self-end text-line-through text-secondary bolder">$ {{product.price|intdot}}</p>
+                    
+                    <p class="text-start bold-red font-md">Oferta:</p>
+                    <p class="justify-self-end bold-red font-md">$ {{product.price|intdot}}</p>       
+                {% else %}
+                    <p class="text-start bolder font-md grid-col-all"> $ {{ product.price|intdot }} </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Botón de agregar al carrito -->
+        <form class="d-flex justify-center product-card__extender-btn" 
+        data-index="{{ product.id }}" data-stock="{{product.stock}}">
+            <button class="btn btn-main gap-1 btn-32 w-75 btn-add-product-pc font-md bolder" type="submit">
+                Agregar<i class="ri-shopping-basket-2-fill"></i>
+            </button>
+        </form>
+    </article>
+
+{% empty %}
+    
+    <div class="d-flex">
+        <b>The queryset is empty, please search again.</b>
+    </div>
+    
+{% endfor %}
+
+
+<!-- Navegación entre páginas -->
+<div class=" d-none w-100 d-flex justify-center gap-2 mt-5 p-3">
+    {% with params=request.GET|remove_param:'page' %}
+        {% if products.has_previous and xDIbaAlgo %}
+            <a class="btn cont-border btn-page" href="?{{ params.urlencode }}&page=1">
+                <i class="ri-arrow-left-double-fill icon-small"></i>
+            </a>
+
+            <a class="btn cont-border btn-page" href="?{{ params.urlencode }}&page={{ products.previous_page_number }}">
+                <i class="ri-skip-left-line icon-small"></i>
+            </a>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+            {% if num == products.number %}
+                <span class="btn btn-28 border-hover border-main">
+                    <b>{{ num }}</b>
+                </span>
+            {% else %}
+                <a class="btn btn-28 border-hover" href="?{{ params.urlencode }}&page={{ num }}">
+                    <b>{{ num }}</b>
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next and xDIbaAlgo %}
+            <a class="btn cont-border btn-page" href="?{{ params.urlencode }}&page={{ products.next_page_number }}">
+                <i class="ri-skip-right-line icon-small"></i>
+            </a>
+            <a class="btn cont-border btn-page" href="?{{ params.urlencode }}&page={{ products.paginator.num_pages }}">
+                <i class="ri-arrow-right-double-fill icon-small"></i>
+            </a>
+        {% endif %}
+    {% endwith %}
+</div>
+
+

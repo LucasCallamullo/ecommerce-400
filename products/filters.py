@@ -350,22 +350,23 @@ def apply_product_sorting(queryset, sort_by, sorted_flag):
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> QuerySet:
+def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> tuple:
     """
-    Paginates a Django QuerySet and returns a Page object for the requested page number.
+    Paginates a Django QuerySet and returns the items for the current page
+    along with pagination metadata.
 
     Args:
-        products: Django QuerySet to be paginated.
-        page_num: Current page number (defaults to 1).
-        quantity: Number of items per page (defaults to 48).
+        products (QuerySet): Django QuerySet to be paginated.
+        page_num (int): Current page number (defaults to 1).
+        quantity (int): Number of items per page (defaults to 48).
 
     Returns:
-        A Page object containing the items for the requested page, with these attributes:
-        - object_list: Items for this page
-        - number: Current page number
-        - paginator: Associated Paginator object
-        - has_next/has_previous: Boolean flags
-        - next_page_number/previous_page_number: Methods
+        tuple: A tuple containing:
+            - products_page (QuerySet): A sliced QuerySet containing items for the current page.
+              If no items exist, returns the full original QuerySet or an empty list.
+            - pagination (dict): A dictionary with pagination metadata:
+                - 'page' (int): Current page number, or 0 if no valid page exists.
+                - 'total_pages' (int): Total number of pages available.
     """
     paginator = Paginator(products, quantity)
     
@@ -380,6 +381,18 @@ def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> 
         page_obj = paginator.page(1)
     except EmptyPage:
         # Si la página está fuera de rango (ej: 9999), mostrar la última página
-        page_obj = paginator.page(paginator.num_pages)
+        # page_obj = paginator.page(paginator.num_pages)
+        if paginator.num_pages == 0:
+            # No hay ningún resultado, devolver None o lista vacía segura
+            page_obj = None
+        else:
+            # Página fuera de rango, mostrar la primera
+            page_obj = paginator.page(1)
     
-    return page_obj
+    
+    products_page = page_obj.object_list if page_obj else products
+    pagination = {
+        'page': page_obj.number if page_obj else 0,
+        'total_pages': page_obj.paginator.num_pages if page_obj else 0
+    }
+    return products_page, pagination

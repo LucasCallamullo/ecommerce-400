@@ -10,7 +10,7 @@ urlpatterns = [
     path('reset_stocks/', views.reset_stocks, name='reset_stocks'),
     
     # filters to product_list.html
-    path('products/', views.product_list, name='product_list'),
+    path('productos-lista/', views.product_list, name='product_list'),
     path('category/<slug:cat_slug>/', views.product_list, name='pl_category'),
     path('category/<slug:cat_slug>/<slug:subcat_slug>/', views.product_list, name='pl_subcategory'),
     

@@ -47,25 +47,19 @@
  * 
  * 
  */
-const overlayManager = {
-    // Stores references to event listeners so they can be removed later
-    listeners: {
-        click: null,
-        keydown: null,
-        popstate: null
-    },
+class OverlayManager {
+    constructor() {
+        this.listeners = {
+            click: null,
+            keydown: null,
+            popstate: null
+        };
+    }
 
-    /**
-     * Opens the given overlay and sets up event listeners to handle closing.
-     * 
-     * @param {HTMLElement} overlay - The overlay element to display.
-     * @param {Function} onClickHandler - Callback to execute when the overlay should close.
-     */
     open(overlay, onClickHandler) {
-        // Show the overlay by adding a CSS class
         overlay.classList.add('show');
 
-        // Set up click listener to close when clicking outside the modal content
+        // CLICK afuera
         if (!this.listeners.click) {
             this.listeners.click = (e) => {
                 if (e.target === overlay) onClickHandler();
@@ -73,7 +67,7 @@ const overlayManager = {
             overlay.addEventListener('click', this.listeners.click);
         }
 
-        // Set up Escape key listener to close the overlay
+        // ESC key
         if (!this.listeners.keydown) {
             this.listeners.keydown = (e) => {
                 if (e.key === "Escape") onClickHandler();
@@ -81,7 +75,7 @@ const overlayManager = {
             document.addEventListener("keydown", this.listeners.keydown);
         }
 
-        // Set up browser back button (popstate) to also close the overlay
+        // BACK button
         if (!this.listeners.popstate) {
             this.listeners.popstate = () => {
                 history.pushState(null, null, window.location.pathname);
@@ -92,21 +86,17 @@ const overlayManager = {
             window.addEventListener('popstate', this.listeners.popstate);
         }
 
-        // Hide the back-to-top button if it's visible
+        // Optional: back-to-top hiding
         const backToTopBtn = document.getElementById("backToTop");
         if (backToTopBtn) toggleBackToTopButton(false, backToTopBtn);
-    },
+    }
 
-    /**
-     * Closes the overlay and removes all associated event listeners.
-     * 
-     * @param {HTMLElement} overlay - The overlay element to hide.
-     */
     close(overlay) {
-        // Hide the overlay by removing the CSS class
         overlay.classList.remove('show');
 
-        // Remove all active listeners and reset their references
+        // Navigate back in browser history if popstate was used
+        if (this.listeners.popstate) history.back();
+
         Object.entries(this.listeners).forEach(([type, handler]) => {
             if (!handler) return;
 
@@ -117,11 +107,8 @@ const overlayManager = {
             target.removeEventListener(type, handler);
             this.listeners[type] = null;
         });
-
-        // Navigate back in browser history if popstate was used
-        if (this.listeners.popstate) history.back();
     }
-};
+}
 
 
 /**
@@ -156,6 +143,8 @@ function setupToggleableElement(options) {
         return;
     }
 
+    const overlayManager = new OverlayManager();
+
     /**
      * Closes the toggleable element and overlay.
      * Also removes the click event listener from the close button to prevent memory leaks.
@@ -187,9 +176,8 @@ function setupToggleableElement(options) {
             });
         }
 
-        toggleState(element);
-        
         overlayManager.open(overlay, closeHandler);
+        toggleState(element);
         overlayClickListener = true;
 
         // Listener para cerrar (siempre)

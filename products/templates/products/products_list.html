@@ -48,38 +48,26 @@
     <input type="hidden" name="subcategory" value="{% if subcategory %}{{ subcategory.id|default:'' }}{% else %}{% endif %}">
     <input type="hidden" name="lastQuery" value="{% if query %}{{ query|default:'' }}{% else %}{% endif %}">
     <input type="hidden" name="available" value="{{ available|default:1 }}">
-
-    <input type="hidden" name="sort_by" value="">
-    <input type="hidden" name="sorted" value="">
-
-    <button id="btn-form-hidden" type="submit" hidden></button>
+    <input type="hidden" name="page" value="1">
 </div>
 
 
-
-
-<div class="d-flex justify-start align-start cont-100 gap-2">
-
-    <aside class="w-25 d-flex-col gap-2 d-desktop-block">
+<div class="d-grid gap-2 h-min cont-grid-11-13">
+    
+    <aside class="d-desktop-flex d-flex-col gap-2">
         <!-- TOP 10 BUTTON SIDE -->
-        <button class="btn btn-main btn-48 w-100 gap-2">
-            <i class="ri-star-fill font-md"></i>
-            <b class="font-md">TOP 10</b>
+        <button class="btn btn-main btn-48 w-100 gap-2 bolder font-md">
+            <i class="ri-star-fill"></i>TOP 10
         </button>
 
         <!-- Sidebar -->
         <div class="mt-3 border-hover bg-primary p-2">
             <h2 class="text-start mt-1"> Filtros </h2>
 
-            <!-- Search Form Categories -->
-            <div class="mb-2 mt-2 border-hover">
-                <form class="d-flex btn-40 w-100" id="sidebar-search" action="{% url 'product_top_search' %}">
-                    <!-- Datos de las categorias para pasar y filtrar -->
-                    
-                    <input type="text" name='query' placeholder="Buscar...">
-                </form>
-            </div>
-
+            <form class="d-flex btn-40 w-100 mb-2 mt-2" id="sidebar-search">
+                <input type="input" name='query' placeholder="Buscar productos...">
+            </form>
+    
             <!-- Categories will be inserted here -->
             <ul class="d-flex-col">
                 <li class="d-flex justify-start">
@@ -88,7 +76,6 @@
                     </a>
                 </li>
         
-                <!-- Cat = Category, sub_cats = Sub Category ; Se pasa del context Processor-->
                 {% for cat, sub_cats in categories_dropmenu.items %}
                 <li class="d-flex-col align-start">
                     <a class="btn btn-28 w-100 btn-primary justify-start" href="{% url 'pl_category' cat.slug %}">
@@ -114,96 +101,27 @@
             </ul>
             
             <!-- More content ? ¡ -->
+            <div class="d-flex-col mt-2 gap-2" id="cont-brands">
+                
+            </div>
+            
         </div>
     </aside>
 
     <!-- Main Content -->
-    <div class="d-flex-col cont-product-list" id="cont-product-list">
-        <!-- Donde mostramos los resultados de AJAX Request -->
-        {% include "products/products_list_cards.html" %}
-    </div>
-</div>
-
-
-<!-- Modales y Overlay (fuera del Contenedor de lista de tarjetas) -->
-<div class="modal product-card__modal" id="product-card__modal" data-state="null">
-
-    <div class="d-flex justify-end">
-        <button class="btn btn-close btn-28">
-            <i class="ri-close-line font-xl"></i>
-        </button>
-    </div>
-
-    <!-- Main Modal		 -->
-    <div class="d-grid cont-grid-122">
+    <div class="d-grid cont-grid-234 h-min gap-2" id="cont-product-cards">
         
-        <!-- Primera Columna Modal		 -->
-        <div>
-            <div class="cont-img-100">
-                <img class="img-scale-down modal-img" src="" alt="">
-            </div>
-        </div>
-            
-        <!-- Segunda Columna Modal		 -->
-        <div class="d-flex-col gap-1">
+    </div>
 
-            <!-- Category - Subcategory Groups		 -->
-            <div class="d-flex gap-1 modal-cat-group">
-                <a class="p-1 w-min border-hover bg-secondary btn-primary modal-catSlug" href="#">
-                    <b class="text-truncate font-sm modal-cat">  </b>
-                </a>
-
-                <a class="p-1 w-min border-hover bg-secondary btn-primary modal-subcatSlug" href="#">
-                    <b class="text-truncate font-sm modal-subcat">  </b>
-                </a>
-            </div>
-
-            <!-- Brand - Stock Groups		 -->
-            <div class="d-flex gap-1">
-                <div class="w-min p-1 px-2 pxr-3 border-hover bg-secondary">
-                    <p class="text-secondary font-sm text-start"><b>Stock</b></p>
-                    <p><b class="text-truncate modal-stock">  </b></p>    
-                </div>
-
-                <div class="w-min p-1 px-2 pxr-3 border-hover bg-secondary modal-stock-group">
-                    <p class="text-secondary font-sm text-start"><b>Marca</b></p>
-                    <a class="modal-brandSlug" href="#">
-                        <b class="text-truncate modal-brand bold-main">  </b>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Name product - Price - Offer		 -->
-            <h2 class="mt-2 ms-1 modal-title">  </h2>
-
-            <div class="d-flex-col w-100 p-2 border-hover bg-secondary relative mt-2">
-                <div class="offer-tag modal-group-discount">
-                    <b class="text-truncate text-white modal-discount"> </b>
-                </div>
-
-                <p class="text-center mt-1"> 
-                    <b class="bold-orange modal-group-discount">
-                        <i class="ri-fire-line font-xl"></i>
-                    </b>
-                    <b class="font-xl modal-price">  </b>
-                    <b class="text-line-through text-secondary modal-group-discount font-lg modal-price-offer"> </b>
-                </p>
-             
-                <p class="text-center text-secondary font-xs mb-1"><b>
-                    Precio especial pagando por depósito o transferencia bancaria.
-                </b></p>
-            </div>
-
-
-            <a class="mt-5 mb-2 modal-id" href="#">
-                <b class="bold-main">Ver Producto Completo.</b>
-            </a>
-        </div>
+    <div class="grid-start-col-2 mt-2 justify-self-center d-flex gap-2" id="cont-pagination"
+        data-total-pages="{{ pagination.total_pages }}" data-page-num="{{ pagination.page }}">
     </div>
 </div>
-    
 
-<div class="overlay" id="product-card__overlay"></div>
+
+
+
+{% include "products/components/card__modal.html" %}
 
 {% endblock main_content %}
 
@@ -220,12 +138,24 @@
             productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
             category: "{% url 'pl_category' cat_slug='__CAT__' %}",
             subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
-            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}"
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
+
+            // products/urls_api.py
+            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
+            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
         };
     </script>
 
-
+    
+    <script src="{% static 'products/js/components/cards_products.js' %}"></script>
+    <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
     <script src="{% static 'products/js/products_cards.js' %}"></script>
+    
     <script src="{% static 'products/js/product_list.js' %}"></script>
+
+    <script>
+        window.ProductStore.setData(JSON.parse('{{ productos_json|escapejs }}'));
+    </script>
+
 {% endblock extra_scripts %}
 
