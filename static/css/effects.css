@@ -140,3 +140,53 @@
     /* Sibling fade animation */
     .underline-anim:has(.underline-anim:hover) .underline-anim:not(:hover) { opacity: .4; }
 }
+
+
+/* Base class for highlight effect */
+.highlight-red {
+    box-shadow: 0 0 0 2px var(--red-color);
+    transition: box-shadow 0.3s ease;
+}
+
+.highlight-main {
+    box-shadow: 0 0 0 2px var(--main-color);
+    transition: box-shadow 0.3s ease;
+}
+
+.hr-custom {
+    display: block;
+    overflow: hidden;
+    border: none;
+    height: 6px;
+    background: linear-gradient(
+        to right,
+        var(--main-color),    /* Inicio (color principal) */
+        var(--main-color),    /* Inicio (color principal) */
+        var(--main-light-color),    /* Inicio (color principal) */
+        var(--white-color),   /* Punto intermedio */
+        var(--main-light-color),
+        var(--main-color),
+        var(--main-color) 100% /* Extendemos el color principal hasta el 70% */
+    );
+    background-size: 200% 100%; 
+    margin: 16px 0;
+    animation: gradientScroll 4s linear infinite; /* Aumentamos la duración para más fluidez */
+    will-change: background-position;
+	filter: blur(0.5px); /* Difumina el corte (opcional) */
+	
+}
+
+@keyframes gradientScroll {
+    100% {
+        background-position: 0% 50%;   /* Inicio */
+    }
+    0% {
+        background-position: 100% 50%; /* Final */
+    }
+}
+
+.hr-primary {
+	border: none;
+    height: 6px;
+	background: var(--text-primary);
+}

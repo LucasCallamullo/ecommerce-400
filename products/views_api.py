@@ -39,11 +39,11 @@ class ProductAPIView(APIView):
             user = request.user
             favorites_ids = get_favs_products(user)
             context = filters.get_context_filtered_products(request)
-            products = context['products'].values(*filters.VALUES_CARDS_LIST).order_by('price')
+            products = context['products'].values(*filters.VALUES_CARDS_LIST).order_by('price', 'id')
             
             # Serializar los productos de la página actual    page.object_list
             page_num = request.GET.get('page')
-            products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=5)
+            products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=100)
             context['pagination'] = pagination
             
             serializer = ProductListSerializer(products_page, many=True, context={'favorites_ids': favorites_ids})

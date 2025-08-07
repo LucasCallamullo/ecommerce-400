@@ -271,6 +271,7 @@ class Product(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=['price']),
+            ##
             models.Index(fields=['category']),
             models.Index(fields=['subcategory']),
             models.Index(fields=['brand']),

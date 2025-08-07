@@ -2,20 +2,21 @@
 {% load static %}
 
 
-<!-- For More CSS Modules -->
 {% block extra_head %}
-
-    
-    <link href="{% static 'products/css/products_cards.css' %}" rel="stylesheet">
+    <link href="{% static 'products/css/cards_products.css' %}" rel="stylesheet">
     <link href="{% static 'products/css/products_list.css' %}" rel="stylesheet">
 
-    <title> {{store.name}} | {% if category %}{{ category.name }}{% endif %}  </title>
-    
-    
+    <title> {{store.name}} | 
+        {% if category %}
+            {{ category.name }} 
+        {% else %} 
+            Productos
+        {% endif %}  
+    </title>
 {% endblock %}
 
 
-<!-- Contenido principal de la pagina -->
+
 {% block main_content %}
 
 <div class="d-flex w-100 mb-3 gap-1">
@@ -43,25 +44,24 @@
 </div>
 
 <!-- This is for use in a dataForm to send -->
-<div class="d-none" id="filters">
+<form class="d-none" id="form-filters">
     <input type="hidden" name="category" value="{% if category %}{{ category.id|default:'' }}{% else %}{% endif %}">
     <input type="hidden" name="subcategory" value="{% if subcategory %}{{ subcategory.id|default:'' }}{% else %}{% endif %}">
     <input type="hidden" name="lastQuery" value="{% if query %}{{ query|default:'' }}{% else %}{% endif %}">
     <input type="hidden" name="available" value="{{ available|default:1 }}">
     <input type="hidden" name="page" value="1">
-</div>
+</form>
 
 
 <div class="d-grid gap-2 h-min cont-grid-11-13">
-    
-    <aside class="d-desktop-flex d-flex-col gap-2">
-        <!-- TOP 10 BUTTON SIDE -->
+
+    <aside class="d-desktop-flex d-flex-col gap-2" id="sidebar-list">
         <button class="btn btn-main btn-48 w-100 gap-2 bolder font-md">
             <i class="ri-star-fill"></i>TOP 10
         </button>
 
         <!-- Sidebar -->
-        <div class="mt-3 border-hover bg-primary p-2">
+        <div class="border-hover bg-primary p-2">
             <h2 class="text-start mt-1"> Filtros </h2>
 
             <form class="d-flex btn-40 w-100 mb-2 mt-2" id="sidebar-search">
@@ -71,15 +71,15 @@
             <!-- Categories will be inserted here -->
             <ul class="d-flex-col">
                 <li class="d-flex justify-start">
-                    <a class="btn btn-28 w-100 btn-primary justify-start" href="{% url 'product_list' %}">
-                        <strong>Todas las Categorias</strong>
+                    <a class="btn btn-28 w-100 btn-primary bolder justify-start" href="{% url 'product_list' %}">
+                        Todas las Categorias
                     </a>
                 </li>
         
                 {% for cat, sub_cats in categories_dropmenu.items %}
                 <li class="d-flex-col align-start">
-                    <a class="btn btn-28 w-100 btn-primary justify-start" href="{% url 'pl_category' cat.slug %}">
-                        <strong>{{ cat.name }}</strong>
+                    <a class="btn btn-28 w-100 btn-primary bolder justify-start" href="{% url 'pl_category' cat.slug %}">
+                        {{ cat.name }}
                     </a>
                     
                     <!-- Submenú with SubCategories -->
@@ -100,18 +100,49 @@
                 {% endfor %}
             </ul>
             
-            <!-- More content ? ¡ -->
-            <div class="d-flex-col mt-2 gap-2" id="cont-brands">
-                
+
+            <hr class="hr-custom">
+            <h3 class="mt-2 mb-2">Marcas</h3>
+            <div class="d-flex-col ms-3 gap-2" id="cont-brands"> </div>
+
+
+            <hr class="hr-custom">
+            <h3 class="mt-2">Precio</h3>
+            <div class="relative btn-36 w-100">
+                <input type="range" id="min-range" min="0" max="1000" value="200" step="50">
+                <input type="range" id="max-range" min="0" max="1000" value="800" step="50">
+                <div class="slider-track"> </div>
             </div>
-            
+            <div class="bolder font-sm text-secondary">
+                Mín: $<span id="min-val">200</span> — Máx: $<span id="max-val">800</span>
+            </div>
+
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <div class="d-grid cont-grid-234 h-min gap-2" id="cont-product-cards">
-        
+    <div class="d-flex-col gap-2">
+        <div class="d-flex-col-row gap-2 text-truncate font-md bolder">
+            Ordenar Por:
+            <select class="bg-primary w-min" name="" id="select-to-sort">
+                <option value="getList"> Defecto</option>
+                <option value="priceAsc"> Precio Ascendente</option>
+                <option value="priceDesc"> Precio Descendente</option>
+                <option value="name"> Alfabeto (A-Z)</option>
+                <option value="discount"> Por descuento</option>
+                <option value="news"> Nuevas publicaciones</option>
+            </select>
+        </div>
+
+        <h4 class="text-secondary bolder">
+            Mostrando {{ pagination.results_on_page }} de {{ pagination.total_results }} resultados: 
+        </h4>
+
+        <!-- Main Content -->
+        <section class="d-grid cont-grid-234 h-min gap-2" id="cont-product-cards">
+            
+        </section>
     </div>
+    
 
     <div class="grid-start-col-2 mt-2 justify-self-center d-flex gap-2" id="cont-pagination"
         data-total-pages="{{ pagination.total_pages }}" data-page-num="{{ pagination.page }}">
@@ -146,16 +177,28 @@
         };
     </script>
 
-    
-    <script src="{% static 'products/js/components/cards_products.js' %}"></script>
-    <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
-    <script src="{% static 'products/js/products_cards.js' %}"></script>
-    
-    <script src="{% static 'products/js/product_list.js' %}"></script>
-
+    <script src="{% static 'products/js/components/pagination.js' %}"></script>
     <script>
+        /**
+        * Initializes the product store with the initial product data rendered server-side by Django.
+        * 
+        * This script:
+        * - Parses the JSON string `productos_json` injected by Django's server-side rendering (SSR).
+        * - Calls `window.ProductStore.setData` to load this initial set of products into the client-side store.
+        * 
+        * This approach allows the page to load with pre-rendered product data,
+        * and later use the same `ProductStore` for dynamic updates via AJAX calls.
+        */
         window.ProductStore.setData(JSON.parse('{{ productos_json|escapejs }}'));
     </script>
+
+    <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+    <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
+    <script src="{% static 'products/js/components/cards_products.js' %}"></script>
+
+    <script src="{% static 'products/js/product_list.js' %}"></script>
+
+    
 
 {% endblock extra_scripts %}
 

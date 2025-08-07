@@ -1,9 +1,6 @@
-
-
-/// <reference path="../../../../static/js/base.js" />
-/// <reference path="../../../../static/js/base.js" />
-/// <reference path="../../../../static/js/utils.js" />
-/// <reference path="../../../../favorites/static/favorites/js/add_favorites.js" />
+/// <reference path="../../../../../static/js/base.js" />
+/// <reference path="../../../../../static/js/utils.js" />
+/// <reference path="../../../../../favorites/static/favorites/js/add_favorites.js" />
 
 
 /**
@@ -14,6 +11,15 @@
  */
 function populateModalCard(modal, product_obj) {
     const product = deepEscape(product_obj);
+
+    // -- Complete form info to make submit fetch add product to cart
+    const form = modal.querySelector('#form-modal-add');
+    form.dataset.stock = product.stock;
+    form.dataset.id = product.id;
+
+    // --- Images ---
+    modal.querySelector('.modal-img').src = product.main_image;
+    imagesModalFetch(modal, product);
 
     // --- Title and detail link ---
     const title = modal.querySelector('.modal-title');
@@ -64,13 +70,6 @@ function populateModalCard(modal, product_obj) {
         stockLabel.textContent = 'Disponible';
     }
 
-    const form = document.getElementById('form-modal-add');
-    form.dataset.stock = product.stock;
-    form.dataset.id = product.id;
-
-    // --- Images ---
-    modal.querySelector('.modal-img').src = product.main_image;
-
     // --- Category ---
     const catLabel = modal.querySelector('#modal-category');
     const catGroup = modal.querySelector('.modal-cat-group');
@@ -100,10 +99,24 @@ function populateModalCard(modal, product_obj) {
         brandLabel.href = window.TEMPLATE_URLS.brand.replace('__BRAND__', product.brand.slug);
     }
     brandGroup.style.display = (product.brand) ? 'block' : 'none';
-
-    imagesModalFetch(modal, product)
 }
 
+/**
+ * Fetches additional product images asynchronously and updates the modal's image container.
+ *
+ * This function:
+ * 1. Clears the current content of the thumbnail images container within the modal.
+ * 2. Requests product images from a backend API endpoint based on the product ID.
+ * 3. Inserts the main product image as the first thumbnail with a highlighted border.
+ * 4. Inserts up to three additional product images retrieved from the API as thumbnails.
+ * 5. Calls `productImagesChange` to initialize or update any UI interactions related to the image thumbnails.
+ *
+ * @param {HTMLElement} modal - The modal element containing the images container.
+ * @param {Object} product - The product object containing at least `id` and `main_image` properties.
+ *
+ * Note: The function assumes `window.TEMPLATE_URLS.productImages` contains a URL template
+ * with a `{product_id}` placeholder to be replaced by the actual product ID.
+ */
 async function imagesModalFetch(modal, product) {
     
     let container = modal.querySelector('#modal-lil-images');
@@ -240,10 +253,20 @@ function productCardModalEvent(container) {
 }
 
 
+/**
+ * Initializes the "Add Product" form inside a modal dialog.
+ * 
+ * - `handleGenericFormBase` handles the common form submission logic (e.g., disabling buttons, showing loaders).
+ * - `endpointsCartActions` performs the API call related to cart management.
+ * 
+ * @param {HTMLElement} modal - The modal container element containing the add product form.
+ */
 function formAddProductModal(modal) {
     const form = modal.querySelector('#form-modal-add');
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // get default dynamic info from the form
         const productId = form.dataset.id;
         const stock = parseInt(form.dataset.stock);
         
@@ -262,11 +285,17 @@ function formAddProductModal(modal) {
 }
 
 
-
 /**
- * Assigns all product card related events within a given container.
+ * Attaches a delegated submit event listener to a container that holds product cards,
+ * handling different types of forms within those cards.
  * 
- * @param {HTMLElement} container - The parent element that contains product cards.
+ * - If the form has the class `form-btn__like`, it triggers a favorite toggle action.
+ * - If the form has the class `product-card__extender-btn`, it triggers adding the product to the cart.
+ * 
+ * For each case, it uses `handleGenericFormBase` to manage common form submission behavior,
+ * such as disabling the submit button, showing loaders, or handling errors.
+ * 
+ * @param {HTMLElement} container - The parent element containing the product cards with forms.
  */
 function productCardFormsEvents(container) {
     container.addEventListener('submit', async (e) => {
@@ -275,11 +304,11 @@ function productCardFormsEvents(container) {
 
         e.preventDefault();
 
-        const productId = form.dataset.index;
         const btn = e.submitter || form.querySelector('button[type="submit"]');
 
-        // Identificar tipo de formulario por clase
+        // Handle "like" (favorite) form submissions
         if (form.classList.contains('form-btn__like')) {
+            const productId = form.dataset.index;
             await handleGenericFormBase({
                 form,
                 submitCallback: async () => formFavoritesEvents(productId, btn),
@@ -287,7 +316,9 @@ function productCardFormsEvents(container) {
             });
         }
 
+        // Handle "add to cart" form submissions
         else if (form.classList.contains('product-card__extender-btn')) {
+            const productId = form.dataset.index;
             const stock = parseInt(form.dataset.stock);
             await handleGenericFormBase({
                 form,

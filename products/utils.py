@@ -10,6 +10,8 @@ def valid_id_or_None(id_value):
     #### forma acotada para un futuro puede ahorrar milesimas..
     return int(value_id) if value_id and value_id.isdigit() and int(value_id) > 0 else None
     """
+    if id_value is None:
+        return None
     try:
         id_int = int(id_value)
         return id_int if id_int > 0 else None

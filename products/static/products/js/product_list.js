@@ -1,246 +1,263 @@
 /// <reference path="../../../../static/js/base.js" />
+/// <reference path="./logic/cards_products.js" />
+/// <reference path="../js/components/pagination.js" />
 
-/// <reference path="../js/products_cards.js" />
-
-
-window.ProductStore = {
-    data: [],
-    setData(newData) {
-        this.data = newData;
-    },
-    getData() {
-        return this.data;
-    },
-    /**
-     * Obtiene marcas únicas a partir de los productos
-     * @returns {Array<{id: number, name: string}>}
-     */
-    getUniqueBrands() {
-        const brandMap = new Map();
-
-        this.data.forEach(product => {
-            const brand = product.brand;
-            if (brand && !brandMap.has(brand.id)) {
-                brandMap.set(brand.id, { id: brand.id, name: brand.name });
-            }
-        });
-
-        return Array.from(brandMap.values()).sort((a, b) =>
-            a.name.localeCompare(b.name)
-        );
-    },
-    /**
-     * Filtra los productos por ID de marca
-     * @param {number} brandId
-     * @returns {Array<Object>}
-     */
-    filterByBrand(brandId) {
-        return this.data.filter(product => product.brand?.id === brandId);
-    },
-
-    filterByName(query) {
-        if (!query) return this.data;
-        const words = query.toLowerCase().split(/\s+/);  // divide por espacios
-        return this.data.filter(p => {
-            const name = p.name.toLowerCase();
-            return words.every(word => name.includes(word));  // todas las palabras deben estar
-        });
-    },
-
-    filterByPrice(min, max) {
-        return this.data.filter(p => p.price >= min && p.price <= max);
-    },
-    filterByCategory(categoryId) {
-        return this.data.filter(p => p.category_id === categoryId);
-    },
-    orderByPrice(desc = false) {
-        return [...this.data].sort((a, b) =>
-        desc ? b.price - a.price : a.price - b.price
-        );
-    }
-};
-
-
-/**
- * Maneja la búsqueda en tiempo real con debounce
- * @param {Event} e - Evento de input
- */
-function handleRealTimeSearch(e, container) {
-    const form = e.currentTarget;
-    clearTimeout(form.debounceTimer);
-    
-    const searchTerm = e.target.value.trim();
-    
-    if ((searchTerm.length >= 3 || searchTerm.length < 3) && searchTerm !== form.lastSearchTerm) {
-        form.debounceTimer = setTimeout(() => {
-            if (searchTerm) {
-                const products = ProductStore.filterByName(searchTerm);
-                updateProductListCards(container, products);
-            }
-            form.lastSearchTerm = searchTerm;
-        }, 800);    // time to debounce
-    }
-}
 
 
 
 /**
- * Obtiene productos con los filtros actuales
- * @param {URLSearchParams} params - Parámetros de búsqueda
+ * Initializes the sidebar search form with real-time search functionality.
+ * Uses a debounced function to reduce the number of product filter calls while typing.
+ *
+ * @param {HTMLElement} container - The container where filtered products will be rendered.
  */
-let counterNavigating = 0;
-async function fetchProductList(dictAdd, activeCounter = true) {
-    // 1. Obtener todos los filtros primero
-    const filtersCont = document.getElementById('filters');
-    const filterInputs = filtersCont.querySelectorAll('input[type="hidden"]');
+function initSearchSidebar(container) {
+    const form = document.getElementById('sidebar-search');
+    form.lastSearchTerm = '';
 
-    // 2. Crear un diccionario base con los filtros del HTML
-    const dictBase = {};
-    filterInputs.forEach(input => {
-        if (input.value) dictBase[input.name] = input.value;
-    });
-
-    // 3. Sobrescribir con lo que viene por parámetro
-    Object.assign(dictBase, dictAdd);
-
-    // 4. Crear los parámetros finales
-    const params = new URLSearchParams(dictBase);
-    
-    const urlBase = `${window.TEMPLATE_URLS.productList.replace('{product_id}', '')}`;
-    const url = `${urlBase}/?${params.toString()}`;
-    try {
-        // const url = `/api/product/?${params.toString()}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Error en la búsqueda');
-        const data = await response.json();
-
-        // Make changes in the container and reassign events
-        const container = document.getElementById('cont-product-cards');
-
-        ProductStore.setData(data.products)
-        updateProductListCards(container, data.products, data)
-        
-        // Solo actualizar la URL si no se está navegando desde el historial
-        if (activeCounter) { 
-            const queryString = `?${params.toString()}`;
-            history.pushState(null, '', queryString);
-            counterNavigating++;
+    /**
+     * Filters products by name and updates the product list in the given container.
+     *
+     * @param {HTMLElement} container - The container to update with filtered products.
+     * @param {string} searchTerm - The user's search query.
+     */
+    function searchProducts(container, searchTerm) {
+        if (searchTerm) {
+            const products = ProductStore.filterByName(searchTerm);
+            updateProductListCards(container, products);
         }
-
-    } catch (error) {
-        console.error('Error:', error);
     }
+
+    // Wrap the search function in a debouncer to delay execution
+    const debouncedSearch = debounce(searchProducts, 800);
+
+    form.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.trim();
+        if (searchTerm !== form.lastSearchTerm) {
+            form.lastSearchTerm = searchTerm;
+            debouncedSearch(container, searchTerm);
+        }
+    });
 }
 
 
-window.addEventListener('popstate', () => {
-    if (counterNavigating > 0) {
-        const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
-        fetchProductList(params, false);
-        counterNavigating--;
-
-        // Actualizar visualmente el botón activo
-        const container = document.getElementById('cont-pagination');
-        const btns = container.querySelectorAll('.btn-page');
-        const currentPage = params.page || '1';
-        btns.forEach(btn => {
-            btn.classList.remove('border-main');
-            if (btn.dataset.number === currentPage) btn.classList.add('border-main');
-        });
-    }
-});
-
-
-
-function updateContPagination() {
-    const container = document.getElementById('cont-pagination');
-    const totalPages = parseInt(container.dataset.totalPages);
-    const pageNum = parseInt(container.dataset.pageNum);
-
-    container.innerHTML = ''; // Limpiar contenido anterior
-
-    for (let num = 1; num <= totalPages; num++) {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-28 border-hover bolder btn-page';
-        if (num === pageNum) btn.classList.add('border-main');
-
-        btn.dataset.number = num;
-        btn.innerHTML = `${num}`;
-        container.appendChild(btn);
-    }
-
-    if (!container._hasEvent) {
-        container.addEventListener('click', (e) => {
-            const btn = e.target.closest('button.btn-page');
-            if (!btn || btn.classList.contains('border-main')) return;
-
-            // Actualizar visualmente el botón activo
-            const exBtnMain = container.querySelector('.border-main');
-            if (exBtnMain) exBtnMain.classList.remove('border-main');
-            btn.classList.add('border-main');
-
-            const num = btn.dataset.number;
-            fetchProductList({ page: num });
-        });
-        container._hasEvent = true;
-    }
-}
-
-
-function updateContainerBrands(brands) {
+/**
+ * Dynamically populates the brand container with radio button filters,
+ * and sets up event delegation to filter products based on the selected brand.
+ *
+ * @param {Array} brands - Array of brand objects. Each object should have at least an `id` and a `name` property.
+ */
+function updateContBrands(contProducts) {
     const container = document.getElementById('cont-brands');
     container.innerHTML = '';
+    
+    /**
+     * Creates a radio input wrapped in a label for a given brand.
+     * Crea un input radio envuelto en un label para una marca dada.
+     * 
+     * @param {Object} brand - Brand object with `id` and `name`
+     * @returns {HTMLElement} - The constructed label element
+     */
+    function createBrandRadio(brand) {
+        const b = deepEscape(brand);    // Sanitize brand object to prevent injection
 
-    const title = '<h3>Marcas</h3>';
-    const brandsHTML = brands.map(b => {
-        const brand = deepEscape(b);
-        return /*html*/`
+        const labelHTML = /*html*/`
             <label class="d-flex gap-1 radio-brand">
-                <input type="radio" name="brand" value="${brand.id}" data-id="${brand.id}">
-                ${brand.name}
-            </label>
-        `;
-    }).join('');
+                <input type="radio" name="brand" value="${b.id}" data-id="${b.id}">
+                ${b.name}
+            </label>`;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = labelHTML;
+        return wrapper.firstElementChild;
+    }
 
-    container.insertAdjacentHTML('beforeend', title + brandsHTML);
+    // Combinar opción "Todos" con las marcas únicas
+    const brands = [{ id: 0, name: 'Todos' }, ...ProductStore.getUniqueBrands()];
+    const fragment = document.createDocumentFragment();
+    brands.forEach(brand => { 
+        fragment.appendChild(createBrandRadio(brand)); 
+    });
+    container.appendChild(fragment);
 
-    // Delegación de evento de cambio
-    container.addEventListener('change', (e) => {
-        const input = e.target;
+    /**
+     * Set up a single event listener using event delegation.
+     * This listens for changes on any radio input inside the container.
+     */
+    if (!container._hasEvent) {
+        container.addEventListener('change', (e) => {
+            const input = e.target;
 
-        // Asegurarse que el evento provenga de un input tipo radio con name "brand"
-        if (input.tagName === 'INPUT' && input.type === 'radio' && input.name === 'brand') {
-            const brandId = parseInt(input.dataset.id);
+            // Ensure the event target is a radio input for brand selection
+            if (input.tagName === 'INPUT' && input.type === 'radio' && input.name === 'brand') {
+                const brandId = parseInt(input.dataset.id); // Get the selected brand ID
 
-            const filtered = ProductStore.filterByBrand(brandId);
-            const contProducts = document.getElementById('cont-product-cards');
-            updateProductListCards(contProducts, filtered);
-        }
-    }); 
+                // Filter products using the selected brand ID
+                const filtered = ProductStore.filterByBrand(brandId);
+                updateProductListCards(contProducts, filtered);
+
+                // Optionally scroll to the updated product section
+                scrollToSection(contProducts, 'highlight-main');
+            }
+        });
+
+        container._hasEvent = true;
+    }
+    
 }
 
 
+/**
+ * Updates the price filter UI and product list based on the selected price range.
+ * 
+ * @param {HTMLElement} contProducts - The container element where product cards are rendered.
+ */
+function updateContPrices(contProducts) {
+    const sidebarCont = document.getElementById('sidebar-list');
+    const minRange = sidebarCont.querySelector('#min-range');
+    const maxRange = sidebarCont.querySelector('#max-range');
+    const spanMin = sidebarCont.querySelector('#min-val');
+    const spanMax = sidebarCont.querySelector('#max-val');
+    const track = sidebarCont.querySelector('.slider-track');
+
+    // Limpiar event listeners anteriores si existen
+    if (minRange._updateSliderHandler) {
+        minRange.removeEventListener('input', minRange._updateSliderHandler);
+        maxRange.removeEventListener('input', minRange._updateSliderHandler);
+    }
+
+    // Get current min and max prices from product store (considering discounts)
+    const { min: minPrice, max: maxPrice } = ProductStore.getPriceRange();
+
+    console.log(`Precio mayor: ${minPrice} - Precio menor: ${maxPrice}`)
+
+    // Set the actual limits for the range sliders
+    minRange.min = minPrice;
+    minRange.max = maxPrice;
+    minRange.value = minPrice;
+
+    maxRange.min = minPrice;
+    maxRange.max = maxPrice;
+    maxRange.value = maxPrice;
+
+    // Set step size for slider increments (fixed to 100 in this example)
+    const step = 100;
+    minRange.step = step;
+    maxRange.step = step;
+
+    // Create a debounced function to filter products and update the UI
+    const debouncedFilter = debounce((min, max) => {
+        const filteredProducts = ProductStore.filterByPrice(min, max);
+        updateProductListCards(contProducts, filteredProducts);
+
+        // hacer movimiento visual al nuevo grupo de tarjetas
+        // scrollToSection(contProducts, 'highlight-main');
+    }, 800);
+
+    const visualTrack = (min, max) => {
+        // Update the visible min and max values text
+        spanMin.textContent = min;
+        spanMax.textContent = max;
+
+        // Calculate slider percentages for the gradient background
+        const range = maxPrice - minPrice;
+
+        // evitar division por cero
+        let percentMin = 0;
+        let percentMax = 100;
+        if (range > 0) {
+            percentMin = ((min - minPrice) / range) * 100;
+            percentMax = ((max - minPrice) / range) * 100;
+        }
+
+        // Set slider track background
+        track.style.background = `linear-gradient(to right, 
+            var(--bg-primary) ${percentMin}%,
+            var(--main-color) ${percentMin}%,
+            var(--main-color) ${percentMax}%,
+            var(--bg-primary) ${percentMax}%)`;
+    }
+
+    // Function to handle slider input changes
+    const updateSlider = (e = null) => {
+        let min = parseInt(minRange.value);
+        let max = parseInt(maxRange.value);
+
+        // Prevent sliders from crossing over
+        if (min > max) {
+            if (e && e.target === minRange) {
+                min = max;
+                minRange.value = max;
+            } else if (e) {
+                max = min;
+                maxRange.value = min;
+            }
+        }
+        visualTrack(min, max);
+        
+        if (e) debouncedFilter(min, max);
+    };
+
+    // Guardar referencia a la función para poder eliminarla después
+    minRange._updateSliderHandler = updateSlider;
+
+    // Add event listeners
+    minRange.addEventListener('input', updateSlider);
+    maxRange.addEventListener('input', updateSlider);
+
+    // Actualizar visualización inicial
+    visualTrack(minPrice, maxPrice);
+}
+
+
+function initFormSort(contProducts) {
+    const select = document.getElementById('select-to-sort');
+    
+    const sortMethods = {
+        priceAsc: () => ProductStore.orderByPrice(false),
+        priceDesc: () => ProductStore.orderByPrice(true),
+        getList: () => ProductStore.getData(),
+        name: () => ProductStore.orderByName(),
+        discount: () => ProductStore.orderByDiscount(),
+    };
+
+    select.addEventListener('change', (e) => {
+        const value = e.target.value;
+        const sorted = (sortMethods[value] || sortMethods['getList'])();
+        ProductStore.setData(sorted);
+        updateProductListCards(contProducts, sorted);
+    });
+}
+
+
+
+/**
+ * Initializes the product listing page once the DOM is fully loaded.
+ */
 document.addEventListener('DOMContentLoaded', () => {
-
-    // update some filters stuff
-    updateContainerBrands(ProductStore.getUniqueBrands());
-
+    // Container element for product cards
     const container = document.getElementById('cont-product-cards');
+
+    // Update the brand filters UI based on available data
+    updateContBrands(container);
+
+    // Update the price filter sliders and values
+    updateContPrices(container);
+
+    // Render the full product list initially
     updateProductListCards(container, ProductStore.getData());
 
-    // inicializar buscador lateral csr
-    const form = document.getElementById('sidebar-search');
-    form.debounceTimer = null;
-    form.lastSearchTerm = '';
-    form.addEventListener('input', (e) => handleRealTimeSearch(e, container));
+    // Initialize the sidebar search bar with real-time search and debounce
+    initSearchSidebar(container);
 
-    // para los eventos de paginacion
+    initFormSort(container);
+
+    // Setup pagination controls UI and logic
     updateContPagination();
 
-    
-    
+    // Setup the history popstate event listener to handle browser back/forward navigation
+    historyPopState();
 
-    // esto es por si llega una url construida y queremos actualizar en base a esa url
+    // If the URL has query parameters, parse and fetch the product list accordingly
     const params = new URLSearchParams(window.location.search);
     if (params.toString()) {
         const dict = {};

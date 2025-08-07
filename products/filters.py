@@ -5,7 +5,7 @@ from django.db.models import Q, Prefetch, QuerySet
 from typing import Dict, List, Optional, Literal
 
 from products.models import PCategory, PSubcategory, PBrand, ProductImage
-from products import utils
+from products.utils import valid_id_or_None
 
 # CONST TUPLES FILTERS
 # para desempaquetar la tupla como argumentos para .only().
@@ -72,29 +72,32 @@ def get_context_filtered_products(request) -> dict:
                 - '2' = all products (available and unavailable)
             - "query" (str or None): The search query string, if any, used to filter products by name or other fields.
     """
-    cat_id = utils.valid_id_or_None(request.GET.get('category')) 
-    subcat_id = utils.valid_id_or_None(request.GET.get('subcategory'))
+    cat_id = valid_id_or_None(request.GET.get('category')) 
+    subcat_id = valid_id_or_None(request.GET.get('subcategory'))
+    available = request.GET.get('available', '1')
     query = request.GET.get('query', '')
     
     top_query = request.GET.get('topQuery', '')
     if not top_query:
         top_query = request.GET.get('lastQuery', '')
 
-    # Forzar que solo sea '0', '1' o '2', si no es válido, usar '1'
-    available = request.GET.get('available')
-    available = available if available in ('0', '1', '2') else '1'
-
     category = None
     if cat_id:
-        category = PCategory.objects.filter(id=cat_id).values('id', 'name', 'slug').first()
+        category = ( 
+            PCategory.objects.filter(id=cat_id, is_default=False)
+            .values('id', 'name', 'slug').first()
+        )
         
     subcategory = None
     if subcat_id:
-        subcategory = PSubcategory.objects.filter(id=subcat_id).values('id', 'name', 'slug').first()
+        subcategory = (
+            PSubcategory.objects.filter(id=subcat_id, is_default=False)
+            .values('id', 'name', 'slug').first()
+        )
     
     products = get_products_filters({
-        'category': category,
-        'subcategory': subcategory,
+        'category': category['id'] if category else None,
+        'subcategory': subcategory['id'] if subcategory else None,
         'query': query,
         'top_query': top_query,
         'available': True if available == '1' else False, 
@@ -119,8 +122,8 @@ def get_products_filters(filters: dict) -> QuerySet:
     Args:
         filters (dict): Dictionary with optional keys:
             - 'available' (bool)
-            - 'category' (instance PCategory)
-            - 'subcategory' (instance PSubcategory)
+            - 'category' (id or None PCategory)
+            - 'subcategory' (id or None PSubcategory)
             - 'query' (str)
             - 'get_all' (bool): If True, returns all products regardless of 'available'.
         
@@ -129,21 +132,19 @@ def get_products_filters(filters: dict) -> QuerySet:
     """
     get_all = filters.get('get_all', False)      # if u want different value
     available = filters.get('available', True)   # if u want different value
-    category = filters.get('category')           # <- default: None
-    subcategory = filters.get('subcategory')  
-    query = filters.get('query')               
-    top_query = filters.get('top_query')        
+    category = valid_id_or_None(filters.get('category'))            # ID || None
+    subcategory = valid_id_or_None(filters.get('subcategory'))      # ID || None
+    query = filters.get('query', '')               
+    top_query = filters.get('top_query', '')            # query STR || ''
 
     # Si all está activo, no se filtra por disponibilidad
     products = Product.objects.all() if get_all else Product.objects.filter(available=available)
 
     if category:
-        cat_id = category['id']
-        products = products.filter(category_id=cat_id)
+        products = products.filter(category_id=category)
 
     if subcategory:
-        subcat_id = category['id']
-        products = products.filter(subcategory_id=subcat_id)
+        products = products.filter(subcategory_id=subcategory)
 
     if query or top_query:
         chain = f'{query} {top_query}'
@@ -350,7 +351,7 @@ def apply_product_sorting(queryset, sort_by, sorted_flag):
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> tuple:
+def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 100) -> tuple:
     """
     Paginates a Django QuerySet and returns the items for the current page
     along with pagination metadata.
@@ -393,6 +394,8 @@ def get_paginator(products: QuerySet, page_num: int = 1, quantity: int = 48) -> 
     products_page = page_obj.object_list if page_obj else products
     pagination = {
         'page': page_obj.number if page_obj else 0,
-        'total_pages': page_obj.paginator.num_pages if page_obj else 0
+        'total_pages': page_obj.paginator.num_pages if page_obj else 0,
+        'results_on_page': len(products_page),
+        'total_results': paginator.count
     }
     return products_page, pagination

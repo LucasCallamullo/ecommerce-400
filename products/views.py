@@ -30,25 +30,28 @@ def product_list(request, cat_slug=None, subcat_slug=None):
     # Get category and subcategory if exists
     category = None
     if cat_slug:
-        category = (
+        category = ( 
             PCategory.objects.filter(slug=cat_slug, is_default=False)
-            .values('id', 'name', 'slug').first()
-        )
-    
-    subcategory = None
-    if subcat_slug:
-        subcategory = (
-            PSubcategory.objects.filter(slug=subcat_slug, is_default=False)
-            .values('id', 'name', 'slug').first()
+            .values('id', 'slug', 'name').first()
         )
 
+    subcategory = None
+    if subcat_slug:
+        subcategory = ( 
+            PSubcategory.objects.filter(slug=subcat_slug, is_default=False)
+            .values('id', 'slug', 'name').first()
+        )
+    
     # Apply optimizacions
-    products = filters.get_products_filters({'category': category, 'subcategory': subcategory})
-    products = products.values(*filters.VALUES_CARDS_LIST).order_by('price')
+    products = filters.get_products_filters({
+        'category': category['id'] if category else None, 
+        'subcategory': subcategory['id'] if subcategory else None
+    })
+    products = products.values(*filters.VALUES_CARDS_LIST).order_by('price', 'id')
     
     # Serializar los productos de la página actual  
     page_num = request.GET.get('page')
-    products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=5)
+    products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=100)
     
     favorites_ids = get_favs_products(request.user)
     serializer = ProductListSerializer(products_page, many=True, context={'favorites_ids': favorites_ids})

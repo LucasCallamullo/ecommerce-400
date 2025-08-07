@@ -3,7 +3,6 @@
 // Stores event handlers for proper cleanup
 const eventHandlersMap = new Map();
 
-
 const ICONS = {
     // from alerts
     close: 'ri-close-circle-line',
@@ -49,32 +48,41 @@ function toggleState(element, force) {
 
 
 /**
- * Smoothly scrolls to a section with temporary visual highlight
- * @param {HTMLElement} section - DOM element to scroll to
- * @param {string} [color='red'] - Border highlight color (default: red)
- * @returns {void}
+ * Smoothly scrolls the page to the given section element and applies a temporary highlight effect.
+ *
+ * @param {HTMLElement} section - The DOM element to scroll into view.
+ * @param {string} [colorClass='highlight-red'] - The CSS class to apply for the highlight effect.
  */
-function scrollToSection(section, color = 'red') {
-    if (!section) return; // Basic null check
-    
-    // Scroll with offset managed via CSS (scroll-margin-top)
+function scrollToSection(section, colorClass = 'highlight-red') {
+    if (!section) return;
+
     section.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
+        behavior: 'smooth',
+        block: 'start'
     });
-    
-    // Temporary highlight effect (2 seconds)
-    section.style.boxShadow = `0 0 0 2px ${color}`;
-    setTimeout(() => section.style.boxShadow = '', 2000);
+
+    // Add highlight class and remove it after 2 seconds
+    section.classList.add(colorClass);
+    setTimeout(() => section.classList.remove(colorClass), 2000);
 }
 
 
-// Esto lo podés poner al final de tu archivo JS, o en un <script> después de cargar la página
+
+/**
+ * Forces a full page reload by appending or updating a unique query parameter to the current URL.
+ *
+ * This technique helps to bypass browser cache by ensuring the URL is unique on each reload.
+ *
+ * Usage:
+ * You can place this function at the end of your JS file or inside a <script> tag
+ * after the page has loaded.
+ */
 function forceReload() {
     const url = new URL(window.location.href);
-    url.searchParams.set('v', Date.now()); // Crea un parámetro único cada vez
+    url.searchParams.set('v', Date.now()); // Add unique parameter to bust cache
     window.location.href = url.toString();
 };
+
 
 
 /*

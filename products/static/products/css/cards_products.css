@@ -25,19 +25,24 @@
 /* CARDS PRODUCTS CAROUSEL */
 .product-card__info {
     grid-template-columns: 1fr;
-    /*  img ;    name  ;     stars - likes ;    stock ;    discount    = 380px    -16 px gap = 364    (160px 54px 28px 24px 80px)
-        160      218         250                282        362       
-    /* nos quedan  - 160px(img height) -10px padding = 210px */
-    /* grid-template-rows: 150px 70px 24px auto;  edit mobile */
     grid-template-rows: 140px 64px min-content; /* edit mobile */
+    gap: 0;
+    row-gap: 0;
+}
+
+.product-card__grid-2 {
+    grid-template-columns: auto auto;
     gap: 0;
     padding: 0;
     margin: 0;
     row-gap: 8px;
+    grid-template-rows: min-content min-content;
 }
 
-.cont-grid-2 {
-    grid-template-columns: auto auto;
+.product-card__offer-tag {
+    background-color: var(--red-color);
+    width: min-content;
+    padding: 4px 6px;
 }
 
 /* Contenedor extensor para button */

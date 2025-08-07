@@ -1,14 +1,15 @@
 from django.shortcuts import render
 
 # Create your views here.
-
-from users.models import CustomUser
-from products.models import Product
-
-
 from home.models import Store, StoreImage
 from django.db.models import Prefetch
 
+import json
+from products.models import Product
+from products.filters import VALUES_CARDS_LIST
+from products.serializers import ProductListSerializer
+
+from favorites.utils import get_favs_products
 
 def home(request):
     
@@ -31,23 +32,25 @@ def home(request):
             banners_active.append(img)
     
     user = request.user
-    favorite_product_ids = None
+    favorites_ids = None
     if user.is_authenticated:
         # IDs de productos favoritos
-        favorite_product_ids = set(user.favorites.values_list('product', flat=True)) 
+        favorites_ids = get_favs_products(user)
 
-
-    products = (
-        Product.objects.select_related('category').all()
+    products = ( 
+        Product.objects
+            .filter(category__is_default=False)
+            .values(*VALUES_CARDS_LIST)
+            .order_by('price', 'id')[:100]    # limita a 100 la query
     )
     
+    serializer = ProductListSerializer(products, many=True, context={'favorites_ids': favorites_ids})
+    products_data = serializer.data
+    
     products_by_category = {}
-    for product in products:
+    for product in products_data:
         
-        if not product.category:
-            continue
-        
-        category_name = product.category.name
+        category_name = product['category']['name']
         if category_name not in products_by_category:
             products_by_category[category_name] = []
         products_by_category[category_name].append(product)
@@ -55,19 +58,15 @@ def home(request):
     context = {
         'headers_active': headers_active,  
         'banners_active': banners_active,
-        
-        "favorite_product_ids": favorite_product_ids,
-        'products_by_category': products_by_category,
-        'products': products
+        'products_json': json.dumps(products_by_category)
     }
 
     return render(request, 'home/home.html', context)
 
 
 def help_mp(request):
+    from users.models import CustomUser
     users = CustomUser.objects.exclude(email__in=["lucascallamullo@hotmail.com", "lucascallamullo98@gmail.com"])
-
-    
     return render(request, 'home/help_mp.html', {'users': users})
 
 

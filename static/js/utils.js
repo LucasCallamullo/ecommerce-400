@@ -2,7 +2,7 @@
 /// <reference path="../js/alerts.js" />
 
 
-
+/* 
 function analizarHTML() {
     console.time("⏱️ Tiempo de análisis");
 
@@ -49,7 +49,7 @@ function analizarHTML() {
 }
 
 analizarHTML();
-
+*/
 
 
 
@@ -105,9 +105,21 @@ function shortDate(dateStr) {
 }
 
 
-
-
-
+/**
+ * Creates a debounced version of a function that delays invoking it
+ * until after a specified wait time has elapsed since the last call.
+ *
+ * @param {Function} func - The function to debounce.
+ * @param {number} wait - The delay time in milliseconds.
+ * @returns {Function} A debounced function that postpones execution until after the wait time.
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
 
 
 /**
