@@ -65,8 +65,10 @@
             // favorites/urls.py
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
             
+            
+            cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
+
             // products/urls.py
-            addToCart: "{% url 'cart_add_product' %}",
             productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
             category: "{% url 'pl_category' cat_slug='__CAT__' %}",
             subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",

@@ -76,19 +76,20 @@
                     </a>
                 </li>
         
-                {% for cat, sub_cats in categories_dropmenu.items %}
+                {% for item in categories_dropmenu.values %}
                 <li class="d-flex-col align-start">
-                    <a class="btn btn-28 w-100 btn-primary bolder justify-start" href="{% url 'pl_category' cat.slug %}">
-                        {{ cat.name }}
+                    <a class="btn btn-28 w-100 btn-primary bolder justify-start" 
+                    href="{% url 'pl_category' item.category.slug %}">
+                        {{ item.category.name }}
                     </a>
                     
                     <!-- Submenú with SubCategories -->
-                    {% if sub_cats %}
+                    {% if item.subcategories %}
                         <ul class="d-flex-col">
-                            {% for sub_cat in sub_cats %}
+                            {% for sub_cat in item.subcategories %}
                                 <li class="d-flex ms-3">
                                     <a class="btn btn-28 w-100 btn-primary justify-start" 
-                                    href="{% url 'pl_subcategory' cat.slug sub_cat.slug %}">
+                                    href="{% url 'pl_subcategory' item.category.slug sub_cat.slug %}">
                                         {{ sub_cat.name }}
                                     </a>
                                 </li>

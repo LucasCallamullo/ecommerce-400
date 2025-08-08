@@ -118,7 +118,6 @@ function renderCards(product, isSwiper=false) {
      */
     const wrapper = document.createElement('div');
     wrapper.innerHTML = cardHTML;
-    // fragment.appendChild(div.firstElementChild);
     return wrapper.firstElementChild;
 }
 

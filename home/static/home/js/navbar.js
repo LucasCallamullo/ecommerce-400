@@ -12,44 +12,37 @@ let isMainNavFixed = false; // Flag to track the state of the navbar
 function mainNavFixedSetup() {
 
     const header = document.querySelector("header");
-    const nav = header.querySelector("#main-nav");
+    const nav = header.querySelector("#cont-main-nav");
     const navList = nav.querySelector("#main-nav-list");
-    
-    if ( !header || !nav || !navList ) return; // Prevent errors if elements don't exist
 
+    const logo = header.querySelector('.cont-logo-fixed');
+    
     const headerHeight = header.offsetHeight;
     
-    const logoData = nav.querySelector(".logo-url");
-    const logoUrl = logoData.getAttribute("data-img");
-    const homeUrl = logoData.getAttribute("data-url");
-
-    // Create the dynamic logo container
-    const logoContainer = document.createElement("div");
-    logoContainer.classList.add("cont-logo-fixed");
-    logoContainer.innerHTML = `
-        <a href="${homeUrl}" class="cont-100">
-            <img src="${logoUrl}" class="img-cover" alt="LOGO">
-        </a>
-    `;
-
     function handleScroll() {
         if (!isMainNavFixed && window.scrollY > headerHeight) {
-            // Add fixed navigation and logo
-            if (!navList.querySelector(".cont-logo-fixed")) {
-                navList.insertBefore(logoContainer, navList.firstChild);
-            }
+            
+            
             nav.classList.add("fixed-nav", "active");
             navList.classList.add("fixed-layout");
+
+            // Add fixed navigation and logo
+            if (logo.dataset.state === 'closed') {
+                toggleState(logo, true);
+            }
 
             isMainNavFixed = true;
 
         } else if (isMainNavFixed && window.scrollY <= headerHeight) {
-            // Remove fixed navigation and logo
-            if (navList.contains(logoContainer)) {
-                navList.removeChild(logoContainer);
-            }
-            nav.classList.remove("fixed-nav", "active");
+
+            
             navList.classList.remove("fixed-layout");
+            
+            nav.classList.remove("fixed-nav", "active");
+            // Remove fixed navigation and logo
+            if (logo.dataset.state === 'open') {
+                toggleState(logo, false);
+            }
             isMainNavFixed = false;
         }
     }

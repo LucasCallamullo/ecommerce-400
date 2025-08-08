@@ -5,13 +5,15 @@
     display: none;
     top: 0;
     left: 0;
-    width: 100%;
+    right: 0;
+    min-width: 100vw;
+    width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     z-index: var(--z-index-overlay);
-    /*  pointer-events: none;  Prevents interference when not visible
+    /*    pointer-events: none;  Prevents interference when not visible
     pointer-events: all;  Allows interaction when visible */
 }
 

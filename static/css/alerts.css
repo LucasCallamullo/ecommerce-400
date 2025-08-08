@@ -11,7 +11,7 @@
     pointer-events: none;
     bottom: 150px;     /* mobile */
     left: 50%;
-    z-index: var(--z-index-plus);
+    z-index: var(--z-index-cart);
     transform: translateX(-50%);
 
     gap: 10px;

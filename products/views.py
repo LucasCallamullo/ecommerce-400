@@ -116,7 +116,7 @@ def product_detail(request, id=None, slug=None):
     Raises:
         Http404: Error raised if no ID is passed.
     """
-    value_id = utils.valid_id_or_None(str(id))
+    value_id = utils.valid_id_or_None(id)
     if not value_id:
         context = {'message': 'todavía falta definir bien la 404'}
         return render(request, 'home/404.html', context)

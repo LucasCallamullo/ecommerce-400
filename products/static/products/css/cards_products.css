@@ -104,11 +104,6 @@
     height: 85vh;
     width: 80%;
     padding: 16px 16px;
-    z-index: calc(var(--z-index-overlay) - 10);
-}
-
-.product-card__overlay {
-    z-index: calc(var(--z-index-overlay) - 15);
 }
 
 .offer-tag {

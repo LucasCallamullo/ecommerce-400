@@ -97,6 +97,8 @@ INSTALLED_APPS = [
     'dashboard',
     'profiles',
     'favorites',
+    
+    'compressor', 
 ]
  
 MIDDLEWARE = [
@@ -106,6 +108,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'cart.middleware.CartMiddleware',    # como depende de los user despues de authentication si o si
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -169,9 +172,21 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Add for deploy to use "Whitenoise"
+# Add for deploy to use "Whitenoise" and "Compress"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# "compress" stuff
+STATICFILES_FINDERS = [  
+    'django.contrib.staticfiles.finders.FileSystemFinder',  
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',  
+    'compressor.finders.CompressorFinder',  
+]  
+COMPRESS_ENABLED = True    
+COMPRESS_OFFLINE = False    # en produccion a True     
+COMPRESS_CSS_FILTERS = ["compressor.filters.cssmin.CSSMinFilter"]    
+COMPRESS_JS_FILTERS = ["compressor.filters.jsmin.JSMinFilter"]
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

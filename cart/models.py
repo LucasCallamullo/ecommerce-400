@@ -29,7 +29,7 @@ class Cart(models.Model):
                     "name": "Product 1",
                     "price": 20.99,
                     "image": "image_url_1.jpg",
-                    "qty": 2,
+                    "quantity": 2,
                 },
             }
         
@@ -44,7 +44,7 @@ class Cart(models.Model):
             .select_related('product')
             .only(
                 'quantity',
-                'product__id', 'product__name', 'product__price',
+                'product__id', 'product__name', 'product__slug', 'product__price',
                 'product__main_image', 'product__stock', 'product__available'
             )
             .filter(product__available=True)
@@ -55,7 +55,7 @@ class Cart(models.Model):
             product_id = str(product.id)
             
             # 2. sería la cantidad combinada de ambos carritos
-            combined_qty = max(item.quantity, shop_cart.get(product_id, {}).get('qty', 0))
+            combined_qty = max(item.quantity, shop_cart.get(product_id, {}).get('quantity', 0))
             
             # 3. consultamos disponibilidad de la cantidad combinada
             is_available, stock = product.stock_or_available(combined_qty)
@@ -69,9 +69,10 @@ class Cart(models.Model):
             shop_cart[str(product.id)] = {
                 "id": product.id,
                 "name": product.name,
+                "slug": product.slug,
                 "price": float(product.price),
                 "image": product.main_image,
-                'qty': min(combined_qty, stock),    # colocamos la cantidad maxima disponible en esta instancia
+                'quantity': min(combined_qty, stock),    # colocamos la cantidad maxima disponible en esta instancia
                 'stock': stock,
             }
             
@@ -99,8 +100,8 @@ class Cart(models.Model):
             
             # 2. Comparar con shop_cart
             for product_id, item_data in shop_cart.items():
-                print(f'producto id: {product_id}, y cantidad: {item_data['qty']}')
-                quantity = item_data['qty']
+                print(f'producto id: {product_id}, y cantidad: {item_data['quantity']}')
+                quantity = item_data['quantity']
                 
                 if product_id in current_items:  # Item existente
                     item = current_items[product_id]
@@ -133,7 +134,7 @@ class Cart(models.Model):
             # 5. Actualizar last_modified
             self.touch()
             
-    def sync_item_from_session(self, product: Product, item_data: dict = None) -> None:
+    def sync_item_from_session(self, product: Product, item_data: dict = None):
         """
         Sincroniza un producto del carrito de sesión con la base de datos.
         - Si item_data es None, elimina el producto.
@@ -142,11 +143,11 @@ class Cart(models.Model):
         if item_data is None:
             self.remove_product(product)
         else:
-            self.add_or_update_product(product, item_data['qty'])
+            self.add_or_update_product(product, item_data['quantity'])
         
         self.touch()  # Actualiza last_modified
 
-    def add_or_update_product(self, product: Product, quantity: int) -> None:
+    def add_or_update_product(self, product: Product, quantity: int):
         """Añade o actualiza un producto en el carrito."""
         cart_item, _ = CartItem.objects.get_or_create(
             cart=self,
@@ -155,7 +156,7 @@ class Cart(models.Model):
    
         cart_item.update_quantity(quantity)
 
-    def remove_product(self, product: Product) -> None:
+    def remove_product(self, product: Product):
         """Elimina un producto del carrito."""
         CartItem.objects.filter(cart=self, product=product).delete()
 
@@ -182,8 +183,11 @@ class CartItem(models.Model):
         """Elimina el ítem del carrito."""
         self.delete()
         
-    def update_item_from_cart(self, action='remove', quantity=0):
         
+        
+        
+    def update_item_from_cart(self, action='remove', quantity=0):
+        # este mnetodo capaz ya no se utiliza revisar
         if action == 'update':
             self.quantity = quantity
             self.save()

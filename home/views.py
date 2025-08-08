@@ -47,9 +47,9 @@ def home(request):
     serializer = ProductListSerializer(products, many=True, context={'favorites_ids': favorites_ids})
     products_data = serializer.data
     
+    # obtengo productos agrupados por category para renderizar en js
     products_by_category = {}
     for product in products_data:
-        
         category_name = product['category']['name']
         if category_name not in products_by_category:
             products_by_category[category_name] = []

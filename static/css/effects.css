@@ -42,6 +42,7 @@
     transform: translateY(-0.25rem) translateZ(0);
 }
 
+/* href -main */
 .main-ref {
     color: var(--text-primary);
     cursor: pointer;

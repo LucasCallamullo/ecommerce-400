@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.db.models import Q, Prefetch, QuerySet
-from typing import Dict, List, Optional, Literal
+from typing import Dict, List, Optional, Literal, Union
 
 from products.models import PCategory, PSubcategory, PBrand, ProductImage
 from products.utils import valid_id_or_None
@@ -174,40 +174,45 @@ def get_products_filters(filters: dict) -> QuerySet:
 
 
 def get_categories_n_subcategories(
-    request = None, use: Literal['navbar', 'panel_admin'] = 'page'
-    ) -> Dict[PCategory, Optional[List[PSubcategory]]]:
+    request=None, use: Literal['navbar', 'panel_admin'] = 'page'
+) -> Dict[int, Dict[str, Union[Dict, Optional[List[Dict]]]]]:
     """
-    Returns a dictionary mapping each non-default product category to its corresponding list of valid subcategories.
-
-    If `request` is provided, the function will attempt to retrieve the result from cache (key: 'categories_dropmenu').
-    If not found, it will compute the result, store it in cache for future calls, and return it.
-    If `request` is None, cache will be ignored and fresh data will be returned (used for admin panel, updates, etc.).
+    Retrieves a dictionary mapping each non-default product category to its corresponding list of subcategories.
 
     Parameters:
-        request (HttpRequest | None): If provided, enables caching logic.
-        use (str): Indicates the context in which this function is used. Can be 'navbar' (default) or 'panel_admin'. 
-                    This determines which fields are fetched from the database.
+        request (HttpRequest, optional): If provided, attempts to retrieve the result from cache using this request.
+        use (Literal['navbar', 'panel_admin']): Determines the context in which the data is used, and 
+            which fields to retrieve. Use 'navbar' to get basic information (default), 
+            or 'panel_admin' for extended admin panel use.
 
     Returns:
-        dict: A dictionary mapping each `PCategory` instance to a list of valid `PSubcategory` instances (or None).
-    """
-    """
-    Returns a dictionary mapping each non-default product category to its corresponding list of valid subcategories.
+        dict: A dictionary where:
+            - Each key is a category ID (int).
+            - Each value is a dictionary with:
+                - 'category': a dict representing the category (with selected fields).
+                - 'subcategories': a list of subcategory dicts (or None if no subcategories).
 
-    Parameters:
-        use (str): Indicates the context in which this function is used. 
-                         Can be 'navbar' (default) or 'panel_admin'. 
-                         This determines which fields are fetched from the database.
-
-    Returns:
-        dict: A dictionary where the keys are `PCategory` instances and the values are lists of subcategory instances 
-              (ordered by name). If a category has no valid subcategories, the value will be None.
-              
-              Example:
-              {
-                  <PCategory: Electronics>: [<PSubCategory: Phones>, <PSubCategory: Laptops>],
-                  <PCategory: Clothing>: None,
-              }
+    Example:
+        {
+            1: {
+                'category': {'id': 1, 'name': 'Electronics', 'slug': 'electronics'},
+                'subcategories': [
+                    {'id': 10, 'name': 'Phones', 'slug': 'phones', 'category_id': 1},
+                    {'id': 11, 'name': 'Laptops', 'slug': 'laptops', 'category_id': 1}
+                ]
+            },
+            2: {
+                'category': {'id': 2, 'name': 'Furniture', 'slug': 'furniture'},
+                'subcategories': None
+            }
+        }
+        
+    Use Template:
+        {% for item in categories_dropmenu.values %}
+            {{ item.category.id }}
+            {% if item.subcategories %}
+                {% for subcat in item.subcategories %}
+                    {{ item.category.name }} - {{ subcat.slug }}
     """
     if request:
         from django.core.cache import cache
@@ -217,16 +222,41 @@ def get_categories_n_subcategories(
     
     # Define fields to fetch based on usage context
     if use == 'navbar':
-        fields = (
-            'id', 'name', 'slug',
-            'subcategories__id', 'subcategories__name', 'subcategories__slug'
-        )
+        FIELDS_CAT = ('id', 'name', 'slug')
+        FIELDS_SUBCAT = ('id', 'name', 'slug', 'category_id')
     elif use == 'panel_admin':
+        FIELDS_CAT = ('id', 'name', 'slug')
+        FIELDS_SUBCAT = ('id', 'name', 'slug', 'category_id')
         fields = (
             'id', 'name', 'image_url',
             'subcategories__id', 'subcategories__name', 'subcategories__image_url'
         )
 
+    categories = (
+        PCategory.objects
+        .filter(is_default=False)
+        .order_by('name')
+        .values(*FIELDS_CAT)
+    )
+    
+    subcategories = (
+        PSubcategory.objects
+        .filter(is_default=False)    # name__isnull=False
+        .order_by('name')
+        .values(*FIELDS_SUBCAT)
+    )
+
+    # Create a dictionary mapping each category to its subcategories (if any)
+    categories_dropmenu = {}
+    for cat in categories:
+        cat_id = cat['id']
+        cat_subs = [sub for sub in subcategories if sub['category_id'] == cat_id]
+        categories_dropmenu[cat_id] = {
+            'category': cat,
+            'subcategories': cat_subs if cat_subs else None
+        }
+
+    """ 
     # Fetch non-default categories and their related subcategories with selected fields only
     categories = (
         PCategory.objects
@@ -235,8 +265,7 @@ def get_categories_n_subcategories(
         .only(*fields)                      # Reduces selected columns to improve performance
         .order_by('name')
     )
-
-    # Create a dictionary mapping each category to its subcategories (if any)
+    
     categories_dropmenu = {}
     for category in categories:
         # Filter subcategories: exclude empty names and sort them
@@ -247,6 +276,7 @@ def get_categories_n_subcategories(
 
         # Assign subcategories or None if the category has none
         categories_dropmenu[category] = valid_subcategories if valid_subcategories else None
+    """
 
     return categories_dropmenu
 

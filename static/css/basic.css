@@ -51,6 +51,8 @@
     --z-index: 150;
     --z-index-overlay: 200;
     --z-index-plus: 300;
+    --z-index-overlay-cart: 400;
+    --z-index-cart: 500;
 
     /* for animations generic variabels */
     --max-height-vertical-anim: 0;
@@ -134,8 +136,9 @@
 html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
-
+    width: 100vw;
+    min-width: 100vw;
+    height: 100vh;
     min-height: 100vh;  /*  Fallback adicional  
     height: calc(var(--vh, 1vh) * 100); */
 
@@ -143,8 +146,8 @@ html, body {
     dvh (dynamic vh) = cambia dinámicamente cuando la barra aparece/desaparece.  
     height: 100svh; 
     max-height: 100dvh;  */
-
-    line-height: 1.2;
+    
+    line-height: 1.25;
     color: var(--text-primary);
     font-size: var(--font-normal);
     font-family: var(--font-main), sans-serif;
@@ -182,27 +185,28 @@ body {
     -webkit-tap-highlight-color: transparent; /* Evita el resaltado al tocar */
 }
 
-/* Styles for large desktops (mín. 993px to max. infinite) */
-@media (min-width: 993px) {
+/* Styles for large desktops (mín. 993px to max. infinite) 
+@media (min-width: 992px) {
     html, body {
         height: 100vh; 
         max-height: 100vh;
     }
-}
+}  */
 
 /* Estilos base (móvil) */
 header {
     height: var(--height-header);
-    width: 100%;
-    padding: 0;             /* mobile edit */
+    width: 100vw;
+     /* padding: 0;             /* mobile edit */
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
     z-index: var(--z-index);
 }
 
 main {
-    width: 100%;
+    width: 100vw;
     background-color: var(--bg-secondary);
     padding-top: 20px; /* mobile edit */
     padding-bottom: 20px;
@@ -210,13 +214,13 @@ main {
 }
 
 footer {
-    width: 100%;
+    width: 100vw;
     padding-top: 3%;
     padding-bottom: 3%;
 }
 
 /* Media queries para pantallas más grandes (desktop) */
-@media (min-width: 993px) {
+@media (min-width: 992px) {
     header {
         padding-top: 8px; /* mobile edit */
         position: static; /* mobile edit */
@@ -233,10 +237,10 @@ footer {
 ====================================================================== */
 /*  Main container for all the contents of header, main, footer with paddings */
 .cont-page {
-    width: 100%;
-    max-width: 1300px;  
-    padding-left: var(--padding-container-page);       
-    padding-right: var(--padding-container-page);
+    width: 100% !important;
+    max-width: 1300px !important;  
+    padding-left: var(--padding-container-page) !important;       
+    padding-right: var(--padding-container-page) !important;
     margin: 0 auto;
 }
 

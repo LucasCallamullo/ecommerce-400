@@ -79,7 +79,7 @@ function wspBtnEvents() {
     if (whatsappUrl) {
         // const finalWhatsappUrl = `https://api.whatsapp.com/send?phone=${cellphone}&text=${encodeURIComponent(message)}`;
         const finalWhatsappUrl = `${whatsappUrl}?text=${encodeURIComponent(message)}`;
-        console.log(`${finalWhatsappUrl}`)
+        // console.log(`${finalWhatsappUrl}`)
         productLink.setAttribute('href', finalWhatsappUrl);
     }
 }
