@@ -66,13 +66,15 @@ function renderWidgetCart() {
                     <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}">
                 </a>
 
-                <a class="font-sm main-ref bolder mt-1" href="${url}">${prod.name}</a>
+                <a class="font-sm main-ref bolder text-truncate-multiline mt-1" href="${url}">
+                    ${prod.name}
+                </a>
 
                 <button class="btn btn-close btn-24 justify-self-end mt-1 me-1" type="submit" data-action="delete">
                     <i class="ri-close-fill font-lg"></i>
                 </button>
 
-                <span class="d-flex text-start ms-2 gap-1 bolder">
+                <span class="d-flex text-start ms-1 gap-1 bolder">
                     ${prod.quantity}
                     <i class="ri-close-line font-lg"></i>
                     $ ${price}
@@ -97,7 +99,7 @@ function renderWidgetCart() {
     }
 
     // Select all containers where the cart widget should be rendered (e.g., mobile and desktop)
-    const widgets = document.querySelectorAll('.cont-cart__widget');
+    const widget = document.querySelector('.cont-cart__widget');
     const fragment = document.createDocumentFragment();
 
     // Render each product as a widget card, append to a document fragment for efficient DOM insertion
@@ -109,10 +111,9 @@ function renderWidgetCart() {
     });
 
     // Clear existing content and append cloned widget cards to each container (mobile and desktop)
-    widgets.forEach((container) => {
-        container.innerHTML = '';
-        container.appendChild(fragment.cloneNode(true)); // clone the fragment for each container
-    });
+    widget.innerHTML = '';
+    widget.appendChild(fragment); // clone the fragment for each container
+
 
     // Perform post-render updates (badges, totals, open overlay)
     renderWidgetPost();

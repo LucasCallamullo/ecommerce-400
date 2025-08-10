@@ -182,7 +182,7 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',  
     'compressor.finders.CompressorFinder',  
 ]  
-COMPRESS_ENABLED = True    
+COMPRESS_ENABLED = False  # Desactiva la compresión pero mantiene el tag (default=True)
 COMPRESS_OFFLINE = False    # en produccion a True     
 COMPRESS_CSS_FILTERS = ["compressor.filters.cssmin.CSSMinFilter"]    
 COMPRESS_JS_FILTERS = ["compressor.filters.jsmin.JSMinFilter"]

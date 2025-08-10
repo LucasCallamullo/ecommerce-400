@@ -3,14 +3,14 @@
 .user-dropdown {
     position: absolute;
     right: 0;
-    top: 100%;        /* mobile */
+    top: 100%;
 
     background-color: var(--bg-primary);
     box-shadow: 1px 1px 3px 0px var(--black-color);
     opacity: 0;
     pointer-events: none;
     overflow: hidden;
-    padding: 8px;        /* mobile */
+    padding: 12px 10px;        /* mobile */
     width: 250px;        /* mobile */
     z-index: var(--z-index-plus);
 
@@ -45,10 +45,36 @@
     box-shadow: 0 0 1px var(--main-color), 0 0 4px var(--main-color);
 }
 
-@media (min-width: 993px) {
+/* Tablets (máx. 768px) */
+@media (min-width: 480px) {
     .user-dropdown {
-        padding: 9px 12px;    /* desktop */
-        top: 90%;            /* desktop */
+        right: var(--padding-container-page);
+    }
+}
+
+@media (min-width: 992px) {
+    .user-dropdown {
+        position: absolute;    /* or fixed, ver navbar.js for more info */
+        top: var(--height-header);
+        right: var(--padding-container-page); 
+        padding: 12px 12px;    /* desktop */
         width: 260px;        /* desktop */
+    }
+
+    /* Posición fija para cuando la nav está fija */
+    .user-dropdown.fixed-dropdown {
+        position: fixed;
+        top: 80px;
+        right: var(--padding-container-page);
+    }
+}
+
+@media (min-width: 1280px) {
+    .user-dropdown {
+        right: calc(((100vw - 1300px) / 2) + var(--padding-container-page));
+    }
+
+    .user-dropdown.fixed-dropdown {
+        right: calc(((100vw - 1300px) / 2) + var(--padding-container-page));
     }
 }

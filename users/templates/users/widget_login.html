@@ -1,51 +1,44 @@
 
 
-<!-- Contenido del dropdown -->
-<div class="user-dropdown border-main" data-state="null">
-    {% if user.is_authenticated %}
-        <!-- Cuando el usuario ya esta logeado visualiza esto -->
+{# Contenido del dropdown #}
+<form class="user-dropdown d-flex-col gap-1 border-main form-user-dropdown" data-state="null">
+    {% csrf_token %}
 
-        <!-- Botón de Perfil -->
-        <a href="{% url 'profile_user' %}" class="btn btn-main btn-36 w-100 mb-1 gap-1">
+    {% if user.is_authenticated %}
+        {# Botón de Perfil #}
+        <a href="{% url 'profile_user' %}" class="btn btn-main btn-36 w-100 gap-1">
             <i class="ri-shield-user-line font-xl"></i>
-            <span class="text-truncate font-md"> {{ user.email }} </span>
+            <span class="text-truncate font-md bolder"> {{ user.email }} </span>
         </a>
 
-        <form class="form-close-user__widget" method="POST" action="{% url 'close_session' %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-alt btn-36 w-100 gap-1">
-                <i class="ri-door-open-fill font-lg"></i>
-                <span class="font-md">Cerrar Sesión</span>
-            </button>
-        </form>
-
+        <button type="submit" class="btn btn-alt btn-36 w-100 gap-1 font-md bolder"
+        data-url="{% url 'close_session' %}" data-action="Close">
+            <i class="ri-door-open-fill font-lg fw-normal"></i>
+            Cerrar Sesión
+        </button>
+        
     {% else %}
-        <!-- Cuando el usuario no esta logeado verá esto -->
-        <form class="form-register-user__widget d-flex-col gap-1" action="{% url 'widget_login' %}">
-            {% csrf_token %}
-
-            <!-- Campo de Email -->
-            <label class="d-flex-col gap-1">
-                <span class="text-start font-md">Email:</span>
-                <input class="btn-36 w-100" type="email" name="email" required>
-            </label>
-        
-            <!-- Campo de Password -->
-            <label class="d-flex-col gap-1">
-                <span class="text-start font-md">Password:</span>
-                <input class="btn-36 w-100" type="password" name="password" required>
-            </label>
-        
-            <!-- Botón de Login -->
-            <button type="submit" class="btn btn-main btn-36 w-100 mt-1">
-                <span class="font-md">Ingresar</span>
-            </button>
-        </form>
+        {# Cuando el usuario no esta logeado verá esto #}
+        <label class="d-flex-col gap-1 text-start font-md bolder">
+            Email:
+            <input class="btn-36 w-100" type="email" name="email" required>
+        </label>
+    
+        <label class="d-flex-col gap-1 text-start font-md bolder">
+            Password:
+            <input class="btn-36 w-100" type="password" name="password" required>
+        </label>
+    
+        {# Botón de Login #}
+        <button type="submit" class="btn btn-main btn-36 w-100 mt-1 bolder font-md"
+        data-url="{% url 'widget_login' %}" data-action="Login">
+            Ingresar
+        </button>
             
-        <!-- Botón de Registro -->
-        <a href="{% url 'register_user_page' %}" class="btn btn-alt btn-36 w-100 mt-1">
-            <span class="font-md">Registrarse</span>
+        {# Botón de Registro #}
+        <a href="{% url 'register_user_page' %}" class="btn btn-alt btn-36 w-100 mt-1 font-md bolder">
+            Registrarse
         </a>
     {% endif %}
-</div>
+</form>
 

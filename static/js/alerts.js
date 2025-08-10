@@ -28,7 +28,7 @@ function openAlert(message, color='green', timeout=1100) {
     // Create a new alert box element
     const alertBox = document.createElement('div');
     alertBox.classList.add('alerts__alert');
-    alertBox.innerHTML = `
+    alertBox.innerHTML = /*html*/`
         <div class="cont-space-between text-white">
             <button class="btn text-white scale-on-touch">
                 <i class="${iconClass} font-xl"></i>

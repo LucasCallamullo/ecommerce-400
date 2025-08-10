@@ -94,7 +94,8 @@ class OverlayManager {
             const topOverlay = OverlayManager.overlayStack.at(-1);
             if (topOverlay) {
                 // Push a fake history state so that the back button triggers popstate again
-                history.pushState({ hasOverlay: true }, null, window.location.pathname);
+                history.pushState(null, null, window.location.pathname);
+                // history.pushState({ hasOverlay: true }, null, window.location.pathname);
 
                 // Close the current top overlay
                 topOverlay.__closeCallback?.();

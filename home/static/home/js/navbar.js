@@ -1,55 +1,67 @@
-
-
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../static/js/outside-click.js" />
 
 
-// ========================================================================
-//                   Main Nav Fixed DESKTOP
-// ========================================================================
-let isMainNavFixed = false; // Flag to track the state of the navbar
+/**
+ * Setup function to make the main navigation bar fixed 
+ * after scrolling past the header height.
+ *
+ * Features:
+ * - Adds/removes "fixed" classes for layout changes.
+ * - Toggles the logo visibility when nav becomes fixed.
+ * - Adjusts `.user-dropdown` position for desktop only.
+ *
+ * Notes:
+ * - Uses `isMainNavFixed` to avoid reapplying classes unnecessarily.
+ * - Checks `isMobile` flag to skip certain desktop-only behaviors.
+ */
+let isMainNavFixed = false; // Tracks whether the nav is fixed
 
 function mainNavFixedSetup() {
-
     const header = document.querySelector("header");
     const nav = header.querySelector("#cont-main-nav");
     const navList = nav.querySelector("#main-nav-list");
-
     const logo = header.querySelector('.cont-logo-fixed');
-    
     const headerHeight = header.offsetHeight;
-    
+
+    // Specific to the login widget users/wdiget_lgin
+    const widgetLogin = header.querySelector('.user-dropdown');
+
     function handleScroll() {
         if (!isMainNavFixed && window.scrollY > headerHeight) {
-            
-            
             nav.classList.add("fixed-nav", "active");
             navList.classList.add("fixed-layout");
 
-            // Add fixed navigation and logo
+            // Show logo when fixed
             if (logo.dataset.state === 'closed') {
                 toggleState(logo, true);
             }
 
             isMainNavFixed = true;
 
-        } else if (isMainNavFixed && window.scrollY <= headerHeight) {
+            // Adjust dropdown position for desktop only
+            if (!IS_MOBILE) widgetLogin.classList.add("fixed-dropdown");
 
-            
+        } else if (isMainNavFixed && window.scrollY <= headerHeight) {
             navList.classList.remove("fixed-layout");
-            
             nav.classList.remove("fixed-nav", "active");
-            // Remove fixed navigation and logo
+
+            // Hide logo when returning to normal
             if (logo.dataset.state === 'open') {
                 toggleState(logo, false);
             }
+
             isMainNavFixed = false;
+
+            // Restore dropdown position for desktop
+            if (!IS_MOBILE) widgetLogin.classList.remove("fixed-dropdown");
         }
     }
 
-    // Only add the scroll event listener when needed
+    // Listen to scroll changes
     window.addEventListener("scroll", handleScroll, { passive: true });
 }
+
 
 
 // ========================================================================

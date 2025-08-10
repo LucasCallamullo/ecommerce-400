@@ -22,6 +22,7 @@ window.addEventListener('DOMContentLoaded', () => {
         },
     });
 
-
-    createCarouselCards();
+    // esta function crea en el dom todo las listas de productos por categoría
+    const container = document.getElementById('cont-swipers-home');
+    createCarouselCards(container);
 });

@@ -188,6 +188,6 @@
 
 .hr-primary {
 	border: none;
-    height: 6px;
+    height: 3px;
 	background: var(--text-primary);
 }

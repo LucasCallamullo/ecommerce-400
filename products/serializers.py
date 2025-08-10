@@ -408,7 +408,9 @@ class ProductListSerializer(serializers.Serializer):
     subcategory = serializers.SerializerMethodField()
 
     def get_is_favorited(self, obj):
-        favorites_ids = self.context.get('favorites_ids', set())
+        favorites_ids = self.context.get('favorites_ids', None)
+        if not favorites_ids:
+            return False
         return obj['id'] in favorites_ids
 
     def _get_related_data(self, obj, prefix, default_fields, serializer_class, context_key=None):

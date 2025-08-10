@@ -74,8 +74,6 @@
     }
 }
 
-
-
 .img-64 {
     width: 64px;
     height: 64px;
@@ -86,19 +84,16 @@
     max-height: 110px;
 }
 
-
 .h-130 {
     height: 130px;
     max-height: 130px;
 }
-
 
 /* use it */
 .h-150 {
     height: 150px;
     max-height: 150px;
 }
-
 
 /* use it */
 .h-170 { 
@@ -111,8 +106,6 @@
     height: 190px;
     max-height: 190px;
 }
-
-
 
 .h-220 {
     height: 220px;

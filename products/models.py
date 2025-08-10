@@ -1,9 +1,8 @@
 
 
 from django.db import models
-from django.db.models import UniqueConstraint, Q
+from django.db.models import Q
 from django.utils.text import slugify
-from django.core.exceptions import ValidationError
 
 class ProtectDefaultMixin:
     """

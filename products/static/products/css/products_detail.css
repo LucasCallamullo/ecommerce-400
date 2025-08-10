@@ -1,6 +1,5 @@
 
 
-/* Styles for small mobile phones (hasta 480px) */
 /* Styles for small mobile phones */
 .grid-product-detail {
     padding: 0;
@@ -39,11 +38,15 @@
 /* Styles for large desktops (mín. 992px to max. infinite) */
 @media (min-width: 992px) {
     .grid-product-detail {
-        grid-template-columns: 3.3fr 4.5fr 2.2fr;
+        grid-template-columns: 3.3fr 4.1fr 2.6fr;
         grid-template-areas: "product categories price";
     }
-}
 
+    .cont-prod__h-img:hover .corner-box {
+        background-color: var(--text-primary);
+        color: var(--bg-primary);
+    }
+}
 
 /* Contenedor principal */
 .cont-prod-images {
@@ -85,27 +88,21 @@
     transform: scale(1.02);
 }
 
-
-
-
-
-/* Fondo oscuro */
-.cont-corner {
-    position: fixed; 
-    top: 2px;      
-    right: 2px;          
-    padding: 12px;
-    z-index: 999;          
-}
-
 .zoom-corner {
     background-color: rgba(0, 0, 0, 0.5);
     border: 1px solid var(--white-color);
+    position: fixed;
+    top: 10px;
+    right: 60px;
+}
+
+.prod-overlay-detail .modal-close {
+    position: fixed;
+    top: 10px;
+    right: 10px;
 }
 
 /* Flechas de navegación en el overlay */
-
-
 .left-overlay,
 .right-overlay {
     position: absolute;
@@ -127,6 +124,7 @@
 .modal-product-detail { 
     height: 75vh;
     width: 85vw;
+    overflow: hidden;
 }
 
 .modal-product-detail { 
@@ -163,7 +161,6 @@
 
 /* Desktop (mín. 768px) */
 @media (min-width: 768px) {
-
     .cont-images-zoom,
     .modal-product-detail { 
         height: 80vh;
@@ -186,7 +183,13 @@
 }
 
 
-
+/* 
+    SEGUNDA COLUMNA 
+*/
+.d-grid-payments {
+    grid-template-columns: 70px auto;
+    height: min-content;
+}
 
 
 /*
@@ -202,9 +205,11 @@
     align-self: flex-end;
 }
 
-.cont-numeric-add-less {
+.product-detail-form .cont-numeric-add-less {
     border: 1px solid var(--text-primary);
     height: 40px;    /* btn-28px */
+    width: 50%;
+    max-width: 50%;
 }
 
 .prod-detail-input {

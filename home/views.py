@@ -4,6 +4,7 @@ from django.shortcuts import render
 from home.models import Store, StoreImage
 from django.db.models import Prefetch
 
+
 import json
 from products.models import Product
 from products.filters import VALUES_CARDS_LIST

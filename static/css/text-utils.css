@@ -81,8 +81,8 @@
     overflow: hidden;                 /* Oculta el texto sobrante */
     
     /* Fallback para navegadores que no soportan line-clamp */
-    max-height: calc(22px * 3);      /* 3 líneas con altura de línea aprox. */
-    line-height: 22px;
+    max-height: calc(22px * 3);     /*   3 líneas con altura de línea aprox. */
+    line-height: 20px;
     text-overflow: ellipsis;
 }
 

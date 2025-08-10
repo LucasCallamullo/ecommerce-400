@@ -67,9 +67,10 @@
 
         {% include 'home/nav_desktop.html' %}
 
-        <div class="cont-page relative">
-            {% include "cart/widget_cart.html" %}
-        </div>
+        {# Fueron puestos una unica vez para ahorrar nodos #}
+        {% include "cart/widget_cart.html" %}
+
+        {% include "users/widget_login.html" %}
     </header>
 
     <main>
@@ -97,7 +98,8 @@
     {% endblock bot_banner_image %}
 
 
-    <footer class="cont-page border-top-prim">
+    <hr class="hr-primary">
+    <footer class="cont-page">
         {% include 'home/footer.html' %}
     </footer>
     
@@ -156,13 +158,12 @@
         profileUser: "{% url 'profile_user' %}"
 
         {# products/urls #}
-        productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
+        productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
     {% endcomment %}
-
     <script>
         window.BASE_URLS = {
             cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
-            productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
+            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
             resumeOrder: "{% url 'resume-order' %}",
             profileUser: "{% url 'profile_user' %}",
         };
@@ -196,7 +197,6 @@
         {# You load your own .js files for each template/view, this is useful since they are 
         loaded later of the base scripts leaving their functions as global #}
     {% endblock extra_scripts %}
-
 
     <script>
         document.addEventListener('DOMContentLoaded', () => { analizarHTML(); });

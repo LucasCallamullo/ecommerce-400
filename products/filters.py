@@ -25,15 +25,6 @@ PRODUCT_FIELDS_DETAIL = (
     'brand__id', 'brand__name'
 )
 
-PRODUCT_FIELDS_DETAIL_VIEW = (
-    'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
-    'description', 'discount', 'updated_at', 'main_image',
-    'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
-    'category__slug', 'category__name', 'category__is_default',
-    'brand__slug', 'brand__name', 'brand__is_default'
-)
-
-
 PRODUCT_CARDS_LIST = (
     'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
     'discount', 'updated_at', 'main_image',
@@ -42,7 +33,15 @@ PRODUCT_CARDS_LIST = (
     'brand__slug', 'brand__name', 'brand__is_default'
 )
 
+PRODUCT_FIELDS_DETAIL_VIEW = (
+    'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
+    'description', 'discount', 'updated_at', 'main_image',
+    'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
+    'category__slug', 'category__name', 'category__is_default',
+    'brand__slug', 'brand__name', 'brand__is_default'
+)
 
+# this is use for a product_list.html / views.product_lsit
 VALUES_CARDS_LIST = (
     'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
     'discount', 'updated_at', 'main_image',
@@ -66,49 +65,54 @@ def get_context_filtered_products(request) -> dict:
             - "products" (QuerySet): The filtered list of Product objects based on the parameters.
             - "category" (PCategory or None): The selected category object, or None if not found.
             - "subcategory" (PSubcategory or None): The selected subcategory object, or None if not found.
+            - "brand" (PBrand or None): The selected brand object, or None if not found.
             - "available" (str): Availability filter value as a string ('0', '1', or '2'). Defaults to '1'.
                 - '0' = only unavailable products
                 - '1' = only available products
                 - '2' = all products (available and unavailable)
             - "query" (str or None): The search query string, if any, used to filter products by name or other fields.
     """
+    def _get_filtered_entity(model, id_value, is_default=False):
+        """Función helper interna para obtener entidades filtradas por id."""
+        if not id_value:
+            return None
+        return (
+            model.objects.filter(id=id_value, is_default=is_default)
+            .values('id', 'slug', 'name')
+            .first()
+        )
+    
+    # recuperar valores desde el request
     cat_id = valid_id_or_None(request.GET.get('category')) 
     subcat_id = valid_id_or_None(request.GET.get('subcategory'))
+    brand_id = valid_id_or_None(request.GET.get('brand'))
     available = request.GET.get('available', '1')
     query = request.GET.get('query', '')
-    
     top_query = request.GET.get('topQuery', '')
-    if not top_query:
-        top_query = request.GET.get('lastQuery', '')
 
-    category = None
-    if cat_id:
-        category = ( 
-            PCategory.objects.filter(id=cat_id, is_default=False)
-            .values('id', 'name', 'slug').first()
-        )
-        
-    subcategory = None
-    if subcat_id:
-        subcategory = (
-            PSubcategory.objects.filter(id=subcat_id, is_default=False)
-            .values('id', 'name', 'slug').first()
-        )
+    # Obtener filtros usando la función helper interna
+    category = _get_filtered_entity(PCategory, cat_id, is_default=False)
+    subcategory = _get_filtered_entity(PSubcategory, subcat_id, is_default=False)
+    brand = _get_filtered_entity(PBrand, brand_id, is_default=False)
     
-    products = get_products_filters({
-        'category': category['id'] if category else None,
-        'subcategory': subcategory['id'] if subcategory else None,
+    # Aplicar filtros
+    filter_args = {
+        'category': category.get('id') if category else None,
+        'subcategory': subcategory.get('id') if subcategory else None,
+        'brand': brand.get('id') if brand else None,
         'query': query,
         'top_query': top_query,
         'available': True if available == '1' else False, 
-        'get_all': True if available == '2' else False
-    })
+        'get_all': True if available == '2' else False,
+    }
+    products = get_products_filters(filter_args)
 
     # retornar el contexto a utilizar en un template
     return {
         "products": products,
         "category": category,
         "subcategory": subcategory,
+        "brand": brand,
         "available": available,
         "query": query,
     }
@@ -121,10 +125,13 @@ def get_products_filters(filters: dict) -> QuerySet:
     
     Args:
         filters (dict): Dictionary with optional keys:
-            - 'available' (bool)
             - 'category' (id or None PCategory)
             - 'subcategory' (id or None PSubcategory)
+            - 'brand' (id or None PBrand)
+            - 'stock' (bool) -> True to -> stock__gt=0
             - 'query' (str)
+            - 'top_query' (str)
+            - 'available' (bool)
             - 'get_all' (bool): If True, returns all products regardless of 'available'.
         
     Returns:
@@ -134,17 +141,25 @@ def get_products_filters(filters: dict) -> QuerySet:
     available = filters.get('available', True)   # if u want different value
     category = valid_id_or_None(filters.get('category'))            # ID || None
     subcategory = valid_id_or_None(filters.get('subcategory'))      # ID || None
+    brand = valid_id_or_None(filters.get('brand'))      # ID || None
     query = filters.get('query', '')               
     top_query = filters.get('top_query', '')            # query STR || ''
+    stock = filters.get('stock', False)  
 
     # Si all está activo, no se filtra por disponibilidad
     products = Product.objects.all() if get_all else Product.objects.filter(available=available)
+    
+    if stock:
+        products = products.filter(stock__gt=0)
 
     if category:
         products = products.filter(category_id=category)
 
     if subcategory:
         products = products.filter(subcategory_id=subcategory)
+        
+    if brand:
+        products = products.filter(brand_id=brand)
 
     if query or top_query:
         chain = f'{query} {top_query}'

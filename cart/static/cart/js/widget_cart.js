@@ -131,9 +131,11 @@ function widgetCartOpenEvent() {
         window.BASE_URLS.resumeOrder       // Blocked: order page
     ];
 
-    const buttons = document.querySelectorAll('.cart-button');         // Cart buttons
-    const container = document.querySelector('.cart-cont-overlay');   // Cart container overlays
-    const overlay = document.querySelector('.cart-overlay');        // Cart content overlays
+    const header = document.querySelector('header');    // header from page
+
+    const buttons = header.querySelectorAll('.cart-button');         // Cart buttons
+    const container = header.querySelector('.cart-cont-overlay');   // Cart container overlays
+    const overlay = header.querySelector('.cart-overlay');        // Cart content overlays
     const btnClose = container.querySelector('.close-widget-cart');  // Cart close buttons
 
     // For each cart button, associate it with its corresponding elements
@@ -145,6 +147,18 @@ function widgetCartOpenEvent() {
             closeButton: btnClose,
             element: container,
             overlay: overlay,
+            onOpenCallback: () => {
+                // debido al stack entre z-index se agrega un nuevo valor al abrir el cart para que este 
+                // por encima de todos los modales
+                if (IS_MOBILE) {
+                    header.classList.add('cart-open');
+                }
+            },
+            onCloseCallback: () => {
+                if (IS_MOBILE) {
+                    header.classList.remove('cart-open');
+                }
+            },
             shouldOpen: (e) => {
                 const currentPath = window.location.pathname;
 

@@ -18,9 +18,13 @@
  * @param {HTMLFormElement} form - The form element to handle.
  * @param {string} action - The type of action: "Login", "Close", or "Register".
  */
-async function widgetUserForms(form, action) {
+async function widgetUserForms(form) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btn = e.submitter;
+        const urlForm = encodeURI(btn.dataset.url);
+        const action = btn.dataset.action;
+        if (!urlForm || !action) return;
 
         await handleGenericFormBase({
             form: form,
@@ -31,7 +35,7 @@ async function widgetUserForms(form, action) {
                     const jsonData = Object.fromEntries(formData.entries());
 
                     // Send the request to the form's action URL
-                    const response = await fetch(form.action, {
+                    const response = await fetch(urlForm, {
                         method: "POST",
                         headers: {
                             'X-CSRFToken': getCookie('csrftoken'),
@@ -89,6 +93,8 @@ async function widgetUserForms(form, action) {
 /* Capture events of widget user forms  */
 document.addEventListener('DOMContentLoaded', () => {
 
+    const header = document.querySelector('header')
+
     /**
      * User Dropdown Toggle
      * 
@@ -96,24 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
      * For each button, set up a toggle with click-outside detection to close the dropdown
      * when clicking elsewhere on the page.
      */
-    const userButtons = document.querySelectorAll('.user-button');
-    const dropdowns = document.querySelectorAll('.user-dropdown');
-
-    /*
-    // Development check:
-    // Uncomment this to verify that each button has a matching dropdown.
-    if (userButtons.length !== dropdowns.length) {
-        console.error('The number of buttons and dropdowns does not match.');
-    }
-    */
-    userButtons.forEach((loginBtn, index) => {
-        const dropdown = dropdowns[index]; // The matching dropdown for this button
-
+    const userButtons = header.querySelectorAll('.user-button');
+    const dropdown = header.querySelector('.user-dropdown');
+    userButtons.forEach(loginBtn => {
         setupClickOutsideClose({
             triggerElement: loginBtn,   // The button that toggles the dropdown
             targetElement: dropdown,    // The dropdown to show/hide
             customToggleFn: () => {
-                // Toggle the dropdown open/closed and return the new state
                 const isExpanded = toggleState(dropdown);
                 return isExpanded;
             }
@@ -121,24 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /**
-     * Register Forms
-     * 
-     * Find all forms used for user login (register widget) and attach the widget logic.
-     * The widgetUserForms utility will handle submission, validation, feedback, etc.
+     * Register Forms and Close Session Forms
      */
-    const formsRegister = document.querySelectorAll('.form-register-user__widget');
-    formsRegister.forEach((form) => {
-        if (form) widgetUserForms(form, "Login");
-    });
-
-    /**
-     * Close Session Forms
-     * 
-     * Find all forms used for user logout and attach the widget logic.
-     * The same handler takes care of proper flow when logging out.
-     */
-    const formsClose = document.querySelectorAll('.form-close-user__widget');
-    formsClose.forEach((form) => {
-        if (form) widgetUserForms(form, "Close");
-    });
+    const form = header.querySelector('.form-user-dropdown');
+    if (form) widgetUserForms(form);
 });

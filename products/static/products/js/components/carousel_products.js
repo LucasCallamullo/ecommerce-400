@@ -40,28 +40,25 @@ function initSwipers(container) {
 function renderSwiperCategory(category, counter) {
     const swiperHtml = /*html*/`
         <div class="carousel-category">
-            <!-- title of each swiper container -->
             <div class="cont-space-between cont_carousel__title">
                 <div class="d-flex justify-start px-2 h-100 carousel__title">
-                    <a class="font-md" href="#"> 
-                        <b class="text-white">${category}</b>
+                    <a class="font-md text-white bolder" href="#"> 
+                        ${category}
                     </a>
                 </div>
         
                 <div class="d-flex gap-1"> 
-                    <!-- Buttons will be handled with Swiper -->
-                    <div class="swiper-button-prev-product" id="prev-${counter}">
+                    <button class="swiper-button-prev-product" id="prev-${counter}">
                         <i class="ri-arrow-left-s-line font-lg"></i>
-                    </div>
-                    <div class="swiper-button-next-product" id="next-${counter}">
+                    </button>
+                    <button class="swiper-button-next-product" id="next-${counter}">
                         <i class="ri-arrow-right-s-line font-lg"></i>
-                    </div>
+                    </button>
                 </div>
             </div>
         
-            <!-- Swiper Carousel Container -->
             <div class="swiper-products" id="swiper-${counter}">
-                <div class="swiper-wrapper"></div>
+                <div class="swiper-wrapper">  </div>
             </div>
         </div>
     `;
@@ -69,6 +66,7 @@ function renderSwiperCategory(category, counter) {
     const container = document.createElement('div');
     container.innerHTML = swiperHtml;
 
+    // este es el contenedor que vamos a completar con cartas de forma dinamica
     const swiperWrapper = container.querySelector('.swiper-wrapper');
     return { element: container.firstElementChild, swiperWrapper };
 }
@@ -95,40 +93,65 @@ window.ProductStore = {
 }
 
 
-function createCarouselCards() {
-    const container = document.getElementById('cont-swipers-home');
+/**
+ * Creates and renders carousel cards inside a given container.
+ * 
+ * - Takes a container element and populates it with product category carousels.
+ * - Uses `window.productList` (category → products mapping) to generate each carousel.
+ * - For each category:
+ *      1. Creates a Swiper wrapper for that category.
+ *      2. Appends rendered product cards into the Swiper slides.
+ *      3. Adds the generated category element into a DocumentFragment for batch insertion.
+ * - Saves all products into `ProductStore` for global access.
+ * - Initializes Swiper instances for the created carousels.
+ * - Adds product-related events only once (avoids duplicate bindings).
+ * 
+ * @param {HTMLElement} container - The DOM element where the carousels will be inserted.
+ */
+function createCarouselCards(container) {
+    
+    // Validate container existence
     if (!container) {
-        console.error('container no encontrado');
+        console.error('container no encontrado / container not found');
         return;
     }
 
+    // Check if global product list is available
     if (window.productList) {
-        const fragment = document.createDocumentFragment();
-        let counter = 0;
-        let listToSet = [];
+        const fragment = document.createDocumentFragment(); // Temporary holder to reduce reflows
+        let counter = 0;                                    // Keeps track of category index
+        let listToSet = [];                                 // Will hold all products for ProductStore
 
+        // Loop through each category and its products
         for (const [category, products] of Object.entries(window.productList)) {
+            // Create the Swiper container & wrapper for this category
             const { element, swiperWrapper } = renderSwiperCategory(category, counter);
 
+            // Render and append each product card
             products.forEach(product => {
                 swiperWrapper.appendChild(renderCards(product, true));
-                listToSet.push(product);
+                listToSet.push(product); // Store in global list
             });
 
+            // Append the completed carousel to the fragment
             fragment.appendChild(element);
             counter++;
         }
+
+        // Save all products into global ProductStore
         ProductStore.setData(listToSet);
 
-        container.appendChild(fragment); // Finalmente, insertás todo al DOM
+        // Insert all carousels into the container in a single operation
+        container.appendChild(fragment);
 
+        // Initialize Swiper instances for all inserted carousels
         initSwipers(container);
     }
 
-    // set events one time on static container
+    // Attach product events only once to the container (static delegation)
     if (!container._hasInitEvents) {
-        productCardFormsEvents(container);
-        productCardModalEvent(container);
+        productCardFormsEvents(container); // Form actions (e.g., add to cart)
+        productCardModalEvent(container);  // Modal opening actions
         container._hasInitEvents = true;
     }
 }

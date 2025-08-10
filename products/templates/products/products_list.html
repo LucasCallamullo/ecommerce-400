@@ -1,18 +1,12 @@
 {% extends "home/base.html" %}
-{% load static %}
+{% load static compress %}
 
 
 {% block extra_head %}
     <link href="{% static 'products/css/cards_products.css' %}" rel="stylesheet">
     <link href="{% static 'products/css/products_list.css' %}" rel="stylesheet">
 
-    <title> {{store.name}} | 
-        {% if category %}
-            {{ category.name }} 
-        {% else %} 
-            Productos
-        {% endif %}  
-    </title>
+    <title>{{store.name}} | {% if category %}{{category.name}}{% else %}Productos{% endif %}</title>
 {% endblock %}
 
 
@@ -20,7 +14,7 @@
 {% block main_content %}
 
 <div class="d-flex w-100 mb-3 gap-1">
-    <a class="btn btn-parallelogram d-lg-block" href="{% url 'product_list' %}">
+    <a class="btn btn-parallelogram d-desktop-block" href="{% url 'product_list' %}">
         <span> Todos Nuestros Productos </span>
     </a>
     
@@ -43,11 +37,12 @@
     {% endif %}
 </div>
 
-<!-- This is for use in a dataForm to send -->
+{# This is for use in a dataForm to send #}
 <form class="d-none" id="form-filters">
-    <input type="hidden" name="category" value="{% if category %}{{ category.id|default:'' }}{% else %}{% endif %}">
-    <input type="hidden" name="subcategory" value="{% if subcategory %}{{ subcategory.id|default:'' }}{% else %}{% endif %}">
-    <input type="hidden" name="lastQuery" value="{% if query %}{{ query|default:'' }}{% else %}{% endif %}">
+    {% if category %}<input type="hidden" name="category" value="{{ category.id }}">{% endif %}
+    {% if subcategory %}<input type="hidden" name="subcategory" value="{{ subcategory.id }}">{% endif %}
+    {% if brand %}<input type="hidden" name="brand" value="{{ brand.id }}">{% endif %}
+    {% if query %}<input type="hidden" name="topQuery" value="{{ query }}">{% endif %}
     <input type="hidden" name="available" value="{{ available|default:1 }}">
     <input type="hidden" name="page" value="1">
 </form>
@@ -55,12 +50,15 @@
 
 <div class="d-grid gap-2 h-min cont-grid-11-13">
 
+    {# sidebar lateral para filtros TYPE CSR #}
     <aside class="d-desktop-flex d-flex-col gap-2" id="sidebar-list">
+
+        {# maybe in the future put a get/fetch to get a list #}
         <button class="btn btn-main btn-48 w-100 gap-2 bolder font-md">
             <i class="ri-star-fill"></i>TOP 10
         </button>
 
-        <!-- Sidebar -->
+        {# Sidebar #}
         <div class="border-hover bg-primary p-2">
             <h2 class="text-start mt-1"> Filtros </h2>
 
@@ -68,7 +66,7 @@
                 <input type="input" name='query' placeholder="Buscar productos...">
             </form>
     
-            <!-- Categories will be inserted here -->
+            {# Categories will be inserted here #}
             <ul class="d-flex-col">
                 <li class="d-flex justify-start">
                     <a class="btn btn-28 w-100 btn-primary bolder justify-start" href="{% url 'product_list' %}">
@@ -83,7 +81,7 @@
                         {{ item.category.name }}
                     </a>
                     
-                    <!-- Submenú with SubCategories -->
+                    {# Submenú with SubCategories #}
                     {% if item.subcategories %}
                         <ul class="d-flex-col">
                             {% for sub_cat in item.subcategories %}
@@ -97,16 +95,15 @@
                         </ul>
                     {% endif %}
                 </li>
-
                 {% endfor %}
             </ul>
             
-
+            {# brands radio filter CSR #}
             <hr class="hr-custom">
             <h3 class="mt-2 mb-2">Marcas</h3>
             <div class="d-flex-col ms-3 gap-2" id="cont-brands"> </div>
 
-
+            {# price range pointer filter CSR #}
             <hr class="hr-custom">
             <h3 class="mt-2">Precio</h3>
             <div class="relative btn-36 w-100">
@@ -117,11 +114,12 @@
             <div class="bolder font-sm text-secondary">
                 Mín: $<span id="min-val">200</span> — Máx: $<span id="max-val">800</span>
             </div>
-
         </div>
     </aside>
 
+    {# contenido principal producto list #}
     <div class="d-flex-col gap-2">
+        {# formulario para ordenar like CSR #}
         <div class="d-flex-col-row gap-2 text-truncate font-md bolder">
             Ordenar Por:
             <select class="bg-primary w-min" name="" id="select-to-sort">
@@ -138,49 +136,41 @@
             Mostrando {{ pagination.results_on_page }} de {{ pagination.total_results }} resultados: 
         </h4>
 
-        <!-- Main Content -->
+        {# Main Content #}
         <section class="d-grid cont-grid-234 h-min gap-2" id="cont-product-cards">
             
         </section>
     </div>
     
-
+    {# botones para pagination.js dinamicos #}
     <div class="grid-start-col-2 mt-2 justify-self-center d-flex gap-2" id="cont-pagination"
         data-total-pages="{{ pagination.total_pages }}" data-page-num="{{ pagination.page }}">
     </div>
 </div>
 
-
-
-
-{% include "products/components/card__modal.html" %}
+    {# modal unico para rellenar desde las cards #}
+    {% include "products/components/card__modal.html" %}
 
 {% endblock main_content %}
 
 
 {% block extra_scripts %}
-    <!-- JavaScript for Product Page -->
-    <script>
+    {% comment %}
         window.TEMPLATE_URLS = {
-            // favorites/urls.py
+            {# favorites/urls.py #}
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
             
-            // products/urls.py
-            addToCart: "{% url 'cart_add_product' %}",
-            productDetail: "{% url 'product_detail' id=0 slug='__SLUG__' %}",
+            {# products/urls.py #}
+            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
             category: "{% url 'pl_category' cat_slug='__CAT__' %}",
             subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
             brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
 
-            // products/urls_api.py
+            {# products/urls_api.py #}
             productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
             productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
         };
-    </script>
-
-    <script src="{% static 'products/js/components/pagination.js' %}"></script>
-    <script>
-        /**
+        {# /**
         * Initializes the product store with the initial product data rendered server-side by Django.
         * 
         * This script:
@@ -189,17 +179,29 @@
         * 
         * This approach allows the page to load with pre-rendered product data,
         * and later use the same `ProductStore` for dynamic updates via AJAX calls.
-        */
-        window.ProductStore.setData(JSON.parse('{{ productos_json|escapejs }}'));
+        */ #}
+        window.ProductList = JSON.parse('{{ productos_json|escapejs }}');
+    {% endcomment %}
+    <script>
+        window.TEMPLATE_URLS = {
+            favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
+            productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+            category: "{% url 'pl_category' cat_slug='__CAT__' %}",
+            subcategory: "{% url 'pl_subcategory' cat_slug='__CAT__' subcat_slug='__SUBCAT__' %}",
+            brand: "{% url 'pl_brand' brand_slug='__BRAND__' %}",
+            productList: "{% url 'product-update-api' 0 %}".replace('/0/', '{product_id}'),
+            productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
+        };
+        window.ProductList = JSON.parse('{{ productos_json|escapejs }}');
     </script>
 
-    <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
-    <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
-    <script src="{% static 'products/js/components/cards_products.js' %}"></script>
-
-    <script src="{% static 'products/js/product_list.js' %}"></script>
-
+    {% compress js %}
+        <script src="{% static 'products/js/components/pagination.js' %}"></script>
+        <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/components/cards_products.js' %}"></script>
+        <script src="{% static 'products/js/product_list.js' %}"></script>
+    {% endcompress %}
     
-
 {% endblock extra_scripts %}
 

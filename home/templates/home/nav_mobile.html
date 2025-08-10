@@ -34,16 +34,15 @@
             <img src="{% static 'ico/logo.jpg' %}" class="img-cover" alt="logo">
         </a>
 
-        {# Icon widget cart #}
+        {# Icon widget cart, el widget esta en base.html en el header #}
         <button class="btn btn-nav-mobile cart-button" aria-expanded="false"">
             <i class="ri-shopping-cart-2-line font-lg text-white"></i>
         </button>
 
-        {# Icon user login #}
+        {# Icon user login, el widget esta en base.html en el header #}
         <button class="btn btn-nav-mobile user-button text-white" aria-expanded="false">
             <i class="ri-user-3-line font-lg"></i>
         </button>
-        {% include "users/widget_login.html" %}
     </div>
 
     {# Content of toggle #}

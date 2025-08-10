@@ -94,7 +94,7 @@
     --height-item-main-nav: 48px;
 
     /* width responsive 24 50 26 */
-    --padding-container-page: 4%;
+    --padding-container-page: 3%;
 }
 
 /* Styles for lil - desktops (mín. 769px to max. 992px+)) */
@@ -112,7 +112,7 @@
         /* heigths 10vh */
         --height-header: 110px;
         --height-item-main-nav: 60px;
-        --padding-container-page: 5%;    /* padding responsive useful some times */
+        --padding-container-page: 4%;    /* padding responsive useful some times */
         /* --font-xx-large: 2rem;       /* 32px tablet & desktop */
         --font-xxx-large: 2.5rem;    /* 40px tablet & desktop */
     }
@@ -122,12 +122,17 @@
 @media (min-width: 992px) {
     :root {
         /* heigths 25vh */
-        --height-header: 180px;    /* 204px */
+        --height-header: 180px;    /* 180px */
         --height-item-main-nav: 48px;
-        --padding-container-page: 7%;     /* padding responsive useful some times */
+        --padding-container-page: 84px;     /* padding responsive useful some times */
     }
 }
 
+@media (min-width: 1280px) {
+    :root {
+        --padding-container-page: 100px;
+    }
+}
 
 /* ======================================================================
         GENERAL STYLES AND CLASSES
@@ -136,8 +141,7 @@
 html, body {
     margin: 0;
     padding: 0;
-    width: 100vw;
-    min-width: 100vw;
+    width: 100%;
     height: 100vh;
     min-height: 100vh;  /*  Fallback adicional  
     height: calc(var(--vh, 1vh) * 100); */
@@ -185,18 +189,10 @@ body {
     -webkit-tap-highlight-color: transparent; /* Evita el resaltado al tocar */
 }
 
-/* Styles for large desktops (mín. 993px to max. infinite) 
-@media (min-width: 992px) {
-    html, body {
-        height: 100vh; 
-        max-height: 100vh;
-    }
-}  */
-
 /* Estilos base (móvil) */
 header {
     height: var(--height-header);
-    width: 100vw;
+    width: 100%;
      /* padding: 0;             /* mobile edit */
     position: fixed;
     top: 0;
@@ -205,8 +201,13 @@ header {
     z-index: var(--z-index);
 }
 
+/* style for mobile device to open correctly modal on another modal */
+header.cart-open {
+    z-index: calc(var(--z-index-plus) + 2);
+}
+
 main {
-    width: 100vw;
+    width: 100%;
     background-color: var(--bg-secondary);
     padding-top: 20px; /* mobile edit */
     padding-bottom: 20px;
@@ -214,20 +215,28 @@ main {
 }
 
 footer {
-    width: 100vw;
-    padding-top: 3%;
-    padding-bottom: 3%;
+    width: 100%;
+    padding-top: 32px;
+    padding-bottom: 32px;
 }
 
 /* Media queries para pantallas más grandes (desktop) */
 @media (min-width: 992px) {
     header {
         padding-top: 8px; /* mobile edit */
-        position: static; /* mobile edit */
+        position: relative; /* mobile edit */
+        z-index: auto;    
+        /* esto es necesario por una cuestion de stacking context que sucede entre padres 
+        con position relative */
     }
 
     main {
         margin-top: 0; /* mobile edit */
+    }
+
+    footer { 
+        padding-top: 24px;
+        padding-bottom: 12px;
     }
 }
 
@@ -238,18 +247,11 @@ footer {
 /*  Main container for all the contents of header, main, footer with paddings */
 .cont-page {
     width: 100% !important;
-    max-width: 1300px !important;  
+    max-width: 1280px !important;  
     padding-left: var(--padding-container-page) !important;       
     padding-right: var(--padding-container-page) !important;
     margin: 0 auto;
 }
-
-@media (min-width: 1300px) {
-    :root {
-        --padding-container-page: 100px;
-    }
-}
-
 
 /* ====================================================================
         Basic adjustments to classes

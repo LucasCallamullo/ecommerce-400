@@ -28,8 +28,11 @@ function analizarHTML() {
     console.log(`→ Bytes: ${bytes}`);
     console.log(`→ KB: ${kb}`);
     console.log(`→ MB: ${mb}`);
+}
 
-    // Elementos con muchos hijos
+analizarHTML();
+
+// Elementos con muchos hijos
     /*
     const elementosConMuchosHijos = [...document.querySelectorAll("*")]
         .map(el => ({ tag: el.tagName, count: el.children.length, el }))
@@ -47,9 +50,6 @@ function analizarHTML() {
 
     console.timeEnd("⏱️ Tiempo de análisis");
     */
-}
-
-analizarHTML();
 
 
 function escapeHTML(str) {
@@ -105,20 +105,34 @@ function shortDate(dateStr) {
 
 
 /**
- * Creates a debounced version of a function that delays invoking it
- * until after a specified wait time has elapsed since the last call.
- *
- * @param {Function} func - The function to debounce.
- * @param {number} wait - The delay time in milliseconds.
- * @returns {Function} A debounced function that postpones execution until after the wait time.
+ * Debounce utility
+ * 
+ * Retrasa la ejecución de una función hasta que haya pasado un tiempo determinado 
+ * desde la última vez que se invocó.
+ * 
+ * @param {Function} func - Función a ejecutar después del retraso.
+ * @param {number} wait - Tiempo en milisegundos a esperar.
+ * @returns {Function} - Nueva función con comportamiento de debounce.
  */
 function debounce(func, wait) {
     let timeout;
     return function(...args) {
-        clearTimeout(timeout);
+        clearTimeout(timeout); // Resetea el temporizador si la función es llamada de nuevo
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
 }
+
+
+// Variable global para detectar si estamos en vista móvil
+let IS_MOBILE = window.innerWidth <= 992;
+window.addEventListener("resize", () => {
+    // Función que actualiza el estado de `isMobile`
+    function checkIsMobile() {
+        IS_MOBILE = window.innerWidth <= 992;
+    }
+    debounce(checkIsMobile, 500);
+});
+
 
 
 /**

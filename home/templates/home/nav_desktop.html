@@ -40,7 +40,7 @@
 
 
 {# NAV DESKTOP MAIN PART ( categories - list links - register icon ) #}
-<nav class="d-desktop-grid d-grid w-100" id="cont-main-nav">
+<nav class="d-desktop-grid d-grid h-min w-100" id="cont-main-nav">
 
     {% comment %}
         Este div='cont-page' aunque parezca demas es necesario para delimitar el futuro fixed que se hace
@@ -83,24 +83,24 @@
             </ul>
 
             {# icons sections #}
-            <div class="d-flex justify-end gap-2">
+            <div class="d-flex justify-end gap-2 relative">
                 {# Icon Dark mode #}
                 <button class="theme-toggle btn btn-40 btn-main">
                     <i class="theme-icon ri-moon-line font-xl"></i>
                 </button>
 
-                {# Icon Cart Overlay #}
+                {# Icon Cart Overlay, el widget esta en base.html en el header #}
                 <button class="btn btn-main btn-40 relative cart-button" aria-expanded="false"">
                     <i class="ri-shopping-cart-2-line font-xl"></i>
                     {# Badge para mostrar el número de productos #}
                     <span class="cart-badge" id="badge-cart-button">{{ total_items }}</span>
                 </button>
         
-                {# Icon user login #}
+                {# Icon user login, el widget esta en base.html en el header #}
                 <button class="btn btn-main btn-40 user-button" aria-expanded="false">
                     <i class="ri-user-3-line font-xl"></i>
                 </button>
-                {% include "users/widget_login.html" %}
+                
             </div>
         </div>
     </div>

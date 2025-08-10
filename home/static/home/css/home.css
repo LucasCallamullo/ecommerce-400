@@ -1,8 +1,5 @@
 
 
-/* =========================================================================================
-                Swiper personalizado de los headers
-/* ========================================================================================= */
 main { padding-top: 0;    /* mobile changes */ }
 
 /* Styles for small mobile phones (hasta 480px) */
@@ -34,6 +31,11 @@ main { padding-top: 0;    /* mobile changes */ }
     .home-header-container {
         max-height: calc(100vh - var(--height-header));
     }
+}
+
+.home-header-container .swiper-button-next,
+.home-header-container .swiper-button-prev {
+    color: var(--main-color);
 }
 
 /* this styles is for banner on header */
