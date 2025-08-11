@@ -2,8 +2,7 @@
 
 {% extends "home/base.html" %}
 
-{% load static %}
-{% load custom_filters %}
+{% load static compress %}
 
 
 {% block extra_head %}
@@ -16,71 +15,60 @@
 
 {% block main_content %}
 
-<!-- Primera fila -->
-<div class="d-flex mt-2 mb-2 gap-1">
-    <!-- top buttons -->
-    <a class="btn btn-parallelogram p-1 px-2" href="{% url 'Home' %}">
+{# Primera fila #}
+<div class="d-flex mb-2 gap-1">
+    {# top buttons #}
+    <a class="btn btn-parallelogram px-2" href="{% url 'Home' %}">
         <span class="font-md"> Home </span>
     </a>
 
-    <button class="btn btn-parallelogram p-1 px-2">
+    <button class="btn btn-parallelogram px-2">
         <span class="font-md"> Mi Carrito </span>
     </button>
 </div>
 
 
-<div class="d-grid cont-cart-detail p-0 gap-2">
-
-    <!-- Primera Columna -->
-    <div class="d-flex-col gap-3">
+<div class="d-grid cont-cart-detail gap-2" id="cont-main-cart-detail">
+    {# Primera Columna #}
+    <div class="d-grid cont-cart-detail gap-2">
         
-        <!-- Container cart table -->
-        <div class="bg-primary border-hover d-flex-col p-2" id="cart-view-container">
-            {% include "cart/table_cart_detail.html" %}
+        {# Container cart table #}
+        <div class="bg-primary border-hover d-flex-col p-2 grid-col-all" id="table-cart-detail">
+            
         </div>
         
-        <!-- Container cupon stuff -->
+        {# Container cupon stuff #}
+        <form class="d-flex gap-2 bg-primary border-hover p-2" id="form-coupon">
+            <input type="text" class="btn-40 w-100" name="coupon" placeholder="Tienes un cupón?">
+            <button class="btn btn-main btn-40 px-2 w-min bolder" type="submit">
+                Aplicar
+            </button>
+        </form>
 
-        <div class="cont-space-between w-100 gap-5">
-            <form class="bg-primary border-hover d-flex w-100 gap-2 p-2 px-3 mt-1 mb-1" id="form-coupon">
-                <input type="text" class="btn-40 w-100" name="coupon" placeholder="Tienes un cupón?">
-
-                <button class="btn btn-main btn-40 px-2 w-min" type="submit">
-                    <b class="font-sm">Aplicar</b>
-                </button>
-            </form>
-
-            <form class="d-desktop-flex px-3" id="form-update-cart">
-                <button type="submit" class="btn btn-main btn-40 p-2 w-min">
-                    <b class="font-sm text-truncate">Actualizar Carrito</b>
-                </button>
-            </form>
-        </div>
-        
+        <form class="d-flex d-desktop-flex justify-center bg-primary border-hover p-2" id="form-update-cart">
+            <button type="submit" class="btn btn-alt btn-40 p-2 w-min text-truncate bolder">
+                Actualizar Carrito
+            </button>
+        </form>
     </div>
 
+    {# Segunda Columna #}
+    <div class="bg-primary border-hover p-2 gap-2 h-min d-grid cont-grid-2 font-md bolder">
+        {# por ahora no hay logica de coupon por eso el subtotal es igual al total... #}
+        Sub-Total:
+        <span class="text-end total-cart-detail"> </span>
 
-    <!-- Segunda Columna -->
-    <div class="bg-primary border-hover p-2 d-flex-col gap-2 h-min">
-        <div class="cont-space-between font-md bolder">
-            <p>Total:</p>
-            <p class="total-cart-view">$ {{ total_price|intdot }}</p>
-        </div>
+        {# reservado para futura logica de descuento... #}
+        <span class="bold-main">Descuento:</span>
+        <span class="text-end bold-main"><i class="ri-subtract-fill"></i>$ 0</span>
 
-        <div class="cont-space-between font-sm bold-main">
-            <p>Discount:</b>
-            <p><i class="ri-subtract-fill"></i>$ 0</p>
-        </div>
-
-        <hr>
+        <hr class="grid-col-all hr-primary">
         
-        <div class="cont-space-between bolder font-md">
-            <p>Total:</p>
-            <p class="total-cart-view">$ {{ total_price|intdot }}</p>
-        </div>
-
-        <a class="mt-2 btn btn-main btn-40 w-100" href="{% url 'resume-order' %}">
-            <b class="font-md">Finalizar Compra</>
+        Total:
+        <span class="text-end total-cart-detail"> </span>
+        
+        <a class="mt-2 btn btn-main btn-40 w-100 grid-col-all" href="{% url 'resume-order' %}">
+            <span class="text-truncate">Finalizar Compra </span>
         </a>
     </div>
 </div>
@@ -89,16 +77,17 @@
 
 
 {% block extra_scripts %}
-    <!-- JavaScript for Product Page -->
     <script>
         window.TEMPLATE_URLS = {
             // favorites/urls.py
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/')
         };
+        window.PRODUCTS_FAVORITES = JSON.parse('{{ favorite_product_ids|default:"[]"|escapejs }}');
     </script>
 
     <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
 
+    <script src="{% static 'cart/js/components/table_cart_detail.js' %}"></script>
     <script src="{% static 'cart/js/cart_page_detail.js' %}"></script>
 
 {% endblock extra_scripts %}

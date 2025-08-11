@@ -4,17 +4,26 @@ from django.core.cache import cache
 from home.models import Store
 
 def get_ecommerce_data(request):
-    # Si no hay datos en caché, obtenemos los datos de la tienda
-    # Intentamos obtener los datos de la tienda desde la caché
+    store = cache.get('store')
     
-    # store = cache.get('store')
-    
-    # if not store:
-        # .first() para obtener el primer objeto o None
-    store = Store.objects.filter(id=1).first() 
+    if not store:
+        store = Store.objects.filter(id=1).values(
+            'id',
+            'name',
+            'logo',
+            'logo_wsp',
+            'ig_url',
+            'tw_url',
+            'fb_url',
+            'tt_url',
+            'google_url',
+            'wsp_number',
+            'address',
+            'cellphone',
+            'email'
+        ).first()  # Usar first() para obtener solo un registro
         
-        # Guardamos los datos en caché por 1 hora (3600 segundos)
-        # cache.set('store', store, 3600)
+        cache.set('store', store, 3600)
 
     return {'store': store}
 

@@ -154,18 +154,24 @@
         {# order/urls #}
         resumeOrder: "{% url 'resume-order' %}",
 
+        {# cart/urls #}
+        cartPageDetail: "{% url 'cart_page_detail' %}",
+
         {# users/urls #}
         profileUser: "{% url 'profile_user' %}"
 
         {# products/urls #}
         productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
+        productList: "{% url 'product_list' %}",
     {% endcomment %}
     <script>
         window.BASE_URLS = {
             cartActions: "{% url 'cart-api' 0 %}".replace('/0/', '/{product_id}/'),
             productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
             resumeOrder: "{% url 'resume-order' %}",
-            profileUser: "{% url 'profile_user' %}",
+            productList: "{% url 'product_list' %}",
+            cartPageDetail: "{% url 'cart_page_detail' %}",
+            profileUser: "{% url 'profile_user' %}"
         };
 
         window.CART_DATA = JSON.parse('{{ cart_data|escapejs }}');

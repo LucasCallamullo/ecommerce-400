@@ -1,5 +1,6 @@
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../favorites/static/favorites/js/add_favorites.js" />
+/// <reference path="../../../../cart/static/cart/js/components/table_cart_detail.js" />
 
 
 /**
@@ -16,21 +17,25 @@
  * It delegates the handling to `handleGenericFormBase` with appropriate callbacks, and also uses 
  * `e.submitter` to access the actual button that triggered the submit.
  *
- * @param {HTMLElement} tableCartView - The DOM element representing the container for cart forms.
+ * @param {HTMLElement} containerMain - The DOM element representing the container for cart forms.
  */
-function formsAddLessCartView(tableCartView) {
+function eventsTableCartDetail(containerMain) {
 
-    tableCartView.addEventListener('submit', async (e) => {
+    const tableCartDetail = containerMain.querySelector('#table-cart-detail');
+    tableCartDetail.addEventListener('submit', async (e) => {
+
         // Only handle form submissions
         if (!e.target.matches('form')) return;
 
         e.preventDefault();
         const form = e.target;
+        const btn = e.submitter;    // The button that triggered the form submission
+        if (!btn) return;
+        const action = btn.dataset.action;    // add, substract, delete, like
         const productId = form.dataset.index;
 
         /* ---- Handle product favorite (like) form ---- */
-        if (form.classList.contains('form-to-like')) {
-            const btn = e.submitter;  // The button that triggered the form submission
+        if (action === 'like') {
             await handleGenericFormBase({
                 form: form,
                 submitCallback: async () => formFavoritesEvents(productId, btn),
@@ -39,51 +44,23 @@ function formsAddLessCartView(tableCartView) {
             return;
         }
 
+        // stupid check
+        if (!['add', 'substract', 'delete'].includes(action)) return;
+
         /* ---- Handle cart actions (add, subtract, delete) ---- */
         const stock = parseInt(form.dataset.stock) || 0;
-        let action, value = 1;
-
-        if (form.classList.contains('form-to-add')) {
-            action = 'add';
-        } else if (form.classList.contains('form-to-less')) {
-            action = 'substract';
-        } else if (form.classList.contains('form-to-delete')) {
-            action = 'delete';
-        } else {
-            return; // Unrecognized form type
-        }
-
         await handleGenericFormBase({
             form: form,
             submitCallback: async () => {
                 await endpointsCartActions({
                     productId: productId,
                     action: action,
-                    quantity: value,
+                    quantity: 1,
                     stock: stock
                 });
             }
         });
     });
-}
-
-
-/**
- * Updates the cart view in the UI based on the response data.
- *
- * @param {Object} data - An object containing updated cart information.
- * @param {number} data.total - The total price of the cart.
- * @param {string} data.cart_view_html - The new HTML to replace the current cart view.
- */
-function updateCartView(data) {
-    // Update all elements showing the total cart price
-    const totals = document.querySelectorAll('.total-cart-view');
-    const precioTotal = formatNumberWithPoints(data.total);
-    totals.forEach(t => t.textContent = `$${precioTotal}`);
-
-    // Replace the current cart table content with the updated HTML
-    const tableCart = document.getElementById('cart-view-container');
-    tableCart.innerHTML = data.cart_view_html;
 }
 
 
@@ -95,19 +72,23 @@ function updateCartView(data) {
  */
 document.addEventListener('DOMContentLoaded', () => {
     
-    const tableCartView = document.getElementById('cart-view-container');
+    const containerMain = document.getElementById('cont-main-cart-detail');
+    
+    // render inicial table with data cart
+    renderTableCartDetail(containerMain);
+
     // Attach event delegation logic to handle add/subtract/delete/favorite actions in cart
-    formsAddLessCartView(tableCartView);
+    eventsTableCartDetail(containerMain);
 
     /* Form Cupon hacer algun día */
-    const formCupon = document.getElementById('form-coupon');
+    const formCupon = containerMain.querySelector('#form-coupon');
     formCupon.addEventListener('submit', (e) => {
         e.preventDefault();
         openAlert('trabajando en esto todavía.', 'orange', 1500);
     });
 
     /* Form Update Carrito hacer algun día */
-    const formUpdateCart = document.getElementById('form-update-cart');
+    const formUpdateCart = containerMain.querySelector('#form-update-cart');
     formUpdateCart.addEventListener('submit', (e) => {
         e.preventDefault();
         openAlert('trabajando en esto todavía.', 'orange', 1500);

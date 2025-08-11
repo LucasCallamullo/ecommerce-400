@@ -26,7 +26,8 @@
         <div class="swiper-wrapper w-100 h-100">
             {% for image in headers_active %}
                 <div class="swiper-slide">
-                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ image.id }}" loading="lazy">
+                    <img class="header-img" src="{{ image.image_url }}" alt="header {{ store.name }}"
+                    loading="lazy" width="100" height="100">
                 </div>
             {% endfor %}
         </div>

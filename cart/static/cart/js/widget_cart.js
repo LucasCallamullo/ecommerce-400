@@ -48,7 +48,6 @@ async function endpointsCartActions({ productId, action = 'add', quantity = 1, s
         openAlert(data.detail, 'red', 1500);
         return;
     }
-
     window.CART_DATA = data.cart;
 
     // Handle interactive alert // remember, all responses have this data
@@ -57,21 +56,22 @@ async function endpointsCartActions({ productId, action = 'add', quantity = 1, s
         'substract': 'red',
         'delete': 'red'
     }
-
     openAlert(data.detail, colors[action], 1200);
 
+    // renderizar el widget principal en cada vista
     renderWidgetCart();
 
     // if you are in the cart-view-page update the view
     // typeof == only use the function if is define in my current context
-    if (typeof updateCartView === 'function') {
-        updateCartView(data);
+    if (typeof renderTableCartDetail === 'function') {
+        // para renderizar la tabla en la page detail
+        renderTableCartDetail();
     }
 }
 
 
 /**
- * Sets up delegated event listeners on multiple cart container elements.
+ * Sets up delegated event listeners on cart container elements.
  * 
  * This function attaches a single 'submit' event listener to each container,
  * instead of binding individual listeners to each button or form.
@@ -83,35 +83,31 @@ async function endpointsCartActions({ productId, action = 'add', quantity = 1, s
  * 
  */
 function widgetCartButtons() {
-    // contsWidgetCart - A list of cart container elements where cart forms are rendered dynamically.
-    const contsWidgetCart = document.querySelectorAll('.cont-cart__widget ');
+    const contWidgetCart = document.querySelector('.cont-cart__widget ');
+    contWidgetCart.addEventListener('submit', async (e) => {
+        // Only handle form submissions
+        if (!e.target.matches('form')) return;
+        e.preventDefault();
 
-    contsWidgetCart.forEach(container => {
-        container.addEventListener('submit', async (e) => {
-            // Only handle form submissions
-            if (!e.target.matches('form')) return;
-            e.preventDefault();
+        // recover values from form
+        const form = e.target;
+        const productId = form.dataset.index;
+        const stock = parseInt(form.dataset.stock);
 
-            // recover values from form
-            const form = e.target;
-            const productId = form.dataset.index;
-            const stock = parseInt(form.dataset.stock);
+        // recover values from btn
+        const btn = e.submitter;
+        const action = btn.dataset.action;
 
-            // recover values from btn
-            const btn = e.submitter;
-            const action = btn.dataset.action;
-
-            await handleGenericFormBase({
-                form: form,
-                submitCallback: async () => {
-                    await endpointsCartActions({
-                        productId: productId,
-                        action: action,
-                        quantity: 1,
-                        stock: stock
-                    });
-                }
-            });
+        await handleGenericFormBase({
+            form: form,
+            submitCallback: async () => {
+                await endpointsCartActions({
+                    productId: productId,
+                    action: action,
+                    quantity: 1,
+                    stock: stock
+                });
+            }
         });
     });
 }

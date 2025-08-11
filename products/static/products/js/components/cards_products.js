@@ -84,7 +84,8 @@ function renderCards(product, isSwiper=false) {
             
             <div class="d-grid h-100 w-100 product-card__info">
                 <a href="${urlDetail}" class="cont-img-100">
-                    <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}" loading="lazy">
+                    <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}"
+                    loading="lazy" width="100" height="100">
                 </a>
 
                 <a class="px-2 text-start text-truncate-multiline font-md bolder" href="${urlDetail}">
