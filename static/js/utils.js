@@ -76,6 +76,18 @@ function deepEscape(obj) {
 }
 
 
+/**
+ * Formats a date string into a short Spanish date format: "D mmm. YYYY".
+ *
+ * Example:
+ *   shortDate("2025-08-09T10:15:00") -> "9 ago. 2025"
+ *
+ * - Uses abbreviated month names in Spanish (ene., feb., mar., etc.).
+ * - Returns an empty string if the input is null, undefined, or invalid.
+ *
+ * @param {string} dateStr - A date string that can be parsed by the Date constructor.
+ * @returns {string} A formatted date in short Spanish format, or an empty string if invalid.
+ */
 function shortDate(dateStr) {
     const MONTHS_ABBR = {
         0: "ene.",
@@ -94,7 +106,7 @@ function shortDate(dateStr) {
 
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    if (isNaN(date)) return '';  // Manejo de fecha inválida
+    if (isNaN(date)) return ''; // Handle invalid date
 
     const day = date.getDate();
     const month = MONTHS_ABBR[date.getMonth()];
@@ -102,6 +114,7 @@ function shortDate(dateStr) {
 
     return `${day} ${month} ${year}`;
 }
+
 
 
 /**
@@ -139,9 +152,10 @@ window.addEventListener("resize", () => {
  * Formats a number by adding dots as thousand separators.
  * 
  * @param {number|string} number - The number to be formatted (can be an integer, float, or string).
+ * @param {bool} allowZero - This flag allow returns Zero for some case.
  * @returns {string} The formatted number as a string with dots as thousand separators.
  */
-function formatNumberWithPoints(number) {
+function formatNumberWithPoints(number, allowZero = false) {
     // If the value is null, undefined, or an empty string, return a blank space
     if (number === null || number === undefined || number === "") return " ";
 
@@ -149,7 +163,9 @@ function formatNumberWithPoints(number) {
     const price = parseFloat(number);
     
     // Check if the price is 0
-    if (price === 0) return 'Gratis';
+    if (price === 0) 
+        if (!allowZero) return 'Gratis';
+        else return price;
 
     // If the number is an integer, format it with thousand separators using dots
     if (Number.isInteger(price)) return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");

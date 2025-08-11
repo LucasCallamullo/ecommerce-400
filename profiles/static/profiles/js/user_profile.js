@@ -1,12 +1,8 @@
-
-
-
-
 /// <reference path="../../../../static/js/base.js" />
-
-
-/// <reference path="../../../../products/static/products/js/products_cards.js" />
-/// <reference path="../../../../products/static/products/js/products_carousel.js" />
+/// <reference path="../../../../products/static/products/js/components/cards_products.js" />
+/// <reference path="../../../../products/static/products/js/logic/cards_products.js" />
+/// <reference path="../../../../products/static/products/js/components/carousel_products.js" />
+/// <reference path="../../../../profiles/static/profiles/js/tabs/tab_orders.js" />
 
 
 function initSwiperFavorites () { 
@@ -26,51 +22,6 @@ function initSwiperFavorites () {
         },
     });
 
-}
-
-
-function onloadEventsTabs(container, tabId) {
-    if (tabId === "favorites-tab") {
-        initSwiperFavorites();
-        assignProductCardsForms(container);
-        assignProductCardsModals(container);
-    }
-}
-
-
-
-function ordersTabEvents(container, tabId) {
-    // Avoid attaching duplicate event listeners if already initialized
-    if (container.dataset.listened === 'true') return;
-    container.dataset.listened = 'true';
-
-    /**
-     * Handle form submission inside the container.
-     * Submits the form via AJAX and updates the container with new content.
-     */
-    container.addEventListener('submit', async (e) => {
-        const form = e.target.closest('form#form-order-table');
-        if (!form) return;
-
-        e.preventDefault(); // Prevent default form submission
-
-        // Serialize form data into query parameters
-        const formData = new FormData(form);
-        const params = new URLSearchParams(formData).toString();
-
-        await getTabContentAJAX({ container, tabId, params, isPanel: false })
-    });
-
-    /**
-     * Handle changes in the status dropdown.
-     * When a select element named 'status' is changed, submit the form automatically.
-     */
-    container.addEventListener('change', (e) => {
-        if (e.target.matches("select[name='status']")) {
-            const form = e.target.closest('form');
-            if (form) form.requestSubmit(); // Submit the form programmatically
-        }
-    });
 }
 
 
@@ -95,7 +46,7 @@ function ordersTabEvents(container, tabId) {
  *
  * @returns {Promise<void>}
  */
-async function getTabContentAJAX({ container, tabId, params = '', isPanel = true } = {}) {
+async function getTabContentAJAX({ container, tabId, params = '' } = {}) {
     // Construye la URL base reemplazando el nombre del tab
     const base_url = window.TEMPLATE_URLS.profileTabs.replace('{tab_name}', tabId);
     const url = (params) ? `${base_url}?${params}` : base_url;
@@ -105,26 +56,18 @@ async function getTabContentAJAX({ container, tabId, params = '', isPanel = true
         const response = await fetch(url);
         const data = await response.json();
     
-        // Limpia el contenido actual del contenedor e inserta el nuevo HTML
-        // container.innerHTML = data.html;
-        // container.innerHTML = `<pre>${JSON.stringify(data.products, null, 2)}</pre>`;
-
-    
-        // Inicializa eventos específicos según el tab activo
-        if (isPanel) {
-            if (tabId === "favorites-tab") {
-                const products = data.products;
-                createCarouselCards(container, products);
-                // initSwiperFavorites();
-                // assignProductCardsForms(container);
-                assignProductCardsModals(container);
-            } else if (tabId === 'orders-tab') {
-                const orders = data.orders;
-                const isAdmin = data.is_admin;
-                createTableOrders(container, orders, isAdmin);
-            }
-
+         // Inicializa eventos específicos según el tab activo
+        if (tabId === 'orders-tab') {
+            createTabOrders(container, data);
+            
         }
+        else if (tabId === 'favorites-tab') {
+            createCarouselCards(container, data.products);
+
+        } else if (tabId === 'invoices-tab') {
+            createTabOrders(container, data);
+
+        } 
 
     } catch (error) {
         // Manejo de errores en caso de fallo en la carga
@@ -144,8 +87,6 @@ async function getTabContentAJAX({ container, tabId, params = '', isPanel = true
  * - Automatically triggers a click on the second tab on page load to display its content.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    
-
     const contBtnTabs = document.querySelector('.cont-tabs');
     const btnTabs = document.querySelectorAll('.btn-tabs');
     const divTabs = document.querySelectorAll('.tab-content');
@@ -156,11 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!btn) return; // Si no se hizo click en un .btn-tabs, ignorar
 
         // Opcional: evitar repetir acción si ya está activo
-        if (btn.classList.contains('active')) return;
+        if (btn.classList.contains('active-tab')) return;
 
         // Remove 'active' class from all tab buttons
-        btnTabs.forEach(btn => btn.classList.remove('active'));
-        btn.classList.add('active');
+        btnTabs.forEach(btn => btn.classList.remove('active-tab'));
+        btn.classList.add('active-tab');
 
         const tabId = btn.dataset.tab;
         const container = document.getElementById(tabId);
@@ -172,19 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
         await getTabContentAJAX({ container, tabId })
     })
 
-    // Automatically trigger click on the second tab to show it on page load
-    const firstTab = btnTabs[0];
-    if (firstTab) {
-        const tabId = firstTab.dataset.tab;
-        const container = document.getElementById(tabId);
-        getTabContentAJAX({ container, tabId })
-    }
-    
     // form to close session with drf api
     const formsClose = document.querySelectorAll('.form-close-profile');
     formsClose.forEach((form) => {
         if (form) widgetUserForms(form, "Close");
     });
+
+    // Automatically trigger click on the second tab to show it on page load
+    const firstTab = btnTabs[1];
+    if (firstTab) {
+        firstTab.click();
+    }
 });
 
 

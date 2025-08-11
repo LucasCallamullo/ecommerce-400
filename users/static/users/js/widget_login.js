@@ -1,5 +1,3 @@
-
-
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../static/js/outside-click.js" />
 /// <reference path="../../../../static/js/forms.js" />
@@ -16,7 +14,6 @@
  * - Redirects the user after a short delay based on the action type.
  *
  * @param {HTMLFormElement} form - The form element to handle.
- * @param {string} action - The type of action: "Login", "Close", or "Register".
  */
 async function widgetUserForms(form) {
     form.addEventListener('submit', async (e) => {
@@ -92,7 +89,6 @@ async function widgetUserForms(form) {
 
 /* Capture events of widget user forms  */
 document.addEventListener('DOMContentLoaded', () => {
-
     const header = document.querySelector('header')
 
     /**
@@ -104,16 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const userButtons = header.querySelectorAll('.user-button');
     const dropdown = header.querySelector('.user-dropdown');
-    userButtons.forEach(loginBtn => {
+    userButtons.forEach(btn => {
         setupClickOutsideClose({
-            triggerElement: loginBtn,   // The button that toggles the dropdown
+            triggerElement: btn,   // The button that toggles the dropdown
             targetElement: dropdown,    // The dropdown to show/hide
             customToggleFn: () => {
                 const isExpanded = toggleState(dropdown);
                 return isExpanded;
             }
         });
-    });
+    })
 
     /**
      * Register Forms and Close Session Forms

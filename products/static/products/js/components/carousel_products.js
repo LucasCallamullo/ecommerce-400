@@ -1,6 +1,3 @@
-
-
-
 /// <reference path="../../../../../static/js/base.js" />
 /// <reference path="../../js/logic/cards_products.js" />
 
@@ -61,7 +58,7 @@ function renderSwiperCategory(category, counter) {
                 <div class="swiper-wrapper">  </div>
             </div>
         </div>
-    `;
+    `.trim();
 
     const container = document.createElement('div');
     container.innerHTML = swiperHtml;
@@ -72,6 +69,8 @@ function renderSwiperCategory(category, counter) {
 }
 
 
+/* esto se crea parcialmente ya que es parte del modulo pagination orginalmente, pero es necesario
+este objeto para utilizar los modales */
 window.ProductStore = {
     data: [],
     setData(newData) {
@@ -107,8 +106,9 @@ window.ProductStore = {
  * - Adds product-related events only once (avoids duplicate bindings).
  * 
  * @param {HTMLElement} container - The DOM element where the carousels will be inserted.
+ * @param {list} products - optional params in some views to use with a list fetch
  */
-function createCarouselCards(container) {
+function createCarouselCards(container, products=null) {
     
     // Validate container existence
     if (!container) {
@@ -145,6 +145,25 @@ function createCarouselCards(container) {
         container.appendChild(fragment);
 
         // Initialize Swiper instances for all inserted carousels
+        initSwipers(container);
+    }
+
+    if (products) {
+        ProductStore.setData(products);
+        const fragment = document.createDocumentFragment(); // Temporary holder to reduce reflows
+
+        // Reutilizamos esta función ya que solo usa un Nombre y un index que empieza desde el 0
+        const { element, swiperWrapper } = renderSwiperCategory('Favoritos', 0);
+
+        // Render and append each product card
+        products.forEach(product => {
+            swiperWrapper.appendChild(renderCards(product, true));
+        });
+
+        // Append the completed carousel to the fragment
+        fragment.appendChild(element);
+        container.innerHTML = '';
+        container.appendChild(fragment);
         initSwipers(container);
     }
 

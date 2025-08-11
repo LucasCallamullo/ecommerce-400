@@ -33,6 +33,7 @@ PRODUCT_CARDS_LIST = (
     'brand__slug', 'brand__name', 'brand__is_default'
 )
 
+# this is use for a product_detail view
 PRODUCT_FIELDS_DETAIL_VIEW = (
     'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
     'description', 'discount', 'updated_at', 'main_image',
@@ -49,8 +50,6 @@ VALUES_CARDS_LIST = (
     'category__id', 'category__slug', 'category__name', 'category__is_default',
     'brand__id', 'brand__slug', 'brand__name', 'brand__is_default'
 )
-
-
 
 def get_context_filtered_products(request) -> dict:
     """

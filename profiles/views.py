@@ -28,17 +28,17 @@ def profile_tabs(request, tab_name):
     """
     user = request.user
     if not user.is_authenticated:
+        # capaz ver de redirigir al home..
         return JsonResponse({'detail': 'No estás registrado..'}, status=404)
     
     if user.role == 'buyer':
-        context = utils_tabs.profile_tabs_user(user, tab_name)
-        if context:
-            # return JsonResponse({'html': html})
-            return JsonResponse(context, status=200)
+        response = utils_tabs.profile_tabs_user(user, tab_name)
+        if response:
+            return JsonResponse(response, status=200)
     
     elif user.role == 'admin':
-        html = utils_tabs.profile_tabs_admin(request, tab_name)
-        if html:
-            return JsonResponse({'html': html})
+        response = utils_tabs.profile_tabs_admin(request, tab_name)
+        if response:
+            return JsonResponse(response, status=200)
         
     return JsonResponse({'detail': 'Tab not found.'}, status=404)

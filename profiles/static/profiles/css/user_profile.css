@@ -19,6 +19,7 @@
     border-top: none !important;
 }
 
+
 /*
     Segunda columna dashboards y demas
 */
@@ -40,6 +41,10 @@
     max-height: 124px;
 }
 
+.btn-tabs.active-tab {
+    background-color: #007bff;
+}
+
 .white-border-right-left {
     border-top: 2px solid var(--white-color);
     border-bottom: 2px solid var(--white-color);
@@ -49,7 +54,6 @@
 
 /* Styles for large desktops (mín. 993px to max. infinite) */
 @media (min-width: 992px) {
-
     .white-border-right-left {
         border: none;
         height: 40px;

@@ -1,7 +1,9 @@
-
-
 /// <reference path="../../../../static/js/base.js" />
 /// <reference path="../../../../static/js/forms.js" />
+/// <reference path="../../../../users/static/users/js/widget_login.js" />
+/// <reference path="./tabs/tab_orders.js" />
+/// <reference path="./tabs/tab_store.js" />
+/// <reference path="./tabs/tab_roles.js" />
 
 
 /**
@@ -152,7 +154,7 @@ function usersTabEvents(container, tabId) {
             const formData = new FormData(form);
             const params = new URLSearchParams(formData).toString();
 
-            await getTabContentAJAX({ container, tabId, params, isPanel: false })
+            await getTabContentAJAX({ container, tabId, params })
         }
     });
 
@@ -168,7 +170,6 @@ function usersTabEvents(container, tabId) {
         }
     });
 }
-
 
 
 /**
@@ -195,9 +196,19 @@ function ordersTabEvents(container, tabId) {
 
         // Serialize form data into query parameters
         const formData = new FormData(form);
-        const params = new URLSearchParams(formData).toString();
 
+        // check to prevent bad fetchs
+        const orderId = formData.get('order_id').trim();
+        if (orderId.length > 0 && !/^\d+$/.test(orderId)) {
+            openAlert('Por favor ingrese un número de orden válido.', 'red', 1500);
+            return;
+        }
+
+        const params = new URLSearchParams(formData).toString();
         await getTabContentAJAX({ container, tabId, params, isPanel: false })
+
+        // clean form after update
+        form.querySelector('input').value = ''
     });
 
     /**
@@ -223,11 +234,10 @@ function ordersTabEvents(container, tabId) {
  * @param {HTMLElement} options.container - The DOM element where the tab content will be injected.
  * @param {string} options.tabId - The identifier of the tab (used to build the URL and initialize tab-specific logic).
  * @param {string} [options.params=''] - Optional query parameters to append to the URL.
- * @param {boolean} [options.isPanel=true] - Indicates whether tab-specific event setup should be run.
  *
  * @returns {Promise<void>}
  */
-async function getTabContentAJAX({ container, tabId, params = '', isPanel = true } = {}) {
+async function getTabContentAJAX({ container, tabId, params = '' } = {}) {
     // Construye la URL base reemplazando el nombre del tab
     const base_url = window.TEMPLATE_URLS.profileTabs.replace('{tab_name}', tabId);
     const url = (params) ? `${base_url}?${params}` : base_url;
@@ -236,19 +246,19 @@ async function getTabContentAJAX({ container, tabId, params = '', isPanel = true
         // Realiza la solicitud al servidor
         const response = await fetch(url);
         const data = await response.json();
-    
-        // Limpia el contenido actual del contenedor e inserta el nuevo HTML
-        container.innerHTML = data.html;
-    
+
         // Inicializa eventos específicos según el tab activo
-        if (isPanel) {
-            if (tabId === 'store-data-tab') {
-                storeTabEvents(container);
-            } else if (tabId === 'users-tab') {
-                usersTabEvents(container, tabId);
-            } else if (tabId === 'orders-tab') {
-                ordersTabEvents(container, tabId);
-            }
+        if (tabId === 'store-data-tab') {
+            createTabStore(container, data);
+            storeTabEvents(container);
+
+        } else if (tabId === 'users-tab') {
+            createTabRoles(container, data);
+            usersTabEvents(container, tabId);
+            
+        } else if (tabId === 'orders-tab') {
+            createTabOrders(container, data);
+            ordersTabEvents(container, tabId);
         }
 
     } catch (error) {
@@ -270,7 +280,6 @@ async function getTabContentAJAX({ container, tabId, params = '', isPanel = true
  */
 document.addEventListener('DOMContentLoaded', () => {
     
-
     const contBtnTabs = document.querySelector('.cont-tabs');
     const btnTabs = document.querySelectorAll('.btn-tabs');
     const divTabs = document.querySelectorAll('.tab-content');
@@ -297,18 +306,22 @@ document.addEventListener('DOMContentLoaded', () => {
         await getTabContentAJAX({ container, tabId })
     })
 
-    // Automatically trigger click on the second tab to show it on page load
-    const firstTab = btnTabs[0];
-    if (firstTab) {
-        const tabId = firstTab.dataset.tab;
-        const container = document.getElementById(tabId);
-        getTabContentAJAX({ container, tabId })
-    }
-    
-
     const formsClose = document.querySelectorAll('.form-close-profile');
     formsClose.forEach((form) => {
+        // this function its from users/widget_login-js
         if (form) widgetUserForms(form, "Close");
     });
+
+    // Automatically trigger click on the second tab to show it on page load
+    const firstTab = btnTabs[2];
+    if (firstTab) {
+        firstTab.click();
+        /*
+        const tabId = firstTab.dataset.tab;
+        const container = document.getElementById(tabId);
+        getTabContentAJAX({ container, tabId }) */
+    }
 });
+
+
 
