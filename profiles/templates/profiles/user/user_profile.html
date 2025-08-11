@@ -11,7 +11,6 @@
     {% compress css %}
         <link href="{% static 'products/css/products_carousel.css' %}" rel="stylesheet">
         <link href="{% static 'products/css/cards_products.css' %}" rel="stylesheet">
-
         <link href="{% static 'profiles/css/user_profile.css' %}" rel="stylesheet">
     {% endcompress %}
     
@@ -79,7 +78,6 @@
         <img src="https://i.pinimg.com/736x/3b/da/58/3bda585ceabcae86a826c57305d1ff39.jpg" 
             class=" img-cover cont-banner-profile" alt="BANNER PROFILE">
         
-
         {# ITEMS BANNER #}
         <div class="d-grid w-100 cont-tabs">
             <button class="active-tab btn-tabs btn btn-alt gap-1 btn-40 w-100 bolder font-md" data-tab="orders-tab">
@@ -98,34 +96,24 @@
 
         {# DASHBOARD PRODUCTOS #}
         <div class="tab-content p-2" id="orders-tab"></div>
-
         <div class="tab-content p-2" id="favorites-tab"></div>
-
         <div class="tab-content p-2" id="invoices-tab"></div>
     </div>
-
 </div>
-
     {# componente reutilizable modal uno solo #}
     {% include "products/components/card__modal.html" %}
 
 {% endblock main_content %}
 
-
-{% block extra_scripts %}
-
     {% comment %}
         window.TEMPLATE_URLS = {
             {# users/urls.py #}
             profileTabs: "{% url 'profile_tabs' 0 %}".replace('0/', '{tab_name}/'),
-
             {# favorites/urls.py #}
             favorites: "{% url 'toggle-favorite' 0 %}".replace('0/', '{product_id}/'),
-
             {# orders/urls.py #}
             orderDetail: "{% url 'order-detail' 0 %}".replace('0/', '{order_id}/'),
             productList: "{% url 'product_list' %}",
-            
             {# products/urls.py #}
             productDetail: "{% url 'product_detail' product_id=0 slug='__SLUG__' %}",
             category: "{% url 'pl_category' cat_slug='__CAT__' %}",
@@ -134,6 +122,7 @@
         };
     {% endcomment %}
 
+{% block extra_scripts %}
     {# JavaScript for Product Page #}
     <script>
         window.TEMPLATE_URLS = {
@@ -157,12 +146,8 @@
         <script src="{% static 'products/js/logic/cards_products.js' %}"></script>
         <script src="{% static 'products/js/components/cards_products.js' %}"></script>
         <script src="{% static 'products/js/components/carousel_products.js' %}"></script>
-        
         <script src="{% static 'profiles/js/tabs/tab_orders.js' %}"></script>
+        <script src="{% static 'profiles/js/tabs/tab_favorites.js' %}"></script>
         <script src="{% static 'profiles/js/user_profile.js' %}"></script>
     {% endcompress %}
-
-
-
-
 {% endblock extra_scripts %}

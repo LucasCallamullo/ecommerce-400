@@ -149,22 +149,10 @@ function createCarouselCards(container, products=null) {
     }
 
     if (products) {
-        ProductStore.setData(products);
-        const fragment = document.createDocumentFragment(); // Temporary holder to reduce reflows
-
-        // Reutilizamos esta función ya que solo usa un Nombre y un index que empieza desde el 0
-        const { element, swiperWrapper } = renderSwiperCategory('Favoritos', 0);
-
-        // Render and append each product card
-        products.forEach(product => {
-            swiperWrapper.appendChild(renderCards(product, true));
-        });
-
-        // Append the completed carousel to the fragment
-        fragment.appendChild(element);
-        container.innerHTML = '';
-        container.appendChild(fragment);
-        initSwipers(container);
+        // this function is from profile/js/tabs/tab_favorites.js
+        if (typeof createTabfavorites === 'function') {
+            createTabfavorites(container, products);
+        }
     }
 
     // Attach product events only once to the container (static delegation)

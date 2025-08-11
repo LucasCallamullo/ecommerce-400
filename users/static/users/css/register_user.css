@@ -1,49 +1,12 @@
 
 
-
-.cont-form-register {
-    width: 100%;
-    max-width: 100%;
-}
-
-.cont-form-register input,
-.cont-form-register select {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--text-primary) !important;
-    outline: none;
-    color: var(--text-primary);
-    padding-left: 8px;
-    height: 36px;
+.address-label {
     width: 100%;
 }
 
-/* Para cuando está autocompletado */
-.cont-form-register input:-webkit-autofill,
-.cont-form-register input:-webkit-autofill:hover, 
-.cont-form-register input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--text-primary);
-    -webkit-box-shadow: 0 0 0px 1000px var(--bg-secondary) inset;
-}
 
-/* Styles for small mobile phones (hasta 480px) */
-/* Styles for small mobile phones */
-
-/* Styles for tablets (mín. 480px to max. 768px) */
-@media (min-width: 480px) {
-    /* Styles for tablets */
-}
-
-/* Styles for desktops (mín. 768px to max. 992px+)) */
-@media (min-width: 768px) {
-    /* Styles for desktops */
-}
-
-/* Styles for large desktops (mín. 992px to max. infinite) */
 @media (min-width: 992px) {
-    /* Styles for large desktops */
-    .cont-form-register {
-        width: 75%;
-        max-width: 75%;
+    .address-label {
+        width: calc(50% - 8px);
     }
-
 }

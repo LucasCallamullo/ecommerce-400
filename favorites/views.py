@@ -30,20 +30,16 @@ class ToggleFavoriteProduct(APIView):
 
         favorite_product, created = FavoriteProduct.objects.get_or_create(user=user, product=product)
         
-        # de esta forma almacenamos siempre la lista correctamente
-        cache_key = f'user_favs_{user.id}'
-        favorites = cache.get(cache_key)
-
-        if favorites is not None:
-            # Remove specific ID
-            favorites.discard(product_id)  # si es un set
-            cache.set(cache_key, favorites, timeout=60*5)  # 5 min
+        # obtenemos el set cacheado o creado de nuevo
+        favorites = get_favs_products(user, only_ids=True)
+        if created:
+            # este caso es nuevo favorito se agrega
+            favorites.add(product_id)
         else:
-            # Si no está cacheado, lo generas normalmente
-            favorites = get_favs_products(user, only_ids=True)
-            favorites.discard(product_id)
-            cache.set(cache_key, favorites, timeout=60*5)
-
+            # este caso si ya existía significa que desfaveo, o sea se quita 
+            favorites.discard(product_id)  # si es un set
+        cache_key = f'user_favs_{user.id}'
+        cache.set(cache_key, favorites, timeout=60*5)  # 5 min
 
         if not created:
             favorite_product.delete()

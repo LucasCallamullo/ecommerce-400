@@ -10,9 +10,10 @@
     </a>
 
     <form class="top-bar-search bg-primary cont-space-between align-self-center" action="{% url 'product_top_search' %}">
-        <input class="text-primary" type="text" placeholder="Buscar..." name="topQuery" autocomplete="off">
+        <input class="text-primary" type="text" placeholder="Buscar..." name="topQuery" 
+        autocomplete="off" required minlength="2">
         <button class="btn text-primary scale-on-touch" type="submit">
-            <i class="ri-search-line font-md"></i>
+            <i class="ri-search-line font-lg"></i>
         </button>
     </form>
     
