@@ -11,26 +11,30 @@
  *
  * @param {HTMLFormElement} form - The form element containing the payment options.
  */
-function paymentRadio(form) {
-    // Select all radio buttons with the name "payment"
-    const radios = document.querySelectorAll('input[name="payment"]');
+function paymentRadio(containerMain, form) {
 
     // Select all elements meant to display the selected payment method
-    const paymentSpans = document.querySelectorAll('.payment-method');
+    const paymentSpans = containerMain.querySelectorAll('.payment-method');
 
-    // Loop through each radio button and attach a change event listener
-    radios.forEach(payment => {
-        payment.addEventListener('change', (event) => {
-            if (event.target.checked) {
-                // When a radio is selected, update all display spans
-                paymentSpans.forEach(display => {
-                    display.textContent = event.target.value;
-                });
+    // input a cambiar su valor
+    const inputForm = form.querySelector('input[type="hidden"][name="payment_method_id"]')
 
-                // Show success alert with the selected payment method
-                openAlert(`Método de pago actualizado a ${event.target.value}.`, 'green', 2000);
-            }
-        });
+    // Contenedor padre de los radios
+    const paymentsContainer = containerMain.querySelector('#payment-methods-section'); 
+    paymentsContainer.addEventListener('change', (event) => {
+        // Verificar si el elemento que disparó el evento es un radio button
+        if (event.target.matches('input[type="radio"][name="payment"]')) {
+    
+            // When a radio is selected, update all display spans
+            paymentSpans.forEach(display => {
+                display.textContent = event.target.value;
+            });
+
+            // Show success alert with the selected payment method
+            openAlert(`Método de pago actualizado a ${event.target.value}.`, 'green', 2000);
+
+            inputForm.value = event.target.dataset.index || '0';
+        };
     });
 }
 
@@ -42,56 +46,67 @@ function paymentRadio(form) {
  *
  * @param {HTMLFormElement} form - The form element containing shipping options and sections.
  */
-function shippingRadio(form) {
-    // Select all radio buttons with the name "ship"
-    const radios = document.querySelectorAll('input[name="ship"]');
+function shippingRadio(containerMain, form) {
+
 
     // Select all elements meant to display the selected shipping method
-    const shipSpans = document.querySelectorAll('.shipment-method');
+    const shipSpans = containerMain.querySelectorAll('.shipment-method');
 
     // Element where the shipping price is displayed
-    const shipPriceSpan = document.getElementById('shipment-price');
+    const shipPriceSpan = containerMain.querySelector('.shipment-price');
 
     // Sections to show or hide depending on the selected shipping method
     const retireSection = form.querySelector('#retire-form');
     const shippinSection = form.querySelector('#shippin-form'); 
+    
+    // input a cambiar el valor 
+    const inputForm = form.querySelector('input[type="hidden"][name="shipping_method_id"]');
 
-    // Loop through each shipping radio button
-    radios.forEach(option => {
-        option.addEventListener('change', (event) => {
+    // Contenedor padre de los radios
+    const shippingContainer = containerMain.querySelector('#shipping-methods-section'); 
+
+
+    shippingContainer.addEventListener('change', (event) => {
+        // Verificar si el elemento que disparó el evento es un radio button
+        if (event.target.matches('input[type="radio"][name="ship"]')) {
             // Get the dataset index (used to determine selected shipping method)
-            shipId = event.target.dataset.index;
+            const shipId = event.target.dataset.index || 0;
 
             // Toggle visibility of form sections based on selected shipping method
             if (shipId === '1') {
-                retireSection.style.display = 'block';
+                retireSection.style.display = 'grid';
                 shippinSection.style.display = 'none';
-                scrollToSection(retireSection);
-
                 // Activar required solo en la sección de retiro
+                scrollToSection(retireSection);
                 toggleRequiredInputs(retireSection, true);
                 toggleRequiredInputs(shippinSection, false);
             } else {
                 retireSection.style.display = 'none';
-                shippinSection.style.display = 'block';
-                scrollToSection(shippinSection);
-
+                shippinSection.style.display = 'grid';
                 // Activar required solo en la sección de envío
+                scrollToSection(shippinSection);
                 toggleRequiredInputs(retireSection, false);
                 toggleRequiredInputs(shippinSection, true);
             }
 
             // Get and format the shipping price from data-price attribute
-            let price = formatNumberWithPoints(event.target.dataset.price);
+            const price = formatNumberWithPoints(event.target.dataset.price);
             shipPriceSpan.textContent = price === 'Gratis' ? price : `$ ${price}`;
 
             // Update all spans showing the selected shipping method
-            shipSpans.forEach(display => { display.textContent = event.target.value; });
+            shipSpans.forEach(display => {
+                display.textContent = event.target.value;
+            });
 
+            // agregamos dataset al form para usar despues antes de enviar
+            inputForm.value = shipId || '0';
+            
             openAlert(`Método de envío actualizado a ${event.target.value}.`, 'green', 2000);
-        });
+        }
     });
 
+    // esta funcion pone en required o no los input de cada formulario 
+    // en especifico segun corresponda
     function toggleRequiredInputs(section, isRequired) {
         const inputs = section.querySelectorAll('.input-required');
         inputs.forEach(input => {
@@ -114,22 +129,20 @@ function shippingRadio(form) {
  * @returns {Promise<string|undefined>} - Returns the order ID on success, or undefined if failed.
  */
 async function validFormOrder(form) {
-    // Add additional values to the form data
-    const paymentId = document.querySelector('input[name="payment"]:checked');
-    const shipmentId = document.querySelector('input[name="ship"]:checked');
-
-    // If either option is not selected, show an alert and stop
-    if (!shipmentId || !paymentId) {
-        openAlert('Elija correctamente un método de pago o envío', 'orange', 1500);
-        return;
-    }
 
     // Build FormData and convert to JSON
     const formData = new FormData(form);
-    formData.append('payment_method_id', paymentId.dataset.index);
-    formData.append('shipping_method_id', shipmentId.dataset.index);  
-    const jsonData = Object.fromEntries(formData.entries());
+    const paymentId = formData.get('payment_method_id');
+    const shippingId = formData.get('shipping_method_id');
 
+    if (paymentId === '0' || shippingId === '0') {
+        openAlert(
+            `Elija correctamente un método de ${(paymentId == '0') ? 'pago' : 'envío'}.`, 
+            'orange', 1500
+        );
+        return;
+    }    
+    const jsonData = Object.fromEntries(formData.entries());
     const url = window.TEMPLATE_URLS.validOrder
 
     try {
@@ -166,12 +179,12 @@ async function validFormOrder(form) {
  * Handles the setup and validation logic for the order form modal.
  * @param {HTMLFormElement} form - The order form element.
  */
-function eventFormOrder(form) {
-    const modal = document.querySelector('.modal-order');
+function eventFormOrder(containerMain, form) {
+    const modal = containerMain.querySelector('.modal-order');
     const btnClose = modal.querySelector('.btn-close');
 
-    const overlay = document.getElementById('overlay-order');
-    const btnOpenModal = document.getElementById('btn-open-order');
+    const overlay = containerMain.querySelector('#overlay-order');
+    const btnOpenModal = containerMain.querySelector('#btn-open-order');
 
     let flag = false;
 
@@ -182,8 +195,8 @@ function eventFormOrder(form) {
         element: modal,
         overlay: overlay,
         shouldOpen: (e) => {
-            if (!flag) flag = flagsOrdersConfirm();
-            return flag;
+            flag = flagsOrdersConfirm();
+            return true;
         },
     });
 
@@ -198,7 +211,7 @@ function eventFormOrder(form) {
         btnOpenModal.click();
     });
 
-    const confirmButtonModal = document.getElementById('btn-confirm-order-modal');
+    const confirmButtonModal = containerMain.querySelector('#btn-confirm-order-modal');
     const btnFormSubmit = form.querySelector('#btn-order-submit');
     
     // Second confirm button inside modal: closes modal and submits form if valid
@@ -211,19 +224,19 @@ function eventFormOrder(form) {
         btnFormSubmit.click();
     });
 
-    const paymentSection = document.querySelector('#payment-methods-section');
-    const shippingSection = document.querySelector('#shipping-methods-section');
+    const paymentSection = containerMain.querySelector('#payment-methods-section');
+    const shippingSection = containerMain.querySelector('#shipping-methods-section');
 
     /**
      * Validates if a radio input in a section is selected properly.
-     * @param {string} name - The name of the radio input group.
+     * @param {string} name - The name of the hidden input group.
      * @param {HTMLElement} section - The section to scroll to if invalid.
      * @param {string} errorMessage - The error message to show if invalid.
      * @returns {boolean}
      */
     function validateRadioSelection(name, section, errorMessage) {
-        const input = document.querySelector(`input[name="${name}"]:checked`);
-        if (!input || input.dataset.index === '0') {
+        const input = form.querySelector(`input[name="${name}"]`);
+        if (!input || input.value === '0') {
             openAlert(errorMessage, 'red', 2000);
             scrollToSection(section);
             return false;
@@ -239,8 +252,8 @@ function eventFormOrder(form) {
     function flagsOrdersConfirm() {
         if (
             !flag &&
-            validateRadioSelection("payment", paymentSection, "No seleccionaste un Método de Pago.") &&
-            validateRadioSelection("ship", shippingSection, "No seleccionaste un Método de Envío.")
+            validateRadioSelection("payment_method_id", paymentSection, "No seleccionaste un Método de Pago.") &&
+            validateRadioSelection("shipping_method_id", shippingSection, "No seleccionaste un Método de Envío.")
         ) {
             flag = true;
         }
@@ -250,7 +263,9 @@ function eventFormOrder(form) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('form-order');
+
+    const containerMain = document.getElementById('main-base');
+    const form = containerMain.querySelector('#form-order');
     let order_id;
 
     // Handle form submission
@@ -279,11 +294,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize logic related to selecting a payment method
-    paymentRadio(form);
+    paymentRadio(containerMain, form);
 
     // Initialize logic related to selecting a shipping method
-    shippingRadio(form);
+    shippingRadio(containerMain, form);
 
     // Initialize additional event handlers for the order form
-    eventFormOrder(form);
+    eventFormOrder(containerMain, form);
+
+    // renderizar inicialmente la table dentro del modal a partir de window.CART_DATA
+    renderTableModal(containerMain);
 });

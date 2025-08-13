@@ -127,7 +127,7 @@ async function compressAndCache(originalFile) {
 }
 
 
-function initInputImage(form) {
+function initInputImage(form, initClear = true) {
     const imageInput = form.querySelector('.image-input');
     const previewContainer = form.querySelector('.cont-img-previews');
 
@@ -136,9 +136,12 @@ function initInputImage(form) {
         FilePond.destroy(globalPond);
         globalPond = null;
     }
-    imageInput.value = '';
-    previewContainer.innerHTML = '';
-    compressedFilesCache.clear();    // clear map in a new form
+
+    if (initClear) {
+        imageInput.value = '';
+        previewContainer.innerHTML = '';
+        compressedFilesCache.clear();    // clear map in a new form
+    }
 
     // 2. Configurar FilePond con Compressor.js
     globalPond = FilePond.create(imageInput, {
@@ -170,6 +173,9 @@ function initInputImage(form) {
     // 3. Función de previsualización optimizada
     function updatePreview(file, container) {
         const reader = new FileReader();
+        const child = container.querySelector('.icon-img');
+        if (child && child.parentNode === container) child.remove();
+
         reader.onload = (e) => {
             const img = document.createElement('img');
             img.src = e.target.result;

@@ -62,7 +62,7 @@
 
 
 <body>
-    <header class="bg-color">
+    <header class="bg-color" id="header-base">
         {% include 'home/nav_mobile.html' %}
 
         {% include 'home/nav_desktop.html' %}
@@ -73,7 +73,7 @@
         {% include "users/widget_login.html" %}
     </header>
 
-    <main>
+    <main id="main-base">
         {# To place banners without the page limit #}
         {% block top_banner_image %}
         
@@ -99,7 +99,7 @@
 
 
     <hr class="hr-primary">
-    <footer class="cont-page">
+    <footer class="cont-page" id="footer-base">
         {% include 'home/footer.html' %}
     </footer>
     

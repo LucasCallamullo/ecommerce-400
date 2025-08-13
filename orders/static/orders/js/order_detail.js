@@ -1,6 +1,14 @@
 
 
+function renderTableItems(containerMain) {
+
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
+    
+    const containerMain = document.getElementById('main-base');
+
     const statusIcons = {
         '1': ["ri-close-large-fill", "bold-red"],       // Cancelado
         '2': ["ri-history-fill", "bold-orange"],           // Pago a Confirmar
@@ -12,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         '8': ["ri-arrow-left-circle-line", "bold-red"],  // Devolución
         '9': ["ri-close-large-fill", "bold-red"]        // Rechazado
     };
-    const iconsStatus = document.querySelectorAll('.icon-status');
+    const iconsStatus = containerMain.querySelectorAll('.icon-status');
     iconsStatus.forEach((icon) => {
         const statusId = icon.dataset.index;
         const [iconClass, colorClass] = statusIcons[statusId];
@@ -20,14 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    const form = document.getElementById('update-images-wsp');
+    const form = containerMain.querySelector('#update-images-wsp');
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             openAlert('xddd');
         });
 
-        initInputImage(form)
+        initInputImage(form, false)
     }
 
     // para usar con handle form await uploadImages()

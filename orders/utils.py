@@ -4,14 +4,14 @@ from django.db import transaction
 
 
 from orders.models import ShipmentMethod, ShipmentOrder, PaymentMethod
-from orders.models import StatusOrder, Order, ItemOrder
+from orders.models import Order, ItemOrder
 from cart.models import CartItem
 
 from datetime import timedelta
 from django.utils import timezone
 
 
-from rest_framework import status
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.response import Response
 
 from products.utils import valid_id_or_None
@@ -22,9 +22,12 @@ def get_order_detail_context(order_id, user):
     if not order_id:
         return None
     
+    order = Order.objects.filter(id=order_id)
+    if user.role != 'admin':
+        order = order.filter(user=user)
+        
     order = (
-        Order.objects
-        .filter(id=order_id, user=user)
+        order
         .values(
             'id', 'created_at', 'expire_at', 'email', 'name', 'shipment_cost', 'total', 'discount_coupon',
             'shipment__id', 'shipment__address', 
@@ -88,7 +91,7 @@ def get_order_detail_context(order_id, user):
     return context
 
 
-def create_order_pending(order_data, user, products, cart_items):
+def create_order_pending(order_data, user, products, quantities):
     from decimal import Decimal
     """
     # example on order data
@@ -116,27 +119,26 @@ def create_order_pending(order_data, user, products, cart_items):
         "payment_method_id": "3"
     }
     """
-    try:
-        shipping_method = ShipmentMethod.objects.only('id').get(id=order_data['shipping_method_id'])
-    except ShipmentMethod.DoesNotExist:
-        return None, Response({'detail': 'Método de envío no válido'}, status=status.HTTP_400_BAD_REQUEST)
+    # .values() no se aplica sobre get, para simular resultado, usamos filter + first para trear un unico diccionario
+    shipping_method = ShipmentMethod.objects.filter(id=order_data['shipping_method_id']).values('id', 'price').first()
+    if not shipping_method:
+        return None, Response({'detail': 'Método de envío no válido'}, status=HTTP_400_BAD_REQUEST)
     
-    try:
-        payment_method = PaymentMethod.objects.only('id', 'time').get(id=order_data['payment_method_id'])
-    except PaymentMethod.DoesNotExist:
-        return None, Response({'detail': 'Método de pago no válido'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    try:
-        status_order = StatusOrder.objects.only('id').get(id=2)  # Orden en estado "Pendiente"
-    except ShipmentMethod.DoesNotExist:
-        return None, Response({'detail': 'Estado de orden no válido'}, status=status.HTTP_400_BAD_REQUEST)
-    
+    # .values() no se aplica sobre get, para simular resultado, usamos filter + first para trear un unico diccionario
+    payment_method = PaymentMethod.objects.filter(id=order_data['payment_method_id']).values('id', 'time').first()
+    if not payment_method:
+        return None, Response({'detail': 'Método de pago no válido'}, status=HTTP_400_BAD_REQUEST)
 
+    # try:    realmente me puedo tomar la libertad de poner status_id = 2, evita consulta
+    #    status_order = StatusOrder.objects.only('id').get(id=2)  # Orden en estado "Pendiente"
+    # except ShipmentMethod.DoesNotExist:
+    #    return None, Response({'detail': 'Estado de orden no válido'}, status=HTTP_400_BAD_REQUEST)
+    
     with transaction.atomic():
         
         # Create shipping order to associate with the order
         shipment = ShipmentOrder.objects.create(
-            method=shipping_method,
+            method_id=shipping_method['id'],
             name_pickup=order_data.get("name_retire", ""),
             dni_pickup=order_data.get("dni_retire", ""),
             address=order_data.get("address", ""),
@@ -147,13 +149,13 @@ def create_order_pending(order_data, user, products, cart_items):
         )
         
         # Create expired time for the order, to apply maybe with a signal?
-        expire_at = timezone.now() + timedelta(hours=payment_method.time)
+        expire_at = timezone.now() + timedelta(hours=payment_method['time'])
         name = f'{order_data.get("first_name", "")} {order_data.get("last_name", "")}'
         # Create new Order
         new_order = Order.objects.create(
             user=user,
-            status=status_order,
-            payment=payment_method,
+            status_id=2,    # status_order
+            payment_id=payment_method['id'],
             shipment=shipment,
             name=name,
             email=order_data.get("email", ""),
@@ -168,86 +170,107 @@ def create_order_pending(order_data, user, products, cart_items):
         
         # update post
         subtotal = 0
-        shipment_cost = shipping_method.price
+        shipment_cost = shipping_method['price']
         # maybe more logic like coupon model in the future
         # discount = Decimal(order_data.get("discount", "0"))    
         discount_coupon = Decimal("2.00")
         
-        for item in cart_items:
-            product = products.get(item.product_id)
+        for product_id, product in products.items():
+            quantity = quantities.get(product_id)['quantity']
             
             if product is None:
                 transaction.set_rollback(True)
-                return None, Response({'detail': 'Productos no validos.'}, status=status.HTTP_400_BAD_REQUEST)
+                return None, Response({'detail': 'Productos no validos.'}, status=HTTP_400_BAD_REQUEST)
             
             # Calcular subtotal de productos
             price_decimal = product.calc_discount_decimal()
-            subtotal += ( price_decimal * item.quantity )    # get decimal * int = decimal
+            subtotal += ( price_decimal * quantity )    # get decimal * int = decimal
             
             order_items.append(ItemOrder(
                 order=new_order,
                 product=product,
                 discount=product.discount,
                 original_price=product.price,
-                quantity=item.quantity,
+                quantity=quantity,
                 final_price=price_decimal
             ))
                 
         ItemOrder.objects.bulk_create(order_items)
         
         # Eliminar items del carrito solo si todo lo anterior salió bien
-        CartItem.objects.filter(id__in=[item.id for item in cart_items]).delete()
+        CartItem.objects.filter(id__in=[v['item_id'] for v in quantities.values()]).delete()
         
-    # Calcular total
-    total = subtotal + shipment_cost - discount_coupon
+        # Calcular total
+        total = subtotal + shipment_cost - discount_coupon
 
-    # Actualizar la orden con estos campos
-    new_order.shipment_cost = shipment_cost
-    new_order.discount_coupon = discount_coupon
-    new_order.total = total
-    new_order.save(update_fields=["shipment_cost", "discount", "total"])
+        # Actualizar la orden con estos campos
+        new_order.shipment_cost = shipment_cost
+        new_order.discount_coupon = discount_coupon
+        new_order.total = total
+        new_order.save(update_fields=["shipment_cost", "discount_coupon", "total"])
         
     return new_order, None
     
-
+    
 from products.models import Product
-def confirm_stock_availability(cart_items):
+def confirm_stock_availability(cart):
     """
-        Función optimizada para reservar stock de los productos en el carrito.
-        Utiliza transacciones atómicas y bloqueo de registros para evitar condiciones de carrera.
+    Optimized function to reserve stock for products in the user's cart.
+    Uses atomic transactions and row-level locking to prevent race conditions.
+
+    Args:
+        cart (Cart): The cart instance for the current user.
+
+    Returns:
+        dict: {'products': {product_id: Product}, 'quantities': {product_id: quantity}} 
+              if stock reservation succeeds.
+        None, Response: DRF Response with error detail if stock is insufficient or cart is empty.
     """
+    # Retrieve cart items as dictionaries to avoid loading full model instances
+    cart_items = (
+        CartItem.objects
+        .filter(cart=cart)
+        .values('id', 'quantity', 'product__id')
+    )
+
     with transaction.atomic():
-        
+        # Check if cart is empty
         if not cart_items.exists():
             transaction.set_rollback(True)
-            return None, Response({'detail': 'No hay productos agregados'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # CASO 3: Bloqueo concurrente de productos
-        # Obtenemos y bloqueamos todos los productos necesarios en una sola consulta
-        # Esto previene condiciones de carrera en operaciones concurrentes
-        product_ids = [item.product_id for item in cart_items]
+            return None, Response({'detail': 'No hay productos agregados'}, status=HTTP_400_BAD_REQUEST)
+
+        # Prepare product IDs and quantities dictionary
+        product_ids = []
+        quantities = {}
+        for item in cart_items:
+            quantities[item['product__id']] = {'quantity': item['quantity'], 'item_id': item['id']} 
+            product_ids.append(item['product__id'])
+
+        # Fetch products in bulk with row-level locking to prevent concurrent stock modifications
         products = (
             Product.objects
             .filter(id__in=product_ids)
             .select_for_update()
             .only('id', 'name', 'stock', 'stock_reserved', 'available', 'price', 'discount')
-            .in_bulk()
+            .in_bulk()  # Returns a dict {id: Product instance}
         )
 
-        # guardamos lista en memoria para bulk final
+        # Prepare list for bulk update
         modified_products = []
 
-        for item in cart_items:
-            product = products.get(item.product_id)
+        for product_id, product in products.items():
+            quantity = quantities.get(product_id)['quantity']  # default None if not found
 
-            if product is None or not product.make_stock_reserved(item.quantity):
+            # Reserve stock in memory
+            if quantity is None or not product.make_stock_reserved(quantity):
                 transaction.set_rollback(True)
-                return None, Response({'detail': f'Stock Insuficiente {product.name}'}, status=status.HTTP_400_BAD_REQUEST)
+                return None, Response({'detail': f'Stock Insuficiente {product.name}'}, status=HTTP_400_BAD_REQUEST)
 
-            # Modificamos en memoria, no guardamos aún
             modified_products.append(product)
 
-        # Bulk update de una sola vez
+        # Commit all stock changes in a single bulk update
         Product.objects.bulk_update(modified_products, ['stock', 'stock_reserved'])
-            
-    return products, None
+
+    # Return products and quantities to continue with order creation
+    return {'products': products, 'quantities': quantities}, None
+

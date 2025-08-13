@@ -153,39 +153,43 @@ form textarea {
 	padding-left: 12px;
 } 
 
+
 .modal-order {
     height: 90vh;
     width: 90%;
 	max-width: 90%;
+	row-gap: 4px;
+	grid-template-rows: 40px auto 32px 64px 32px;
 }
+.modal-order[data-state="open"] { display: grid; }
 
-.cont-modal-order {
-    display: grid;
-	grid-column: 1fr;
-	row-gap: 16px;
-	grid-template-rows: 0.1fr 0.75fr 0.25fr;
-	height: 100%;
-	width: 100%;
-}
 
-.cont-space-between-row {
+/* clase grid para diseño responsive en el modal-order */
+.d-space-between-flex {
 	display: flex;
-	align-items: center;
 	justify-content: space-between;
+	align-items: center;
+}
+/* clase grid para diseño responsive en el modal-order */
+.cont-grid-spans {
+	grid-template-columns: 1fr 1fr;
+	align-items: center;
 }
 
 /* Styles for large desktops (mín. 993px to max. infinite) */
 @media (min-width: 992px) {
 
-	.cont-modal-order {
-		grid-template-rows: 0.1fr 0.9fr 0.1fr;
+	.modal-order {
+		grid-template-rows: 40px auto 36px 36px;
 	}
-	.cont-space-between-row {
+	/* clase grid para diseño responsive en el modal-order */
+	.cont-grid-spans {
+		grid-template-columns: repeat(5, min-content);
+		justify-content: flex-end;
+	}
+	/* clase grid para diseño responsive en el modal-order */
+	.d-space-between-flex {
 		justify-content: flex-start;
-	}
-	.justify-self-end {
-		justify-self: end;
-		align-self: end;
 	}
 
     .cart-row {

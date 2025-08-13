@@ -92,7 +92,6 @@ function renderOrderTable(container, orders) {
             const order = deepEscape(ord); // Basic front-end sanitization
             const url = window.TEMPLATE_URLS.orderDetail.replace('{order_id}', `${order.id}`);
             const dateFormat = shortDate(`${order.created_at}`);
-
             return /*html*/`
                 <a class="text-center row-order bold-main underline-anim" 
                     href="${url}"># ${order.id}

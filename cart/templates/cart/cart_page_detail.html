@@ -1,20 +1,16 @@
-
-
 {% extends "home/base.html" %}
-
 {% load static compress %}
 
 
 {% block extra_head %}
-
     <title>Carrito | {{store.name}}</title>
-    <link href="{% static 'cart/css/cart_page_detail.css' %}" rel="stylesheet">
-
+    {% compress css %}
+        <link href="{% static 'cart/css/cart_page_detail.css' %}" rel="stylesheet">
+    {% endcompress %}
 {% endblock extra_head %}
     
 
 {% block main_content %}
-
 {# Primera fila #}
 <div class="d-flex mb-2 gap-1">
     {# top buttons #}
@@ -26,7 +22,6 @@
         <span class="font-md"> Mi Carrito </span>
     </button>
 </div>
-
 
 <div class="d-grid cont-cart-detail gap-2" id="cont-main-cart-detail">
     {# Primera Columna #}
@@ -84,10 +79,9 @@
         };
         window.PRODUCTS_FAVORITES = JSON.parse('{{ favorite_product_ids|default:"[]"|escapejs }}');
     </script>
-
-    <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
-
-    <script src="{% static 'cart/js/components/table_cart_detail.js' %}"></script>
-    <script src="{% static 'cart/js/cart_page_detail.js' %}"></script>
-
+    {% compress js %}
+        <script src="{% static 'favorites/js/add_favorites.js' %}"></script>
+        <script src="{% static 'cart/js/components/table_cart_detail.js' %}"></script>
+        <script src="{% static 'cart/js/cart_page_detail.js' %}"></script>
+    {% endcompress %}
 {% endblock extra_scripts %}

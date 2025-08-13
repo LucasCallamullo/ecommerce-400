@@ -19,8 +19,33 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # update_fix_main_image()
         # load_store_init()
+        # update_new_store_image_model()
+        update_some_orders()
         
-        update_new_store_image_model()
+        
+def update_some_orders():
+    from orders.models import Order, ItemOrder
+    from decimal import Decimal
+    
+    orders = Order.objects.all()
+    discount_coupon = Decimal("2.00")
+    
+    for order in orders:
+        
+        if order.total == 0:
+            # Actualizar la orden con estos campos
+            price_shipment = order.shipment.method.price
+            order.shipment_cost = price_shipment
+            order.discount_coupon = discount_coupon
+            
+            subtotal = 0
+            items = ItemOrder.objects.filter(order=order)
+            for item in items:
+                subtotal += (item.quantity * item.final_price)
+                
+            order.total = subtotal + price_shipment - discount_coupon
+            order.save(update_fields=["shipment_cost", "discount_coupon", "total"])
+            print(f'actualizado: {order.id}')
         
         
 def update_new_store_image_model():

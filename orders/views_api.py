@@ -79,22 +79,17 @@ class OrderAPI(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         # Confirmar pedido y hacer reserva de stock:
-        user = request.user
-        cart = Cart.objects.filter(user=user).first()
-        cart_items = (
-            CartItem.objects
-            .filter(cart=cart)
-            .select_related('product')
-            .only('id', 'quantity', 'product__id')
-        )
-   
-        products, response = utils.confirm_stock_availability(cart_items)
-        if not products:
+        cart = request.cart
+        dict_p_q, response = utils.confirm_stock_availability(cart)
+        if not dict_p_q:
             return response
         
         # recuperamos el json de Datos ya validados
+        user = request.user
         order_data = serializer.validated_data
-        order, response = utils.create_order_pending(order_data, user, products, cart_items)
+        order, response = utils.create_order_pending(
+            order_data, user, dict_p_q['products'], dict_p_q['quantities']
+        )
         if not order:
             return response
             
