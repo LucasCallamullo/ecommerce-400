@@ -105,7 +105,6 @@
 
     .cont-nav__link {
         height: 40px;
-        padding: 2px 8px;
         background-color: var(--main-light-color);
     }
 

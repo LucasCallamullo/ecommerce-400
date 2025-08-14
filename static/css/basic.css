@@ -281,7 +281,7 @@ a {
 button i { pointer-events: none; }
 b, strong { font-weight: bolder; }
 
-input, select {
+input, select, textarea {
     font-size: var(--font-small);
     font-weight: bolder;
 

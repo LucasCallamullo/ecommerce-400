@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     'profiles',
     'favorites',
     
+    'contact',
     'compressor', 
 ]
  

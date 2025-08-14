@@ -1,18 +1,18 @@
 
 
 /* Footer */
-footer .ri-tiktok-fill {
+.icons-footer .ri-tiktok-fill {
     color: var(--text-primary);
 }
 
-footer .ri-facebook-box-fill {
+.icons-footer .ri-facebook-box-fill {
     color: #1877F2;
 }
 
-footer .ri-instagram-line {
+.icons-footer .ri-instagram-line {
     color: #E4405F;
 }
 
-footer .ri-google-fill {
+.icons-footer .ri-google-fill {
     color: #DB4437;
 }

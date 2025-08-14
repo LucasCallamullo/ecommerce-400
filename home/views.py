@@ -71,10 +71,6 @@ def help_mp(request):
     return render(request, 'home/help_mp.html', {'users': users})
 
 
-def contact_info(request):
-    return render(request, 'home/contact.html', {'hola': 'hola'})
-
-
 
 
 

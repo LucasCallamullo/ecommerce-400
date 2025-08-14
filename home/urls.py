@@ -9,7 +9,6 @@ from home import views
 urlpatterns = [
     path('', views.home, name='Home'),
     path('help_mp/', views.help_mp, name='help_mp'),
-    path('contacto/', views.contact_info, name='contact'),
     
 ] # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

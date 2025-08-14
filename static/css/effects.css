@@ -128,7 +128,7 @@
         content: "";
         position: absolute;
         left: 0;
-        bottom: -6px;
+        bottom: -4px;
         width: 0;
         height: 2px;
         background-color: var(--white-color);    /* this is only you have to change */

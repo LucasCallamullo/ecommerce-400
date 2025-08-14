@@ -33,6 +33,7 @@ urlpatterns = [
     
     path('', include("orders.urls")),
     path('', include("payments.urls")),
+    path('', include("contact.urls")),
     
     # DRF API
     path('', include("users.urls_api")),
