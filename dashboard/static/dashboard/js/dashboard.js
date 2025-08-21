@@ -192,25 +192,25 @@ function eventsOnDashboard(sectionId, dashSection, data=null) {
 
                 /* Special evento from sections/products/pagination.js */
                 historyPopState();
+            
+                // Configure filter button interactions
+                formSelectFiltersProducts(dashSection);
+
+                // Initialize modal for adding products
+                formModalNewProduct(dashSection, overlay);
+
+                // Assign delegation event to product rows 
+                rowsModalUpdateProduct(dashSection, overlay);
+
+                // Handle filter reset actions
+                formResetFilters(dashSection);
+
+                // Set up sorting controls
+                formArrowsSortedProducts(dashSection);
+
+                // Implement real-time search functionality
+                formInputSearchRealTime(dashSection);
             }
-
-            // Configure filter button interactions
-            formSelectFiltersProducts(dashSection);
-
-            // Initialize modal for adding products
-            formModalNewProduct(dashSection, overlay);
-
-            // Assign delegation event to product rows 
-            rowsModalUpdateProduct(dashSection, overlay);
-
-            // Handle filter reset actions
-            formResetFilters(dashSection);
-
-            // Set up sorting controls
-            formArrowsSortedProducts(dashSection);
-
-            // Implement real-time search functionality
-            formInputSearchRealTime(dashSection);
             
             /* Dynamic table events */
             updateSpansFiltersTable(dashSection, data);

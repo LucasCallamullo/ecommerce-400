@@ -62,7 +62,6 @@ def product_list(request, cat_slug=None, subcat_slug=None, brand_slug=None):
     )
     
     # get unique brands on page for some utils select forms 
-    
     # maybe in the future apply this for performance
     # brand_ids_in_page = {p['brand_id'] for p in products_page}
     brands = filters.get_serializer_brands(values=('id', 'name', 'slug', 'image_url'))

@@ -215,18 +215,24 @@
 
 <div class="d-flex-col border-hover border-primary bg-primary px-3 py-3 mt-5 mb-5 gap-1">
 
-    <div>
-        {{ product.description|safe }}
-    </div>
+    {% if product.description %}
+        <template id="product-description">
+            {{ product.description }}
+        </template>
 
-    <p><strong>ESPECIFICACIONES TÉCNICAS</strong></p>
-    <p> ● Peso: 300 g</p>
-    <p> ● Dimensiones: 150 x 80 x 30 mm</p>
-    <p> • Material: Plástico ABS de alta resistencia</p>
-    <p> • Compatibilidad: Windows, macOS, Linux</p>
-    <p> • Conectividad: USB-C, Bluetooth 5.0</p>
-    <p> • Batería: Duración de hasta 20 horas</p>
-    <p> • Garantía: 2 años</p>
+        <div class="product-description">
+            {# mediante js trasnfromamos el description de texto plano que llega #}
+        </div>
+    {% else %}
+        <p><strong>ESPECIFICACIONES TÉCNICAS</strong></p>
+        <p> ● Peso: 300 g</p>
+        <p> ● Dimensiones: 150 x 80 x 30 mm</p>
+        <p> • Material: Plástico ABS de alta resistencia</p>
+        <p> • Compatibilidad: Windows, macOS, Linux</p>
+        <p> • Conectividad: USB-C, Bluetooth 5.0</p>
+        <p> • Batería: Duración de hasta 20 horas</p>
+        <p> • Garantía: 2 años</p>
+    {% endif %}
 </div>
 
 

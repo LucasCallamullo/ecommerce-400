@@ -12,6 +12,7 @@ from django.db.models import Prefetch, F
 from home.models import Store, StoreImage
 from products.serializers import ProductListSerializer
 
+
 @admin_or_superuser_required
 def dash_filter_products(request):
     """ this view return a queryset products filters or sorteds by some field """

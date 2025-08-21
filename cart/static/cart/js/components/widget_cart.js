@@ -99,8 +99,7 @@ function renderWidgetCart() {
             <form class="d-grid cont-cart__card mb-3" data-index="${prod.id}" data-stock="${prod.stock}">
 
                 <a class="cont-img-100-off" href="${url}">
-                    <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}"
-                    loading="lazy" width="100" height="100">
+                    <img class="img-scale-down" src="${imgSrc}" alt="${prod.name}" loading="lazy">
                 </a>
 
                 <a class="font-sm main-ref bolder text-truncate-multiline mt-1" href="${url}">

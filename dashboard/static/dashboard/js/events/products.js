@@ -46,9 +46,6 @@ function formModalNewProduct(dashSection, overlay) {
 
             // c) Set up dynamic subcategory logic (e.g., dependent dropdowns)
             subcategorySelectEvents(form, true);
-            
-            // d) Load and set the product description dynamically into the modal
-            descriptionModalEvents(form);
 
             // e) set action on create to send the final form
             form.dataset.action = 'create';
@@ -124,9 +121,6 @@ function rowsModalUpdateProduct(dashSection, overlay) {
 
             // d) Set up dynamic subcategory logic (e.g., dependent dropdowns)
             subcategorySelectEvents(form, true);
-
-            // e) Load and set the product description dynamically into the modal
-            descriptionModalEvents(form, prodId, tableProducts);
 
             // e) set action on create to send the final form
             form.dataset.action = 'update';

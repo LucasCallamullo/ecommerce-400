@@ -99,37 +99,6 @@ async function deleteProductImages(product_id, imagesToDelete) {
  * @returns {Object|null} - Returns the validated data as an object, or null if validation fails.
  */
 function validFormProduct(form, action) {
-
-
-    // 3. Sanitizes the product description to prevent XSS (cross-site scripting) attacks.
-    function validDescription() {
-        const textarea = form.querySelector('.modal-description');
-
-        // custom atrr in descriptionModalEvents()    -    modal_form.js 
-        const wasEdited = textarea.dataset.wasEdited === "true";
-
-        if (!wasEdited || textarea.value.trim() === '') {
-            console.log('desc no editado')
-            return '';
-        }
-
-        // Sanitización como antes
-        const description = form.querySelector('.description-preview');
-        const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'strong', 'em'];
-        const temp = document.createElement('div');
-        temp.innerHTML = description.innerHTML;
-
-        // Eliminar todos los elementos no permitidos
-        temp.querySelectorAll('*').forEach(el => {
-            if (!allowedTags.includes(el.tagName.toLowerCase())) {
-                el.replaceWith(el.textContent);
-            }
-        });
-
-        return temp.innerHTML.trim();
-    }
-
-
     // Predefined messages for different validation failures
     const failedMessages = {
         'name': 'El nombre es muy corto.',
@@ -150,7 +119,7 @@ function validFormProduct(form, action) {
         stock: (v) => validNonNegativeInteger(v, failedMessages.stock),
         discount: (v) => validNonNegativeInteger(v, failedMessages.discount),
         available: (v) => validBoolCheckBox(v),
-        description: () => validDescription(),
+        // description: () => validDescription(), // validator is en modal_form/get_changes(form)
         category: (v) => validNonNegativeInteger(v, failedMessages.category),
         subcategory: (v) => validNonNegativeInteger(v, failedMessages.subcategory),
         brand: (v) => validNonNegativeInteger(v, failedMessages.brand),
@@ -165,6 +134,7 @@ function validFormProduct(form, action) {
 
     switch (action) {
         case 'update': {
+ 
             // Detect which fields have changed before sending an update
             const changes = getChangedFields(form);
             if (Object.keys(changes).length === 0) {
@@ -174,9 +144,12 @@ function validFormProduct(form, action) {
 
             // Validate only changed fields
             for (const [key, value] of Object.entries(changes)) {
-                if (!fieldsValidators[key]) continue;
-                if (key === 'description') continue;
+                if (key === 'description') {
+                    dataSend[key] = value;
+                    continue;
+                }
 
+                if (!fieldsValidators[key]) continue;
                 dataSend[key] = fieldsValidators[key](value);
 
                 // If validation fails, stop and return null
@@ -186,10 +159,6 @@ function validFormProduct(form, action) {
                     dataSend['category'] = fieldsValidators['category'](formData.get('category'));
                 }
             }
-
-            // Description se maneja por separado
-            const desc = fieldsValidators['description']();
-            if (desc !== '') dataSend['description'] = desc;
 
             break;
         }

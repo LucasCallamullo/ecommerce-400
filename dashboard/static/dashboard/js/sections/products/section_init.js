@@ -7,16 +7,6 @@ function renderProductsModalForm() {
     <!-- Form to ADD OR EDIT product -->
     <form class="modal form-modal" id="form-modal-product">
 
-        <template id="template-add-product">
-            <p><b>Especificaciones técnicas:</b></p>
-            <p>● Listado 1</p>
-            <p>● Listado 2 <b>(*)</b></p>
-            <p>• Listado 3</p>
-            <p>&nbsp;</p>
-            <p><b>(*)</b> Auxiliar Listado 2</p>
-            <p>Comentario</p>
-        </template>
-
         <div class="d-flex-col gap-2">
             <!-- TITULO FORMULARIO -->
             <div class="cont-space-between">
@@ -156,13 +146,20 @@ function renderProductsModalForm() {
                     <div class="h-170 border-main p-1 font-md fw-normal scroll-y description-preview "></div>
                 </div>
 
-                <b class="grid-col-all">(*) Simbolos:</b>
-                <div class="grid-col-all cont-space-between p-2 border-hover"> 
-                    <span>** Negrita **</span>
-                    <span>-- Linea en blanco</span>
-                    <span>* listado</span>
-                    <span>*- listado</span>
-                    <span>(*) auxiliar</span>
+                <div class="grid-col-all cont-space-between p-2 border-hover description-btns"> 
+                    <b>(*) Simbolos:</b>
+                    <button class="btn btn-28 w-min text-truncate px-2 btn-primary border-secondary btn-markdown" 
+                    type="button" data-value="** texto **">
+                    ** Negrita **</button>
+                    <button class="btn btn-28 w-min text-truncate px-2 btn-primary border-secondary btn-markdown" 
+                    type="button" data-value="--">
+                    -- Linea en blanco</button>
+                    <button class="btn btn-28 w-min text-truncate px-2 btn-primary border-secondary btn-markdown" 
+                    type="button" data-value="* Listado">
+                    * listado</button>
+                    <button class="btn btn-28 w-min text-truncate px-2 btn-primary border-secondary btn-markdown" 
+                    type="button" data-value="(*)">
+                    (*) auxiliar</button>
                 </div>
 
                 <!-- FILA 5: Images previews -->

@@ -219,14 +219,14 @@ class ProductImagesView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
     
     def get(self, request, product_id):
+        # some endpoints need all info from images
+        extra_data = request.query_params.get('all') == 'true'
         
-        
-        product, error = self._get_product(product_id)
+        product, error = self._get_product(product_id, extra_data=extra_data)
         if error:
             return error
         
         # some endpoints need all info from images
-        extra_data = request.query_params.get('all') == 'true'
         if extra_data:
             images = ( 
                 ProductImage.objects.filter(product=product)
@@ -239,14 +239,16 @@ class ProductImagesView(APIView):
             )
             
         response = {
-            'product_id': product_id,
             'images': images,
             'count': len(images)
         }
+        
+        if extra_data:
+            response['product'] = {'id': product.id, 'description': product.description}
 
         return Response(response, status=status.HTTP_200_OK)
         
-    def _get_product(self, product_id):
+    def _get_product(self, product_id, extra_data=False):
         # 1. Validar datos de entrada
         product_id = utils.valid_id_or_None(product_id) 
         if not product_id:
@@ -254,7 +256,8 @@ class ProductImagesView(APIView):
         
         # 2. Verificación de existencia (consulta a DB sólo si el ID es válido)
         try:
-            product = (Product.objects.only('id', 'main_image').get(id=product_id))
+            values = ('id', 'main_image') if not extra_data else ('id', 'description')
+            product = (Product.objects.only(*values).get(id=product_id))
             return product, None
         except Product.DoesNotExist:
             return None, Response({"success": False, "detail": "No existe el producto."}, status=status.HTTP_404_NOT_FOUND)

@@ -164,27 +164,11 @@ def parse_number(value, field_name, allow_zero=True):
     return value
 
 
-import bleach
-def sanitize_html(value, allowed_tags=None):
-    """
-    Limpia contenido HTML, permitiendo solo las etiquetas especificadas.
-
-    Args:
-        value (str): HTML de entrada.
-        allowed_tags (list): Lista de etiquetas HTML permitidas. Por defecto, solo 'p' y 'strong'.
-
-    Returns:
-        str: HTML limpio.
-    """
-    if allowed_tags is None:
-        allowed_tags = ['p', 'strong']
-
-    return bleach.clean(
-        value,
-        tags=allowed_tags,
-        attributes={},
-        strip=True
-    )
+import html
+def sanitize_text(value: str) -> str:
+    if not isinstance(value, str):
+        return ""
+    return html.escape(value.strip())
     
 
 import unicodedata

@@ -64,7 +64,7 @@
     height: 150px;
     max-height: 150px;
     grid-template-columns: 1.1fr 1.9fr 32px;
-    grid-template-rows: minmax(min-content, 70px) 32px auto;
+    grid-template-rows: 70px 32px auto;
     column-gap: 8px;
     row-gap: 4px;
     grid-template-areas: 
@@ -72,7 +72,7 @@
         'image quantity quantity'
         'image counter counter';
 
-    border: 1px solid #000;
+    border: 1px solid var(--text-secondary);
 }
 
 .cont-cart__card .cont-img-100-off { grid-area: image; }

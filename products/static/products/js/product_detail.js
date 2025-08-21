@@ -289,6 +289,48 @@ function productImagesChange() {
 };
 
 
+function descriptionProductEvent() {
+    const template = document.getElementById('product-description');
+    const contDesc = document.querySelector('.product-description');
+    if (!template || !contDesc) return;
+
+    /**
+    * Converts textarea content to formatted HTML preview
+    * @param {HTMLTextAreaElement} textarea - Input element with raw text
+    * @param {HTMLElement} preview - Container for rendered preview
+    */
+    function updateDescription(descriptionText, preview) {
+        const lines = descriptionText.split('\n').map(line => line.trim()).filter(line => line);
+        const htmlLines = lines.map(line => {
+            // 1. Highlight any occurrences of (**)
+            line = line.replace(/\(\*\)/g, /*html*/`<b>(*)</b>`); // (*) notation
+            line = line.replace(/\*\*(.+?)\*\*/g, /*html*/`<b class="font-lg">$1</b>`); // bold text
+
+            // 2. Detect bullets at the start of the line
+            if (/^\*\s+/.test(line)) {
+                line = line.replace(/^\*\s+/, /*html*/`<i class="ri-git-commit-fill font-md"></i>`);    // '● '
+            } else if (/^\*-\s+/.test(line)) {
+                line = line.replace(/^\*-\s+/, '• ');
+            }
+
+            // 3. Special case for empty line placeholder
+            if (line === '--') {
+                return /*html*/`<br>`;
+            }
+
+            // 4. Return the line wrapped in a <p> tag
+            return /*html*/`<p>${line}</p>`;
+        });
+
+        const finalHtml = htmlLines.join('');
+        preview.innerHTML = finalHtml;
+    }
+
+    const text = template.innerHTML
+    updateDescription(text, contDesc);
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector('.product-detail-form');
     eventCounters(form);
@@ -296,6 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     eventBtnWspProdDetail();
     productImagesChange();
+    descriptionProductEvent();
 });
 
 /* LEGACY

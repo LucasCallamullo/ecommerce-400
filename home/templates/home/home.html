@@ -93,6 +93,8 @@
         };
 
         window.productList = JSON.parse('{{ products_json|escapejs }}');
+        window.BRAND_LIST = JSON.parse('{{ brands_json|escapejs }}');
+        window.CATEGORIES_LIST = JSON.parse('{{ categories|escapejs }}');
     </script>
 
     {% compress js %}

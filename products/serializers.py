@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.utils.text import slugify
 
 from products import utils
-from products.models import Product, PCategory, PSubcategory, PBrand, ProductImage
+from products.models import Product, PCategory, PSubcategory, PBrand
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -166,7 +166,7 @@ class ProductSerializer(serializers.ModelSerializer):
         """
         Sanitiza el contenido HTML recibido en el campo 'description'.
         """
-        return utils.sanitize_html(value)
+        return utils.sanitize_text(value)
             
     def update(self, instance, validated_data):
         """ """

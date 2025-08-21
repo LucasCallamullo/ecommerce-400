@@ -166,12 +166,14 @@ async function updateModalFormInputs({
 
     // Esperar fetch solo si es necesario y completar imagenes
     const contImages = form.querySelector('.cont-modal-images');
+    let description = null;
     if (fetchPromise && contImages) {
         const data = await fetchPromise;
 
         // Obtener las imágenes del endpoint, ordenadas de True a False
         const images = data.images || [];
-        const productAlt = `${objectName} ${data.product_id}`
+        const productAlt = `${objectName} ${data.product.id}`
+        description = data.product.description
 
         // set value image_id in initial values form to compare after
         if (images.length > 0) {
@@ -205,13 +207,159 @@ async function updateModalFormInputs({
         contImages.innerHTML = imagesHtml;
     }
 
-
+    // e) Load and set the product description dynamically into the modal
+    if (objectName === 'product') {
+        const descriptionText = descriptionModalEvents(form, description);
+        initialValues["description"] = descriptionText;
+    }
+    
     // Asociamos el diccionario al form
     form._initialValues = initialValues;
     /* const entriess = Object.entries(initialValues);
     for (const [key, value] of entriess) {
         console.log(key, value);
     } */
+}
+
+
+/**
+ * Manages description modal events with custom markdown processing:
+ * 1. Converts HTML to custom markdown syntax
+ * 2. Provides real-time preview with custom formatting
+ * 3. Handles bidirectional conversion between HTML and custom markdown
+ * 
+ * @param {HTMLElement} form - Container element holding modal components
+ * @param {string|null} productId - ID of the product being edited
+ */
+function getTemplateTextFromPreview(preview) {
+    return Array.from(preview.childNodes).map(node => {
+        if (node.tagName === 'P') {
+            let text = node.textContent;
+
+            // Reconstruir (*) si hay <b>(*)</b>
+            if (node.innerHTML.includes('<b>(*)</b>')) {
+                text = text.replace('(*)', '(*)');
+            }
+
+            // Reconstruir bold ** ** si hay <b class="font-lg">...</b>
+            if (node.innerHTML.includes('font-lg')) {
+                text = text.replace(/^(.*)$/, '**$1**');
+            }
+
+            // Reconstruir bullets ● (icono) al inicio
+            if (node.querySelector('i.ri-git-commit-fill')) {
+                text = '* ' + text; // ● → * 
+            }
+
+            // Reconstruir bullets • al inicio
+            if (text.startsWith('● ')) text = '* ' + text.slice(2);
+            if (text.startsWith('• ')) text = '*- ' + text.slice(2);
+
+            return text;
+        } else if (node.tagName === 'BR') {
+            return '--';
+        }
+        return node.textContent || '';
+    }).join('\n');
+}
+
+
+function descriptionModalEvents(form, description) {
+    
+    // 1. DOM element initialization
+    const textarea = form.querySelector('.modal-description');
+    const preview = form.querySelector('.description-preview');
+    if (!textarea || !preview) return;
+
+    // 2. Initial content conversion
+    const descriptionText = (description) ? `${description}` : `
+        **Especificaciones técnicas:**
+        * Listado 1
+        * Listado 2 (*)
+        --
+        (*) Auxiliar Listado 2
+        Comentario
+    `
+
+    /**
+     * Converts textarea content to formatted HTML preview
+     * @param {HTMLTextAreaElement} textarea - Input element with raw text
+     * @param {HTMLElement} preview - Container for rendered preview
+     */
+    function updatePreview(descriptionText, preview) {
+        const lines = descriptionText.split('\n').map(line => line.trim()).filter(line => line);
+        const htmlLines = lines.map(line => {
+            // 1. Highlight any occurrences of (**)
+            line = line.replace(/\(\*\)/g, /*html*/`<b>(*)</b>`); // (*) notation
+            line = line.replace(/\*\*(.+?)\*\*/g, /*html*/`<b class="font-lg">$1</b>`); // bold text
+
+            // 2. Detect bullets at the start of the line
+            if (/^\*\s+/.test(line)) {
+                line = line.replace(/^\*\s+/, /*html*/`<i class="ri-git-commit-fill font-md"></i>`);    // '● '
+            } else if (/^\*-\s+/.test(line)) {
+                line = line.replace(/^\*-\s+/, '• ');
+            }
+
+            // 3. Special case for empty line placeholder
+            if (line === '--') {
+                return /*html*/`<br>`;
+            }
+
+            // 4. Return the line wrapped in a <p> tag
+            return /*html*/`<p>${line}</p>`;
+        });
+
+        const finalHtml = htmlLines.join('');
+        preview.innerHTML = finalHtml;
+    }
+
+    // insert final texts
+    updatePreview(descriptionText, preview);
+    textarea.value = descriptionText
+        .trim() // quita espacios al inicio y final del bloque
+        .split('\n') // separa en líneas
+        .map(line => line.trimStart()) // elimina la indentación de cada línea
+        .join('\n'); // vuelve a unir en un solo string;
+
+    // 3. Real-time preview with debounce
+    let changeCount = 0;
+    const changeThreshold = 5;  // Cuántos inputs son suficientes para decir "hubo edición"
+    textarea.dataset.wasEdited = "false";
+
+    let timeout;
+    if (!textarea._hasEvent) {
+        textarea.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                updatePreview(textarea.value, preview);
+                changeCount++;
+
+                // Marcamos que hubo una edición si se superó el umbral
+                if (changeCount >= changeThreshold) {
+                    textarea.dataset.wasEdited = "true";
+                }
+            }, 200);
+        });
+
+        textarea._hasEvent = true;
+    }
+
+    const contBtns = form.querySelector('.description-btns');
+    if (contBtns && !contBtns._hasEvent) {
+        contBtns.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-markdown');
+            if (!btn) return;
+            
+            const text = btn.dataset.value;
+            const textValue = textarea.value + `\n${text}`;
+            textarea.value = textValue
+            updatePreview(textValue, preview);
+        })
+        contBtns._hasEvent = true;
+    }
+
+
+    return textarea.value;    // return to set initial values form
 }
 
 
@@ -236,103 +384,8 @@ function updateModalFormInputs2222(btn, form) {
         // Buscar input con id="modal-[key]"
         const input = form.querySelector(`.modal-${key}`) || null;
 
-        if (input && input.tagName == "INPUT" ) {
-            if (input.type === "checkbox") {
-                input.checked = value === "True";
-                initialValues[key] = input.checked;
-            } else {
-                input.value = value;
-                initialValues[key] = value;
-            }
-            return;    // its like continue
-            
-        // Destruye el anterior choice.js y lo recrea por cada vez que se abre el modal
-        } else if (input && input.tagName == "SELECT") {
-            
-            input.value = value;    // asigna su value al elemento
-            initSelectChoices(input);
-
-            if (key.startsWith("subcategory-")) {
-                // const subcatInput = form.querySelector('[name="subcategory"]');
-                // subcatInput.value = value
-                initialValues['subcategory'] = value;
-                
-            } else {
-                initialValues[key] = value;
-            }
-        }
-
-        // this is for radios type input
-        else if (["main_image", "available"].includes(key)) {
-            let radios = form.querySelectorAll(`input[name="${key}"]`);
-            for (const radio of radios) {
-                if (radio.value === value) {
-                    radio.checked = true;
-                    initialValues[key] = value;
-                    break;
-                }
-            }
-        }
-
-        /* generic text on modal to changes */
-        else if (["span", "title", "oldName"].includes(key)) {
-            let contsText = form.querySelectorAll(`.modal-${key}`)
-            contsText.forEach(i => i.textContent = value)
-        }
-
-        /* generic case for img on product modal */
-        else if (key.startsWith("image-")) {
-            const contImages = form.querySelector('.cont-modal-images');
-            if (!contImages) return;
-
-            // Solo limpiar al inicio (ej. si aún no lo hiciste)
-            if (!flagContImages) {
-                contImages.innerHTML = '';
-                flagContImages = true;  // Flag para no limpiar de nuevo
-            }
-
-            // obtenemos atributos desde la key
-            const [, isMain, imageId] = key.split("-");
-
-            // set value in initial values form to compare after
-            if (isMain === "True") initialValues["main_image"] = imageId;
-        
-            const imageHTML = /*html*/`
-                <div class="d-flex-col w-100 gap-1">
-                    <div class="cont-100 cont-check-main h-220 ${isMain === "True" ? 'border-main' : 'border-secondary'}">
-                        <img 
-                            src="${value}" 
-                            alt="Product image" 
-                            data-index="${imageId}" 
-                            data-main="${isMain}"
-                            class="img-scale-down"
-                        />
-                    </div>
-                    <div class="d-flex-col gap-1">
-                        <label class="d-flex gap-1">
-                            <input 
-                                type="radio"
-                                class="check-main"
-                                name="main_image"
-                                value="${imageId}" 
-                                ${isMain === "True" ? "checked" : ""}
-                            >
-                            <span>Principal</span>
-                        </label>
-
-                        <label class="d-flex gap-1">
-                            <input type="checkbox" name="delete_images" value="${imageId}">
-                            <span>Eliminar</span>
-                        </label>
-                    </div>
-                </div>
-            `;
-        
-            contImages.insertAdjacentHTML('beforeend', imageHTML);
-        }
-
         // optional for headers and banners
-        else if (key.startsWith("header-")) { 
+        if (key.startsWith("header-")) { 
             const contHeader = form.querySelector('.header-modal-images');
             if (!contHeader) return;
 
@@ -372,7 +425,18 @@ function getChangedFields(form) {
         // Si no lo encuentra por clase, intentamos por name (para radios)
         if (!input) input = form.querySelector(`[name="${key}"]`);
         if (!input) continue;
+        
+        // special logic for input description
+        if (key == 'description') {
+            const textarea = form.querySelector('.modal-description');
+            const preview = form.querySelector('.description-preview');
+            if (!textarea || !preview) continue;
 
+            // custom atrr in descriptionModalEvents()    -    modal_form.js 
+            const wasEdited = textarea.dataset.wasEdited === "true";
+            // if (!wasEdited || textarea.value.trim() === '') continue;
+            currentValue = getTemplateTextFromPreview(preview);
+        }
     
         if (input.type === "checkbox") {
             currentValue = input.checked;
@@ -385,11 +449,10 @@ function getChangedFields(form) {
             currentValue = input.value;
         }
 
-        console.log(`Value Now ${key}: `, currentValue, 'and Value Old: ', oldValue)
-
         // Si hay diferencia, lo guardamos directamente como valor nuevo
         if (currentValue != oldValue) {
             changes[key] = currentValue;
+            console.log(`Value Now ${key}: `, currentValue, 'and Value Old: ', oldValue)
         }
     }
 
@@ -585,114 +648,6 @@ function calculateDiscountSubtotal(form) {
     });
 
     calculateSubtotal();
-}
-
-
-/**
- * Manages description modal events with custom markdown processing:
- * 1. Converts HTML to custom markdown syntax
- * 2. Provides real-time preview with custom formatting
- * 3. Handles bidirectional conversion between HTML and custom markdown
- * 
- * @param {HTMLElement} form - Container element holding modal components
- * @param {string|null} productId - ID of the product being edited
- */
-function descriptionModalEvents(form, productId = null, tableSection = null) {
-    /**
-     * Converts textarea content to formatted HTML preview
-     * @param {HTMLTextAreaElement} textarea - Input element with raw text
-     * @param {HTMLElement} preview - Container for rendered preview
-     */
-    function updatePreview(textarea, preview) {
-        const text = textarea.value;
-        const lines = text.split('\n');
-        let htmlOutput = '';
-
-        lines.forEach(line => {
-            let processedLine = line
-                .replace(/\(\*\)/g, '<strong>(*)</strong>')  // Highlight (*) notation
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold text
-                .replace(/^\*-\s?(.*)/, '• $1')  // Small bullet point
-                .replace(/^\*\s?(.*)/, '● $1')   // Normal bullet point
-                .replace(/^--$/, '&nbsp;');  // Empty line placeholder
-
-            htmlOutput += `<p>${processedLine}</p>`;
-        });
-
-        preview.innerHTML = htmlOutput;
-    }
-
-    /**
-     * Converts HTML back to custom markdown syntax
-     * @param {string} html - HTML string to convert
-     * @returns {string} Custom markdown formatted text
-     */
-    function htmlToCustomMarkdown(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const paragraphs = doc.querySelectorAll('p');
-        let markdownOutput = '';
-
-        paragraphs.forEach(p => {
-            let line = p.innerHTML;
-
-            // Processing order matters for nested formats
-            line = line.replace(/<strong>\(\*\)<\/strong>/g, '(*)')
-                       .replace(/<strong>(.*?)<\/strong>/g, '**$1**');
-
-            // Handle bullet points
-            if (line.startsWith('● ')) {
-                line = '* ' + line.slice(2).trim();
-            } else if (line.startsWith('• ')) {
-                line = '*- ' + line.slice(2).trim();
-            }
-
-            // Handle empty lines
-            if (line.includes('&nbsp;')) {
-                line = '--';
-            }
-
-            markdownOutput += line + '\n';
-        });
-
-        return markdownOutput.trim();
-    }
-
-    // 1. DOM element initialization
-    const textarea = form.querySelector('.modal-description');
-    const preview = form.querySelector('.description-preview');
-
-    // 2. Initial content conversion
-    let htmlString;
-    const template = (productId && tableSection) 
-        ? tableSection.querySelector(`#template-${productId}`) 
-        : null;
-
-    htmlString = template 
-        ? template.innerHTML 
-        : form.querySelector('#template-add-product').innerHTML;
-    
-    textarea.value = htmlToCustomMarkdown(htmlString);
-    updatePreview(textarea, preview);
-
-    // 3. Real-time preview with debounce
-    let changeCount = 0;
-    const changeThreshold = 5;  // Cuántos inputs son suficientes para decir "hubo edición"
-    textarea.dataset.wasEdited = "false";
-
-    let timeout;
-    textarea.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            updatePreview(textarea, preview);
-            changeCount++;
-
-            // Marcamos que hubo una edición si se superó el umbral
-            if (changeCount >= changeThreshold) {
-                textarea.dataset.wasEdited = "true";
-            }
-        }, 200);
-    });
 }
 
 
