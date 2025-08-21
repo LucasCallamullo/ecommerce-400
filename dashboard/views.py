@@ -5,46 +5,74 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 
 from products import filters
+
 from users.permissions import admin_or_superuser_required
-from django.db.models import Prefetch
+from django.db.models import Prefetch, F
+
+from home.models import Store, StoreImage
+from products.serializers import ProductListSerializer
 
 @admin_or_superuser_required
 def dash_filter_products(request):
     """ this view return a queryset products filters or sorteds by some field """
+    # this get a context['products', 'category', 'subcategory', 'query', 'available']
     context = filters.get_context_filtered_products(request)
     
-    # sort by is ('name', 'category__name', 'available', 'updated_at', 'stock', 'price') OR None
-    sort_by = request.GET.get('sort_by')
-    sorted_flag = request.GET.get('sorted')
-    
-    # this get a context['products', 'category', 'subcategory', 'query', 'available']
-    context = filters.get_context_dashboard_products(context, sort_by=sort_by, sorted_flag=sorted_flag)
-    
-    context['brands'] = filters.get_brands(use='panel_admin')
-    context['categories'] = filters.get_categories_n_subcategories(use='panel_admin')
-    
-    html = render_to_string("dashboard/table_products.html", context)
-    return JsonResponse({"html": html})
+    # optimized consult for products
+    products = (
+        context['products'].values(*filters.VALUES_DASHBOARD_PRODUCTS)
+        .order_by('name', 'id').annotate(
+            category_id=F("category__id"),
+            subcategory_id=F("subcategory__id"),
+            brand_id=F("brand__id"),
+        )
+    )
 
+    # Serializar los productos de la página actual    page.object_list
+    page_num = request.GET.get('page')
+    products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=5)
+    context['pagination'] = pagination
+    
+    serializer = ProductListSerializer(products_page, many=True, context={'favorites_ids': None})
+    context['products'] = serializer.data
+    return JsonResponse(context)
+    
 
 @admin_or_superuser_required
 def get_dashboard(request, section_name):
-    from home.models import Store, StoreImage
     
     if section_name == "products":
         # this get a context['products', 'category', 'subcategory', 'query', 'available']
         context = filters.get_context_filtered_products(request)
-        context = filters.get_context_dashboard_products(context)
         
         # this add to the context the keys 'brands', 'categories'
-        context['brands'] = filters.get_brands(use='panel_admin')
-        context['categories'] = filters.get_categories_n_subcategories(use='panel_admin')
-        html = render_to_string("dashboard/dash_products.html", context)
-        return JsonResponse({"html": html})
+        context['brands'] = filters.get_serializer_brands(values=('id', 'name', 'is_default'), exclude_default=False)
+        context['categories'] = filters.get_categories_n_subcategories(
+            from_cache=True, from_dashboard=True,
+            values_cat=('id', 'name', 'is_default'),
+            values_sub=('id', 'name', 'is_default', 'category_id')
+        )
         
+        # optimized consult for products
+        products = (
+            context['products'].values(*filters.VALUES_DASHBOARD_PRODUCTS)
+            .order_by('name', 'id').annotate(
+                category_id=F("category__id"),
+                subcategory_id=F("subcategory__id"),
+                brand_id=F("brand__id"),
+            )
+        )
+
+        # Serializar los productos de la página actual    page.object_list
+        page_num = request.GET.get('page')
+        products_page, pagination = filters.get_paginator(products=products, page_num=page_num, quantity=5)
+        context['pagination'] = pagination
+        
+        serializer = ProductListSerializer(products_page, many=True, context={'favorites_ids': None})
+        context['products'] = serializer.data
+        return JsonResponse(context)
         
     if section_name == 'store':
-        
         # Obtener el store con prefetch optimizado
         store = Store.objects.prefetch_related(
             Prefetch(

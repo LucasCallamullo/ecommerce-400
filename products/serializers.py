@@ -367,27 +367,41 @@ class PBrandSerializer(BaseModelSerializer):
 
 
 
+class CleanNullFieldsSerializer(serializers.Serializer):
+    """
+    Base serializer that optionally removes fields with None, '', or [] values.
+    Controlled by 'clean_nulls' in context (default: True).
+    """
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Check if cleaning is enabled in the context (default True)
+        if not self.context.get('clean_nulls', True):
+            return data
+
+        return {k: v for k, v in data.items() if v not in (None, '', [])}
 
 
-
-
-class BrandListSerializer(serializers.Serializer):
+class BrandListSerializer(CleanNullFieldsSerializer):
     id = serializers.IntegerField()
     slug = serializers.CharField(required=False, allow_null=True)
     name = serializers.CharField(required=False, allow_null=True)
     image_url = serializers.URLField(required=False, allow_null=True)
+    is_default = serializers.BooleanField(required=False)
 
-class CategoryListSerializer(serializers.Serializer):
+class CategoryListSerializer(CleanNullFieldsSerializer):
     id = serializers.IntegerField()
     slug = serializers.CharField(required=False, allow_null=True)
     name = serializers.CharField(required=False, allow_null=True)
     image_url = serializers.URLField(required=False, allow_null=True)
+    is_default = serializers.BooleanField(required=False)
 
-class SubcategoryListSerializer(serializers.Serializer):
+class SubcategoryListSerializer(CleanNullFieldsSerializer):
     id = serializers.IntegerField()
     slug = serializers.CharField(required=False, allow_null=True)
     name = serializers.CharField(required=False, allow_null=True)
     image_url = serializers.URLField(required=False, allow_null=True)
+    is_default = serializers.BooleanField(required=False)
 
 
 class ProductListSerializer(serializers.Serializer):
@@ -402,24 +416,62 @@ class ProductListSerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField(required=False, allow_null=True)
     main_image = serializers.CharField(required=False, allow_null=True)
     
+    # its a bool to identify liked products
     is_favorited = serializers.SerializerMethodField()
-    brand = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
-    subcategory = serializers.SerializerMethodField()
+    
+    # only send ID to prevent big response data
+    brand_id = serializers.IntegerField()
+    category_id = serializers.IntegerField()
+    subcategory_id = serializers.IntegerField()
+    
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # conservar price_list aunque sea null
+        allowed_nulls = {'price_list'}
+        return {k: v for k, v in rep.items() if v is not None or k in allowed_nulls}
+
 
     def get_is_favorited(self, obj):
         favorites_ids = self.context.get('favorites_ids', None)
         if not favorites_ids:
             return False
         return obj['id'] in favorites_ids
-
+    
+    
+    """
     def _get_related_data(self, obj, prefix, default_fields, serializer_class, context_key=None):
-        if not obj.get(f'{prefix}__id') or obj.get(f'{prefix}__is_default'):
+        
+        Extrae y serializa datos relacionados desde un diccionario de `values()`.
+
+        Args:
+            obj (dict): Diccionario con los datos de la instancia y sus relaciones,
+                        por ejemplo proveniente de queryset.values().
+            prefix (str): Prefijo del nombre de la relación, e.g., 'brand', 'category'.
+            default_fields (list[str]): Lista de campos por defecto a incluir.
+            serializer_class (Serializer): Clase de serializer a usar para formatear la salida.
+            context_key (str, optional): Clave opcional para buscar campos en `self.context`.
+
+        Returns:
+            dict | None: Diccionario serializado con los datos de la relación, o None si
+                        no aplica (por ejemplo, si la relación está vacía o es "default").
+        
+
+        # 1- Verificar que exista el id de la relación y que no sea "default"
+        # or obj.get(f'{prefix}__is_default')
+        if not obj.get(f'{prefix}__id'):
             return None
 
+        # 2- Determinar los campos a incluir: usar contexto o defaults
         keys = self.context.get(context_key or f'{prefix}_fields', default_fields)
-        data = {key: obj.get(f'{prefix}__{key}') for key in keys if obj.get(f'{prefix}__{key}') is not None}
 
+        # 3- Extraer valores de obj con el prefijo indicado, solo si no son None
+        data = {
+            key: obj.get(f'{prefix}__{key}')
+            for key in keys
+            if obj.get(f'{prefix}__{key}') is not None
+        }
+        # 4- Serializar y devolver
         serializer = serializer_class(data)
         return serializer.data
 
@@ -449,3 +501,4 @@ class ProductListSerializer(serializers.Serializer):
             serializer_class=SubcategoryListSerializer,
             context_key='subcategory_fields'
         )
+    """

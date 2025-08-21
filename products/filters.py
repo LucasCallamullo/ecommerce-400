@@ -17,21 +17,18 @@ PRODUCT_FIELDS_UPDATE = (
     'brand__id', 'brand__name'
 )
 
-PRODUCT_FIELDS_DETAIL = (
+
+
+
+
+
+# this use in dashboard products section
+VALUES_DASHBOARD_PRODUCTS = (
     'id', 'name', 'price', 'price_list', 'available', 'stock',
     'description', 'discount', 'updated_at', 'main_image',
-    'subcategory__id', 'subcategory__name',
-    'category__id', 'category__name', 
-    'brand__id', 'brand__name'
+    'subcategory__id', 'category__id', 'brand__id'
 )
 
-PRODUCT_CARDS_LIST = (
-    'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
-    'discount', 'updated_at', 'main_image',
-    'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
-    'category__slug', 'category__name', 'category__is_default',
-    'brand__slug', 'brand__name', 'brand__is_default'
-)
 
 # this is use for a product_detail view
 PRODUCT_FIELDS_DETAIL_VIEW = (
@@ -46,9 +43,10 @@ PRODUCT_FIELDS_DETAIL_VIEW = (
 VALUES_CARDS_LIST = (
     'id', 'slug', 'name', 'price', 'price_list', 'available', 'stock',
     'discount', 'updated_at', 'main_image',
-    'subcategory__id', 'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
-    'category__id', 'category__slug', 'category__name', 'category__is_default',
-    'brand__id', 'brand__slug', 'brand__name', 'brand__is_default'
+    'subcategory__id', 'category__id', 'brand__id'
+    # 'subcategory__id', 'subcategory__slug', 'subcategory__name', 'subcategory__is_default',
+    # 'category__id', 'category__slug', 'category__name', 'category__is_default',
+    # 'brand__id', 'brand__slug', 'brand__name', 'brand__is_default'
 )
 
 def get_context_filtered_products(request) -> dict:
@@ -73,8 +71,16 @@ def get_context_filtered_products(request) -> dict:
     """
     def _get_filtered_entity(model, id_value, is_default=False):
         """Función helper interna para obtener entidades filtradas por id."""
-        if not id_value:
+        if id_value is None:
             return None
+        
+        if id_value == 0:
+            return (
+                model.objects.filter(is_default=True)
+                .values('id', 'slug', 'name')
+                .first()
+            )
+        
         return (
             model.objects.filter(id=id_value, is_default=is_default)
             .values('id', 'slug', 'name')
@@ -82,9 +88,9 @@ def get_context_filtered_products(request) -> dict:
         )
     
     # recuperar valores desde el request
-    cat_id = valid_id_or_None(request.GET.get('category')) 
-    subcat_id = valid_id_or_None(request.GET.get('subcategory'))
-    brand_id = valid_id_or_None(request.GET.get('brand'))
+    cat_id = valid_id_or_None(request.GET.get('category'), allow_zero=True) 
+    subcat_id = valid_id_or_None(request.GET.get('subcategory'), allow_zero=True)
+    brand_id = valid_id_or_None(request.GET.get('brand'), allow_zero=True)
     available = request.GET.get('available', '1')
     query = request.GET.get('query', '')
     top_query = request.GET.get('topQuery', '')
@@ -187,17 +193,23 @@ def get_products_filters(filters: dict) -> QuerySet:
     return products
 
 
+from django.core.cache import cache
 def get_categories_n_subcategories(
-    request=None, use: Literal['navbar', 'panel_admin'] = 'page'
+    from_cache=True, 
+    from_dashboard=False,
+    values_cat: tuple = ('id', 'name', 'slug'),
+    values_sub: tuple = ('id', 'name', 'slug', 'category_id')
 ) -> Dict[int, Dict[str, Union[Dict, Optional[List[Dict]]]]]:
     """
     Retrieves a dictionary mapping each non-default product category to its corresponding list of subcategories.
 
     Parameters:
-        request (HttpRequest, optional): If provided, attempts to retrieve the result from cache using this request.
-        use (Literal['navbar', 'panel_admin']): Determines the context in which the data is used, and 
-            which fields to retrieve. Use 'navbar' to get basic information (default), 
-            or 'panel_admin' for extended admin panel use.
+        from_cache (bool, optional): If True, attempts to retrieve the result from cache. 
+            Defaults to True.
+        values_cat (tuple, optional): Fields of the category model to include in the output. 
+            Defaults to ('id', 'name', 'slug').
+        values_sub (tuple, optional): Fields of the subcategory model to include in the output. 
+            Defaults to ('id', 'name', 'slug', 'category_id').
 
     Returns:
         dict: A dictionary where:
@@ -228,170 +240,103 @@ def get_categories_n_subcategories(
                 {% for subcat in item.subcategories %}
                     {{ item.category.name }} - {{ subcat.slug }}
     """
-    if request:
-        from django.core.cache import cache
+    if from_cache and not from_dashboard:
         categories_dropmenu = cache.get('categories_dropmenu')
+        
+        # if categories_dropmenu and from_dashboard:
+        #    categories_list = list(categories_dropmenu.values())
+        #    return categories_list
         if categories_dropmenu:
             return categories_dropmenu
-    
-    # Define fields to fetch based on usage context
-    if use == 'navbar':
-        FIELDS_CAT = ('id', 'name', 'slug')
-        FIELDS_SUBCAT = ('id', 'name', 'slug', 'category_id')
-    elif use == 'panel_admin':
-        FIELDS_CAT = ('id', 'name', 'slug')
-        FIELDS_SUBCAT = ('id', 'name', 'slug', 'category_id')
-        fields = (
-            'id', 'name', 'image_url',
-            'subcategories__id', 'subcategories__name', 'subcategories__image_url'
-        )
-
-    categories = (
-        PCategory.objects
-        .filter(is_default=False)
-        .order_by('name')
-        .values(*FIELDS_CAT)
-    )
-    
+        
+    # initial lazy queries to database depend on from_dashboard bool
     subcategories = (
-        PSubcategory.objects
-        .filter(is_default=False)    # name__isnull=False
-        .order_by('name')
-        .values(*FIELDS_SUBCAT)
+        PSubcategory.objects.all() if from_dashboard 
+        else PSubcategory.objects.filter(is_default=False)
     )
+    categories = (
+        PCategory.objects.all() if from_dashboard 
+        else PCategory.objects.filter(is_default=False)
+    )
+    
+    subcategories = subcategories.order_by('name').values(*values_sub) 
+    categories = categories.order_by('name').values(*values_cat)
+    
+    # Create a dictionary mapping each category to its subcategories (if any) 
+    subcats_by_cat = {}
+    for sub in subcategories:
+        cat_id = sub['category_id']
+        if cat_id not in subcats_by_cat:
+            subcats_by_cat[cat_id] = []
+        subcats_by_cat[cat_id].append(sub)
 
-    # Create a dictionary mapping each category to its subcategories (if any)
+    # Construir el diccionario final
     categories_dropmenu = {}
     for cat in categories:
         cat_id = cat['id']
-        cat_subs = [sub for sub in subcategories if sub['category_id'] == cat_id]
         categories_dropmenu[cat_id] = {
             'category': cat,
-            'subcategories': cat_subs if cat_subs else None
+            'subcategories': subcats_by_cat.get(cat_id) or []
         }
-
-    """ 
-    # Fetch non-default categories and their related subcategories with selected fields only
-    categories = (
-        PCategory.objects
-        .filter(is_default=False)
-        .prefetch_related('subcategories')  # Efficiently loads subcategories in a single query
-        .only(*fields)                      # Reduces selected columns to improve performance
-        .order_by('name')
-    )
-    
-    categories_dropmenu = {}
-    for category in categories:
-        # Filter subcategories: exclude empty names and sort them
-        valid_subcategories = [
-            sub for sub in category.subcategories.all().order_by('name')
-            if sub.name
-        ]
-
-        # Assign subcategories or None if the category has none
-        categories_dropmenu[category] = valid_subcategories if valid_subcategories else None
-    """
+        
+    # this need it to return in this format to dashboard panel
+    if categories_dropmenu and from_dashboard:
+        categories_list = list(categories_dropmenu.values())
+        return categories_list
 
     return categories_dropmenu
 
 
-def get_brands(use: Literal['page', 'panel_admin'] = 'page') -> QuerySet:
+from products.serializers import BrandListSerializer
+def get_serializer_brands(
+    brands_ids=None,
+    values: tuple = ('id', 'name', 'slug', 'image_url'), 
+    exclude_default: bool = True
+) -> list[dict]:
     """
-    Retrieve a queryset of brand objects with fields filtered based on the intended usage context.
+    Retrieve serialized brand data from the database with optional field selection 
+    and the ability to exclude default brands.
 
-    Parameters:
-        use (Literal['page', 'panel_admin']): 
-            Context in which the data will be used. 
-            - If 'page', includes additional fields like 'slug'.
-            - If 'panel_admin', fetches fewer fields.
+    This function can optionally filter brands by a list of IDs, select specific 
+    fields to include in the output, and exclude brands marked as default (is_default=True).
 
-    Returns:
-        QuerySet: A Django queryset of `PBrand` instances ordered by name, 
-                  with only the necessary fields selected to reduce query overhead.
-    """
-    if use == 'page':
-        fields = ('name', 'slug', 'image_url')
-    elif use == 'panel_admin':
-        fields = ('id', 'name', 'image_url')
-    
-    brands = ( 
-        PBrand.objects
-        .filter(is_default=False)
-        .only(*fields)
-        .order_by('name')
-    )
-    
-    return brands
-
-    
-def get_context_dashboard_products(context:dict , sort_by=None, sorted_flag=True) -> dict:
-    """
-    Enhances the context dictionary with optimized product data for dashboard display.
-    Applies sorting (if requested) and queryset optimizations, then adds related brand/category data.
-
-    Steps:
-    1. Applies sorting to products if sort_by parameter is provided
-    2. Optimizes the queryset with select_related and prefetch_related
-
-    Parameters:
-        request (HttpRequest): Django request object containing GET parameters
-        context (dict): Initial context dictionary containing at least:
-            - 'products': Base Product queryset
-        sort_by (str, optional): Field name to sort by. Defaults to None.
-    
-    Returns:
-        dict: Enhanced context with:
-            - products: Optimized and potentially sorted Product queryset
-    
-    Usage Example:
-        >>> context = {'products': Product.objects.all()}
-        >>> enhanced_context = get_context_dashboard_products(request, context, sort_by='price')
-    """
-    
-    # Step 1: Apply sorting if requested
-    if sort_by:
-        context["products"] = apply_product_sorting(
-            queryset=context["products"],
-            sort_by=sort_by,
-            sorted_flag=sorted_flag
-        )
-    
-    # Step 2: Apply queryset optimizations
-    context["products"] = (
-        context["products"]
-        .select_related('category', 'subcategory', 'brand')
-        .only(*PRODUCT_FIELDS_DETAIL)
-        .prefetch_related(
-            Prefetch(
-                'images',
-                queryset=ProductImage.objects.only('id', 'image_url', 'main_image'),
-                to_attr='images_all'
-            )
-        )
-    )
-    return context
-
-
-def apply_product_sorting(queryset, sort_by, sorted_flag):
-    """
-    Apply sorting to products queryset based on parameters
-    
     Args:
-        queryset: Products queryset
-        sort_by: Field to sort by (must be in ALLOWED_SORT_FIELDS)
-        sorted_flag: 'desc' for descending or any other for ascending
+        brands_ids (list[int], optional):
+            List of brand IDs to include. If None, includes all brands.
         
+        values (tuple, optional):
+            A tuple of field names to include in the output dictionaries.
+            Defaults to ('id', 'name', 'slug', 'image_url').
+
+        exclude_default (bool, optional):
+            Whether to exclude brands marked as default (is_default=True).
+            Defaults to True.
+
     Returns:
-        Sorted queryset if valid sort params, else original queryset
-    """
-    tupla = ('name', 'category__name', 'available', 'updated_at', 'stock', 'price')
-    if not sort_by or sort_by not in tupla:
-        return queryset
+        list[dict]:
+            A list of dictionaries representing the serialized brand objects, 
+            each containing only the requested fields.
     
-    if sorted_flag == 'desc':
-        sort_by = f'-{sort_by}'
+    Example:
+        >>> get_serializer_brands(brands_ids=[1, 2, 3], exclude_default=True)
+        [
+            {'id': 1, 'name': 'Brand A', 'slug': 'brand-a', 'image_url': 'http://...'},
+            {'id': 2, 'name': 'Brand B', 'slug': 'brand-b', 'image_url': 'http://...'},
+            ...
+        ]
+    """
+    brands = PBrand.objects.all()
+    
+    if exclude_default:
+        brands = brands.filter(is_default=False)
         
-    return queryset.order_by(sort_by)
+    if brands_ids:
+        brands = brands.filter(id__in=brands_ids)
+    
+    brands = brands.values(*values).order_by('name')
+    serializer = BrandListSerializer(brands, many=True)
+    return serializer.data
+
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger

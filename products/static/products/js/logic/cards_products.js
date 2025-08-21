@@ -73,32 +73,46 @@ function populateModalCard(modal, product_obj) {
     // --- Category ---
     const catLabel = modal.querySelector('#modal-category');
     const catGroup = modal.querySelector('.modal-cat-group');
-
-    if (product.category != null) {
-        catLabel.textContent = product.category.name;
-        catLabel.href = window.TEMPLATE_URLS.category.replace('__CAT__', product.category.slug);
-    } 
-    catGroup.style.display = (product.category) ? 'flex' : 'none';
     
-    // --- Subcategory ---
     const subcatLabel = modal.querySelector('#modal-subcategory');
-    if (product.subcategory != null) {
-        subcatLabel.textContent = product.subcategory.name;
-        subcatLabel.href = window.TEMPLATE_URLS.subcategory
-            .replace('__CAT__', product.category.slug)
-            .replace('__SUBCAT__', product.subcategory.slug);
+    let displaySubcatLabel = false;
+
+    const categoryGroup = window.CATEGORIES_LIST.find(c => c.category.id === product.category_id);
+    if (categoryGroup) {
+        const category = deepEscape(categoryGroup.category);
+        catLabel.textContent = category.name;
+        catLabel.href = window.TEMPLATE_URLS.category.replace('__CAT__', category.slug);
+    
+        // --- Subcategory ---
+        if (categoryGroup.subcategories && categoryGroup.subcategories.length > 0) {
+            const subcategory = categoryGroup.subcategories.find(sub => sub.id === product.subcategory_id);
+
+            if (subcategory) {
+                const sub = deepEscape(subcategory);
+                subcatLabel.textContent = sub.name;
+                subcatLabel.href = window.TEMPLATE_URLS.subcategory
+                    .replace('__CAT__', category.slug)
+                    .replace('__SUBCAT__', sub.slug);
+
+                // this is for show correctly
+                if (category.id === sub.product_id) displaySubcatLabel = true;
+            }
+        }
     } 
-    subcatLabel.style.display = (product.subcategory) ? 'flex' : 'none';
+    catGroup.style.display = (categoryGroup) ? 'flex' : 'none';
+    subcatLabel.style.display = (displaySubcatLabel) ? 'flex' : 'none';
 
     // --- Brand ---
     const brandLabel = modal.querySelector('.modal-brand');
     const brandGroup = modal.querySelector('.modal-brand-group');
 
-    if (product.brand != null) {
-        brandLabel.textContent = product.brand.name;
-        brandLabel.href = window.TEMPLATE_URLS.brand.replace('__BRAND__', product.brand.slug);
+    const brand = window.BRAND_LIST.find(b => b.id === product.brand_id);
+    if (brand !== undefined) {
+        const b = deepEscape(brand);
+        brandLabel.textContent = b.name;
+        brandLabel.href = window.TEMPLATE_URLS.brand.replace('__BRAND__', b.slug);
     }
-    brandGroup.style.display = (product.brand) ? 'block' : 'none';
+    brandGroup.style.display = (brand) ? 'block' : 'none';
 }
 
 /**

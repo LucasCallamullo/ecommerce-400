@@ -68,6 +68,6 @@ function validNonNegativeInteger(value, failedMessage) {
 
 
 function validBoolCheckBox(value) {
-    if (value === 'on') return true;
+    if (value === 'on' || value === true) return true;
     return false;
 }

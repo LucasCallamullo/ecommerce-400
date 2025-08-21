@@ -283,16 +283,21 @@ async function endpointsProduct(form, action, dashSection) {
             if (closeForm) closeForm.click();  // Trigger the close event
 
             // 1.0 Refresh form references (post-DOM update)
-            let formFilters = dashSection.querySelector('#form-hidden-filters');
+            const formFilter = dashSection.querySelector('.form-select-filters');
 
+            if (!formFilter) {
+                getDashboardSection('products');
+                return;
+            }
+            
             // 1.1 Trigger form submission
-            let submitBtn = formFilters.querySelector('button[type="submit"]');
+            const submitBtn = formFilter.querySelector('button[type="submit"]');
             if (submitBtn) submitBtn.click();
             else getDashboardSection('products');
         },
         // Optional: enable spinner animation on submit button
         flag_anim: true,
-        time_anim: 5000    // or 0 is optional if flag is true
+        time_anim: 1000    // or 0 is optional if flag is true
     });
 }
 

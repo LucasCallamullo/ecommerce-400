@@ -59,7 +59,12 @@ function mainNavFixedSetup() {
     }
 
     // Listen to scroll changes
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    if (typeof navBarDashboardCustom === "function") {
+        // dashboard.js
+        navBarDashboardCustom(header, nav, navList, logo, widgetLogin);
+    } else {
+        window.addEventListener("scroll", handleScroll, { passive: true });
+    }
 }
 
 

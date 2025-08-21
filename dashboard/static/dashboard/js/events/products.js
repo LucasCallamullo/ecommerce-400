@@ -37,9 +37,11 @@ function formModalNewProduct(dashSection, overlay) {
             initSelectChoices(brandSelect);
 
             // c) Update the form inputs based on the selected row's data
-            btnToggle.dataset.object = 'product';
-            btnToggle.dataset.action = 'create';
-            updateModalFormInputs(btnToggle, form);
+            updateModalFormInputs({
+                form: form,
+                objectName: 'product',
+                action: 'create'
+            });
             calculateDiscountSubtotal(form);
 
             // c) Set up dynamic subcategory logic (e.g., dependent dropdowns)
@@ -48,10 +50,11 @@ function formModalNewProduct(dashSection, overlay) {
             // d) Load and set the product description dynamically into the modal
             descriptionModalEvents(form);
 
-            // set datasets form
+            // e) set action on create to send the final form
             form.dataset.action = 'create';
 
-            // close container only in create form
+            // f) this is a logic to use the same modal, for updates or create, this cont
+            // is only available in update forms
             const contImages = form.querySelector('.cont-block-update');
             toggleState(contImages, false);
         },
@@ -100,23 +103,37 @@ function rowsModalUpdateProduct(dashSection, overlay) {
             changeMainImageEvent(form);
 
             // c) Update the form inputs based on the selected row's data
-            row.dataset.object = 'product';
-            row.dataset.action = 'update';
-            updateModalFormInputs(row, form);
+            const prodId = parseInt(row.dataset.id) || 0;
+
+            // stupid check
+            if (prodId === 0) {
+                openAlert('Se produjo un error, por favor recargue la página.', 'orange', 2000);
+                return;
+            }
+
+            const urlImages = window.TEMPLATE_URLS.imageProducts.replace('{product_id}', `${prodId}`);
+            const product = window.ProductStore.getProductById(prodId);
+            updateModalFormInputs({
+                form: form,
+                object: product,
+                objectName: 'product',
+                action: 'update',
+                url: `${urlImages}?all=true`
+            });
             calculateDiscountSubtotal(form);
 
             // d) Set up dynamic subcategory logic (e.g., dependent dropdowns)
             subcategorySelectEvents(form, true);
 
             // e) Load and set the product description dynamically into the modal
-            const productId = row.dataset.index;
-            descriptionModalEvents(form, productId, tableProducts);
+            descriptionModalEvents(form, prodId, tableProducts);
 
-            // set datasets form
+            // e) set action on create to send the final form
             form.dataset.action = 'update';
-            form.dataset.index = productId;
+            form.dataset.index = prodId;
 
-            // open container only in update form
+            // f) this is a logic to use the same modal, for updates or create, this cont
+            // is only available in update forms
             const contImages = form.querySelector('.cont-block-update');
             toggleState(contImages, true);
         },
@@ -135,6 +152,41 @@ function rowsModalUpdateProduct(dashSection, overlay) {
 
 
 /**
+ * Initializes filter button and form interactions by:
+ * 1. Setting up form submission handling
+ * 2. Configuring click-outside close behavior
+ * 3. Initializing subcategory selection events
+ * 
+ * @param {HTMLElement} dashSection - Container element holding filter components
+ */
+function formSelectFiltersProducts(dashSection) {
+    const btnFilter = dashSection.querySelector('#btn-filter');
+    const formFilter = btnFilter.querySelector('.form-select-filters');
+    
+    // 1. Configure form submission
+    formFilter.addEventListener("submit", (e) => {
+        e.preventDefault();
+        updateDashboardSection(formFilter, 'table-products', dashSection);
+    });
+
+    // 2. Set up dropdown behavior
+    setupClickOutsideClose({
+        triggerElement: btnFilter,
+        targetElement: formFilter,
+        customToggleFn: () => {
+            // 2.1 Toggle visual active state
+            const isExpanded = toggleState(formFilter);
+            btnFilter.classList.toggle('active-main', isExpanded);
+            return isExpanded
+        }
+    });
+
+    // 3. Initialize subcategory selection handlers
+    subcategorySelectEvents(formFilter);
+};
+
+
+/**
  * Attaches `submit` event handlers to all forms with the class `form-reset-filters`
  * within the given dashboard section. These forms are typically used to reset filters 
  * in admin panels or product tables.
@@ -144,18 +196,22 @@ function rowsModalUpdateProduct(dashSection, overlay) {
  * the form submission receives temporary visual feedback (via a CSS class).
  *
  * @param {HTMLElement} dashSection - The container element that holds the reset filter forms.
- * @param {string} tableId - The ID or key used to identify and update the corresponding data table or section.
  */
-function formResetFilters(dashSection, tableId) {
-    const formsReset = dashSection.querySelectorAll('.form-reset-filters');
+function formResetFilters(dashSection) {
+    const forms = dashSection.querySelectorAll('.form-reset-filters');
+
+    // this is to not set a params in the filtered products
+    const params = {
+        category: -1, subcategory: -1, brand: -1, query: '', page: 1
+    }
     
-    formsReset.forEach(form => {
+    forms.forEach(form => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const btn = e.submitter;
             
             // Trigger the dashboard update with the current form
-            updateDashboardSection(form, tableId);
+            updateDashboardSection(form, 'table-products', dashSection, params);
 
             // Add a visual indicator (CSS class) to the submit button
             if (btn) {
@@ -186,184 +242,144 @@ function formResetFilters(dashSection, tableId) {
  * @param {HTMLElement} dashSection - The parent container element that includes the search form and filters.
  */
 function formInputSearchRealTime(dashSection) {
-    // Cache key DOM elements
-    const formInputDash = dashSection.querySelector('#search-dashboard');          // Main visible search form
-    const searchInput = formInputDash?.querySelector('input[name="query"]');       // Text input field for search queries    
+    const formInput = dashSection.querySelector('#search-dashboard');
+    const searchInput = formInput?.querySelector('input[name="query"]');
+    if (!formInput || !searchInput) return;
 
+    // --- SERVER search on submit ---
     /**
-     * Handles form submission by injecting query and filters into the visible form,
-     * then programmatically triggering a submit action.
-     *
-     * @param {string} query - The search query to submit (defaults to empty string)
+     * Triggers a server-side search by submitting hidden filters form
      */
-    function submitSearch(query = '') {
-        // 1.0 Refresh form references (post-DOM update)
-        let formAllFilters = dashSection.querySelector('#form-hidden-filters');
-
-        // 1.1 Update form values
-        formAllFilters.query.value = query;
-
-        // 1.2 Trigger form submission
-        let submitBtn = formAllFilters.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.click(); // Esto sí dispara el evento 'submit'
-    }
-
-    /**
-     * Custom form submission event handler
-     * Prevents default form reload and instead performs an AJAX-like update.
-     */
-    formInputDash.addEventListener('submit', (e) => {
+    const formSelect = dashSection.querySelector('.form-select-filters');
+    const inputQuery = formSelect.querySelector('input[name="query"]');
+    const btn = formSelect.querySelector('button[type="submit"]');
+    formInput.addEventListener('submit', (e) => {
         e.preventDefault();
-        submitSearch(formInputDash.query.value)
+        // Trigger the dashboard update with the current form
+        inputQuery.value = searchInput.value.trim();
+        btn.click();     // triggers full submit (respects form submit handlers)
     });
 
-    const DELAY = 500; // Delay (in milliseconds) before triggering search
-    const MIN_CHARS = 3;        // Minimum number of characters required to trigger a search
-    
     /**
-     * Handles input events on the search field.
-     * - Debounces input to limit request rate.
-     * - Triggers reset or search depending on input length.
+     * Triggers client-side filtering using ProductStore (in-memory)
      */
+    function filterLocal(query = '') {
+        if (!window.ProductStore) return;
+
+        const filtered = (query != '') ? 
+            window.ProductStore.filterByName(query) :
+            window.ProductStore.getData();
+
+        const table = dashSection.querySelector('#table-products');
+        renderProductsTable(table, filtered);
+    }
+
+    // --- CLIENT search on input ---
+    const DELAY = 400;
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.trim();
-
-        // Reset search if query becomes too short
-        if (query.length < MIN_CHARS) {
-            submitSearch('');
+        if (query.length < 3) {
+            inputQuery.value = '';    // reset on main form
+            filterLocal(''); // show all or reset
             return;
         }
 
-        // Do not trigger search for short queries
-        if (query.length < MIN_CHARS) return;
-
-        // 1. Debounce logic using dataset
+        // debounce to avoid flooding
         if (searchInput.dataset.debounceTimer) {
             clearTimeout(Number(searchInput.dataset.debounceTimer));
         }
-
-        const newTimer = setTimeout(() => {
-            submitSearch(query);
+        searchInput.dataset.debounceTimer = setTimeout(() => {
+            filterLocal(query);
         }, DELAY);
-
-        searchInput.dataset.debounceTimer = newTimer;
     });
 }
 
 
 /**
- * Initializes filter button and form interactions by:
- * 1. Setting up form submission handling
- * 2. Configuring click-outside close behavior
- * 3. Initializing subcategory selection events
- * 
- * @param {HTMLElement} dashSection - Container element holding filter components
- */
-function formSelectFiltersProducts(dashSection) {
-
-    const btnFilter = dashSection.querySelector('#btn-filter');
-    const formFilter = btnFilter.querySelector('#form-select-filters');
-    // 1. Configure form submission
-    formFilter.addEventListener("submit", (e) => {
-        e.preventDefault();
-        updateDashboardSection(formFilter, 'table-products');
-    });
-
-    // 2. Set up dropdown behavior
-    setupClickOutsideClose({
-        triggerElement: btnFilter,
-        targetElement: formFilter,
-        customToggleFn: () => {
-            // 2.1 Toggle visual active state
-            const isExpanded = toggleState(formFilter);
-            btnFilter.classList.toggle('active-main', isExpanded);
-            return isExpanded
-        }
-    });
-
-    // 3. Initialize subcategory selection handlers
-    subcategorySelectEvents(formFilter);
-};
-
-
-/**
- * Handles table sorting functionality by:
- * 1. Locating all sort buttons in a dashboard section
- * 2. Initializing base table functionality
- * 3. Attaching click handlers to each sort button
- *    - Toggles sort direction (asc/desc)
- *    - Updates hidden form values
- *    - Triggers form submission
- * 
- * @param {HTMLElement} dashSection - Parent element containing sort buttons
+ * Initializes and manages table sorting behavior for a dashboard section.
+ *
+ * Functionality:
+ * 1. Locates all sortable column buttons inside the given dashboard section.
+ * 2. Sets up a click event listener on the table header.
+ * 3. When a sort button is clicked:
+ *    - Determines which column to sort by (using `data-sort-by`).
+ *    - Toggles the sorting direction (`asc` <-> `desc`).
+ *    - Calls the corresponding sorting function from `ProductStore`.
+ *    - Re-renders the products table with the sorted results.
+ *
+ * @param {HTMLElement} dashSection - The parent element containing the table and sort buttons.
+ *
+ * Example:
+ * HTML:
+ * <th class="btn-sorted" data-sort-by="price" data-asc="asc">Price</th>
+ *
+ * JavaScript:
+ * formArrowsSortedProducts(document.querySelector('#dashboard-section'));
  */
 function formArrowsSortedProducts(dashSection) {
+
     // 1. Get all sort buttons in the container
-    const btnSorts = dashSection.querySelectorAll('.btn-sorted');
+    const tableHeader = dashSection.querySelector('.table-header');
+    const table = dashSection.querySelector('#table-products');
+    if (!tableHeader || !table) return;
 
-    // 2. Configure click handlers for each sort button
-    btnSorts.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            // 3.1 Extract current sort parameters
-            const sortBy = btn.getAttribute('data-sort-by');
-            const dataSorted = btn.getAttribute('data-sorted');
-    
-            // 3.2 Reverse sort direction
-            const sorted = (dataSorted === 'asc') ? 'desc' : 'asc';
-            btn.setAttribute('data-sorted', sorted);
-    
-            // 3.3 Refresh form references (post-DOM update)
-            let formAllFilters = dashSection.querySelector('#form-hidden-filters');
+    // 2. Mapa de funciones de ordenamiento
+    const sortedFunctions = {
+        'price': (asc) => window.ProductStore.orderByPrice(asc),
+        'name': (asc) => window.ProductStore.orderByName(asc),
+        'stock': (asc) => window.ProductStore.orderByStock(asc),
+        'updated_at': (asc) => window.ProductStore.orderByUpdatedAt(asc),
+        'sales': (asc) => window.ProductStore.orderBySales(asc),
+        'available': (asc) => window.ProductStore.orderByAvailable(asc),
+        'category': (asc) => window.ProductStore.orderByCategory(asc)
+    };
 
-            // 3.4 Update form values
-            formAllFilters.sort_by.value = sortBy;
-            formAllFilters.sorted.value = sorted;
+    // event delegation on table header
+    tableHeader.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-sorted');
+        if (!btn) return;
 
-            // 3.5 Trigger form submission
-            let submitBtn = formAllFilters.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.click(); // Esto sí dispara el evento 'submit'
-        });
-    });
+        const sortBy = btn.dataset.sortBy;          // ej: 'price'
+        const asc = btn.dataset.asc === 'asc';     // true o false
+        btn.dataset.asc = asc ? 'desc' : 'asc';     // toggle en el dataset
+
+        // this is from sections/products/table.js
+        if (sortedFunctions[sortBy]) {
+            const products = sortedFunctions[sortBy](asc); // execute function based on sortBy
+            renderProductsTable(table, products);
+        }
+    })
 };
 
 
-
-/* ======================================================================================
-    Table section parameter indica que son funciones reasignadas post get, post, put 
-====================================================================================== */
 /**
- * Reassigns dynamic event listeners to form elements and filters inside the given table section.
- * This is necessary after re-rendering or dynamically updating a section in the dashboard,
- * ensuring all relevant forms continue functioning correctly.
+ * Updates the summary of applied filters in the table header.
  *
- * @param {HTMLElement} tableSection - The section of the dashboard containing the products table and related forms.
+ * This function dynamically generates a string that lists all active filters
+ * (category, subcategory, brand, and search query) and inserts it into the
+ * specified DOM element. If no filters are applied, a default message is shown.
+ *
+ * @param {HTMLElement} dashSection - The parent element containing the table and filters summary.
+ * @param {Object} data - An object containing the current filter values.
+ * @param {Object} [data.category] - Category filter, with at least a `name` property.
+ * @param {Object} [data.subcategory] - Subcategory filter, with at least a `name` property.
+ * @param {Object} [data.brand] - Brand filter, with at least a `name` property.
+ * @param {string} [data.query] - Search query string.
+ *
  */
-function eventsTableProducts(tableSection) {
-
-    // Reassign submit event to the hidden filters form after the section is re-rendered.
-    const formAllFilters = tableSection.querySelector('#form-hidden-filters');
-    if (formAllFilters) {
-        formAllFilters.addEventListener('submit', (e) => {
-            e.preventDefault(); // Prevent default form submission
-            updateDashboardSection(formAllFilters, 'table-products'); // Handle the filter logic via AJAX or similar
-        });
-    }
-
-    // If the dashboard has filters applied, generate a human-readable summary
-    const filtersDiv = tableSection.querySelector('#filters-str');
-    if (filtersDiv) {
-        // Create an array of filter descriptions only if they are present
+function updateSpansFiltersTable(dashSection, data) {
+    const spanFiltersHeader = dashSection.querySelector('#resume-filters');
+    if (spanFiltersHeader) {
         const resumen = [
-            filtersDiv.dataset.category && `Categoría: ${filtersDiv.dataset.category}`,
-            filtersDiv.dataset.subcategory && `Subcategoría: ${filtersDiv.dataset.subcategory}`,
-            filtersDiv.dataset.query && `Buscador: ${filtersDiv.dataset.query}`,
+            data.category && `Categoría: ${data.category.name}`,
+            data.subcategory && `Subcategoría: ${data.subcategory.name}`,
+            data.brand && `Marca: ${data.brand.name}`,
+            data.query && `Buscador: ${data.query}`,
         ]
-        .filter(Boolean) // Remove any falsy values
-        .join(" | ");    // Join the valid filters with a pipe separator
-        
-        // Update the DOM with the filters summary, or a default message
-        document.getElementById("resume-filters").textContent = resumen || "Sin filtros aplicados.";
+        .filter(Boolean)
+        .join(" | ");
+
+        spanFiltersHeader.textContent = resumen || "Sin filtros aplicados.";
     }
 }
-
 

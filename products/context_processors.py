@@ -10,7 +10,7 @@ def get_categories_n_subcats(request):
     
     if not categories_dropmenu:
         
-        categories_dropmenu = get_categories_n_subcategories(request=request, use='navbar')
+        categories_dropmenu = get_categories_n_subcategories(from_cache=True)
         # Save the data in the cache for 1 hour (3600 seconds)
         cache.set('categories_dropmenu', categories_dropmenu, 3600)
     

@@ -42,7 +42,7 @@ async function uploadImages({url = window.TEMPLATE_URLS.genericUpdateImages, inp
 
     // 2. Validar si hay archivos para subir
     if (filesToUpload.length === 0) {
-        openAlert('No hay imágenes válidas para subir', 'red', 1500);
+        // openAlert('No hay imágenes válidas para subir', 'red', 1500);
         return null; // O return { success: false, error: 'No files' }
     }
     

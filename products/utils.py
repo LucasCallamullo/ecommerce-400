@@ -1,6 +1,6 @@
 
 
-def valid_id_or_None(id_value):
+def valid_id_or_None(id_value, allow_zero=False):
     """
     Valida que un ID sea un INT positivo y numérico.
     Returns:
@@ -14,6 +14,9 @@ def valid_id_or_None(id_value):
         return None
     try:
         id_int = int(id_value)
+        if allow_zero:
+            return id_int
+        
         return id_int if id_int > 0 else None
     except (TypeError, ValueError):
         return None

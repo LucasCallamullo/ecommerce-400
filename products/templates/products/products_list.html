@@ -193,6 +193,8 @@
             productImages: "{% url 'product-images-api' 0 %}".replace('/0/', '/{product_id}/')
         };
         window.ProductList = JSON.parse('{{ productos_json|escapejs }}');
+        window.BRAND_LIST = JSON.parse('{{ brands_json|escapejs }}');
+        window.CATEGORIES_LIST = JSON.parse('{{ categories|escapejs }}');
     </script>
 
     {% compress js %}

@@ -2,10 +2,11 @@
 
 # Create your views here.
 from django.shortcuts import render
+from django.db.models import F
 
 from products.models import Product, PCategory, PSubcategory, PBrand
-from products import filters, utils
 from products.serializers import ProductListSerializer
+from products import filters, utils
 
 from favorites.utils import get_favs_products
 from users.permissions import admin_or_superuser_required
@@ -42,7 +43,15 @@ def product_list(request, cat_slug=None, subcat_slug=None, brand_slug=None):
         'query': top_query,
     }
     products = filters.get_products_filters(filter_args)
-    products = products.values(*filters.VALUES_CARDS_LIST).order_by('price', 'id')
+    products = (
+        products.values(*filters.VALUES_CARDS_LIST)
+        .order_by('price', 'id').annotate(
+            category_id=F("category__id"),
+            subcategory_id=F("subcategory__id"),
+            brand_id=F("brand__id"),
+        )
+    )
+    # products = products.values(*filters.VALUES_CARDS_LIST).order_by('price', 'id')
     
     # Paginación
     page_num = request.GET.get('page')
@@ -51,6 +60,15 @@ def product_list(request, cat_slug=None, subcat_slug=None, brand_slug=None):
         page_num=page_num, 
         quantity=100
     )
+    
+    # get unique brands on page for some utils select forms 
+    
+    # maybe in the future apply this for performance
+    # brand_ids_in_page = {p['brand_id'] for p in products_page}
+    brands = filters.get_serializer_brands(values=('id', 'name', 'slug', 'image_url'))
+    
+    # get categories from cache 
+    categories = filters.get_categories_n_subcategories(from_cache=True)
     
     # Serialización
     favorites_ids = get_favs_products(request.user)
@@ -66,6 +84,8 @@ def product_list(request, cat_slug=None, subcat_slug=None, brand_slug=None):
         'category': category,
         'subcategory': subcategory,
         'brand': brand,
+        'brands_json': json.dumps(brands),
+        'categories': json.dumps(list(categories.values()))
     }
     
     return render(request, "products/products_list.html", context)

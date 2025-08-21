@@ -5,6 +5,13 @@
     --width-btn-dashboard: 40px;    /* 40 */
 }
 
+.cont-dashboard {
+    width: 100%;
+    position: relative;
+    min-height: 900px;
+    max-height: auto;
+}
+
 .dashboard {
     position: absolute;
     top: 0;
@@ -12,7 +19,7 @@
     padding-left: 2px;
 
     width: var(--width-dashboard);    /* mobile */
-    min-height: 1000px;
+    min-height: 900px;
     z-index: 10;
     overflow: hidden;
     transition: width 0.3s ease;
@@ -96,6 +103,11 @@
         padding: 14px;    /* mobile */
         margin-left: 0;    /* mobile */
     }
+}
+
+.dashboard .btn-profile {
+    position: absolute;
+    bottom: 10px;
 }
 
 
@@ -309,17 +321,23 @@
 }
 
 /* select displayer, for views custom style on choices see choices.js */
-.subcat-container[data-state="closed"] {
+.label-subcat-select[data-state="closed"] {
     display: none;
 }
 
-.subcat-container[data-state="open"] {
+.label-subcat-select[data-state="open"] {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start; /* center */
+    text-align: start;
+    font-weight: bolder;
 }
 
+/* hereda correctamente el ancho */
+.cont-subcat-selects > label {
+    width: 100%;
+} 
 
 /* ============================================================== 
     CATEGORIES N BRANDS SECTION

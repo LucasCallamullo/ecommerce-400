@@ -4,33 +4,32 @@
 
 
 <div class="d-grid cont-grid-122 cont-grid-products">
-    <!-- Primera Fila 	-->
-    <h2 class="bold-main"> Tus Productos </h2>
+    {# Primera Fila #}
+    <h2 class="bold-main">Tus Productos</h2>
 
-    <button class="btn gap-1 btn-main py-1 px-2 w-max justify-self-end" id="add-new-product">
-        <i class="ri-function-add-line font-lg"></i>
-        <span class="font-md"><b>Agregar Producto</b></span>
+    <button class="btn btn-main gap-1 py-1 px-2 w-max justify-self-end font-md bolder" id="add-new-product">
+        <i class="ri-function-add-line fw-normal font-lg"></i>Agregar Producto
     </button>
 
-    <!-- Segunda Fila 	-->
+    {# Segunda Fila #}
     <form class="btn-40 search-dashboard" id="search-dashboard">
         <input type="text" name="query" placeholder="Buscar producto...">
         <i class="ri-search-line font-lg"></i>
     </form>
 
     <div class="d-flex justify-self-end gap-1">
-        <div class="btn btn-border btn-40 px-1 w-min relative" id="btn-filter" aria-expanded="false">
-            <p class="font-md">Filtros</p>
-            <i class="ri-filter-2-line font-lg"></i>
+        {# form select filters se usa div para usar un menu interno #}
+        <div class="btn btn-border btn-40 px-2 w-min relative" id="btn-filter" aria-expanded="false">
+            {# title on select button #}
+            Filtros&nbsp;<i class="ri-filter-2-line font-lg"></i>
 
-            <!-- Menu desplegable de filtros -->
+            {# Menu desplegable de filtros #}
             <form class="dropdown-generic border-main" data-state="null" 
             id="form-select-filters" data-table="table-products">
 
-                <!-- Disponibilidad select -->
-                <label class="d-flex-col gap-1">
-                    <strong class="text-start">Disponibilidad:</strong>
-
+                {# Disponibilidad select #}
+                <label class="d-flex-col gap-1 text-start bolder">
+                    Disponibilidad:
                     <select class="text-truncate" name="available">
                         <option value="1">Disponible</option>
                         <option value="0">No Disponible</option>
@@ -38,10 +37,9 @@
                     </select>
                 </label>
 
-                <!-- Categorias y subcategorias select -->
-                <label class="d-flex-col mt-1 gap-1">
-                    <strong class="text-start">Categoría:</strong>
-                
+                {# Categorias y subcategorias select #}
+                <label class="d-flex-col mt-1 gap-1 text-start bolder">
+                    Categoría:
                     <select class="category-select text-truncate" name="category">
                         <option value="0">Seleccione una categoría</option>
                         <option value="1">Sin Categoría</option>
@@ -53,15 +51,14 @@
                     </select>
                 </label>
             
-                <!-- Campo oculto que enviará la subcategoría seleccionada -->
+                {# Campo oculto que enviará la subcategoría seleccionada #}
                 <input type="hidden" name="subcategory" class="selected-subcategory" value="0">
 
                 {% for category, subcategories in categories.items %}
                     {% if forloop.first %}
                         <div class="subcat-container mt-1 subcat-cont-0" data-state="closed">
-                            <label class="d-flex-col gap-1">
-                                <strong class="text-start">Subcategoría:</strong>
-
+                            <label class="d-flex-col gap-1 text-start bolder">
+                                Subcategoría:
                                 <select class="subcat-select text-truncate">
                                     <option value="0">Seleccione una subcategoría</option>
                                     <option value="1">Sin Sub-Categoría</option>
@@ -71,11 +68,10 @@
                     {% endif %}
 
                     {% if subcategories %}
+                        {# esta logica esta en js para mostrar el select correspondiente #}
                         <div class="subcat-container mt-1 subcat-cont-{{category.id}}" data-state="closed">
-
-                            <label class="d-flex-col gap-1">
-                                <strong class="text-start">Subcategoría:</strong>
-
+                            <label class="d-flex-col gap-1 text-start bolder">
+                                Subcategoría:
                                 <select class="subcat-select text-truncate">
                                     <option value="0">Seleccione una subcategoría</option>
                                     {% for subcat in subcategories %}
@@ -89,117 +85,102 @@
                     {% endif %}
                 {% endfor %}
 
-                <button class="btn justify-self-center btn-main w-50 p-1 mt-2" type="submit">
-                    <strong class="font-md">Aplicar</strong>
-                </button>
+                {# button to apply form select filters #}
+                <button class="btn justify-self-center btn-main w-50 p-1 mt-2 font-sm bolder" 
+                type="submit">Aplicar</button>
             </form>
         </div>
 
-        <!--   Reset Filters Mobile	 -->
+        {#   Reset Filters Mobile	 #}
         <form class="d-mobile-block form-reset-filters" data-table="table-products">
             <input type="hidden" name="available" value="2">
-            
-            <button type="submit" class="btn btn-border btn-40 w-min px-1">
-                <i class="ri-close-fill font-lg"></i>
-                <p class="font-md">Filtros</p>
+            <button type="submit" class="btn btn-border btn-40 w-min px-1 font-md">
+                <i class="ri-close-fill font-lg"></i>Filtros
             </button>
         </form>
 
-        <div class="d-desktop-flex gap-1">
-            <button class="btn btn-border btn-40 px-1 active-main">
-                <i class="ri-list-check-2 font-lg"></i>
-            </button>
-    
-            <button class="btn btn-border btn-40 px-1">
-                <i class="ri-layout-grid-fill font-lg"></i>
-            </button>
-        </div>
+        {#   Buttons to grid change on table	 #}
+        <button class="d-desktop-flex btn btn-border btn-40 px-1 active-main">
+            <i class="ri-list-check-2 font-lg"></i>
+        </button>
+        <button class="d-desktop-flex btn btn-border btn-40 px-1">
+            <i class="ri-layout-grid-fill font-lg"></i>
+        </button>
     </div>
 
-    <!-- Tercera Fila 	-->
-    <div class="d-desktop-flex grid-col-all cont-space-between">
-        <p class="font-sm">
-            <b> Filtros Aplicados: </b>
-            <span id="resume-filters">Ninguno</span>
-        </p>
+    {# Tercera Fila DESKTOP #}
+    <p class="d-desktop-flex align-center gap-1 bolder font-sm">
+        Filtros Aplicados: <span class="fw-normal" id="resume-filters">Ninguno</span>
+    </p>
 
-        <!--   Reset Filters		 -->
-        <form class="form-reset-filters" data-table="table-products">
-            <input type="hidden" name="available" value="2">
-            
-            <button type="submit" class="btn btn-border btn-40 w-min px-1">
-                <i class="ri-close-fill font-lg"></i>
-                <p class="font-md">Filtros</p>
-            </button>
-        </form>
-    </div>
+    {# Reset Filters #}
+    <form class="d-desktop-flex align-center justify-self-end form-reset-filters" data-table="table-products">
+        <input type="hidden" name="available" value="2">
+        <button type="submit" class="btn btn-border btn-40 w-min px-1 font-md">
+            <i class="ri-close-fill font-lg"></i>Filtros
+        </button>
+    </form>
 </div>
 
-<!-- 	TABLE PRODUCTSSSSS	 -->
+{# TABLE PRODUCTSSSSS HEADER #}
 <div class="d-grid grid-products border-primary not-border-bottom font-sm mt-2">
     <div class="d-flex py-1">
-        <strong class="ms-1">Productos</strong>
+        <b class="ms-1">Productos</b>
         <button class="btn btn-sorted text-primary" data-sort-by="name" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line bolder font-md"></i>
         </button>
     </div>
 
-    <div class="d-desktop-flex align-center py-1">
-        <strong>Categorías</strong>
+    <div class="d-desktop-flex align-center py-1 bolder">
+        Categorías
         <button class="btn btn-sorted text-primary" data-sort-by="category__name" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line bolder font-md"></i>
         </button>
     </div>
 
-    <div class="d-desktop-flex justify-center align-center py-1">
-        <strong>Disponible</strong>
+    <div class="d-desktop-flex justify-center align-center bolder py-1">
+        Disponible
         <button class="btn btn-sorted text-primary" data-sort-by="available" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line bolder font-md"></i>
         </button>
     </div>
 
-    <div class="d-desktop-flex justify-end align-center py-1">
-        <strong>Ventas</strong>
+    <div class="d-desktop-flex justify-end align-center bolder py-1">
+        Ventas
         <button class="btn btn-sorted text-primary" data-sort-by="sales" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line font-md bolder"></i>
         </button>
     </div>
 
-    <div class="d-desktop-flex justify-end align-center py-1">
-        <strong class="text-truncate">Fecha Act.</strong>
+    <div class="d-desktop-flex justify-end align-center bolder py-1">
+        <b class="text-truncate">Fecha Act.</b>
         <button class="btn btn-sorted text-primary" data-sort-by="updated_at" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line bolder font-md"></i>
         </button>
     </div>
 
-    <div class="d-desktop-flex justify-end align-center py-1">
-        <strong>Stock</strong>
+    <div class="d-desktop-flex justify-end align-center bolder py-1">
+        Stock
         <button class="btn btn-sorted text-primary" data-sort-by="stock" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line font-md bolder"></i>
         </button>
     </div>
 
-    <div class="d-desktop-flex justify-end align-center py-1 me-1">
-        <strong>Precio</strong>
+    <div class="d-desktop-flex justify-end align-center bolder py-1 me-1">
+        Precio
         <button class="btn btn-sorted text-primary" data-sort-by="price" data-sorted="null">
-            <b><i class="ri-arrow-up-down-line font-md"></i></b>
+            <i class="ri-arrow-up-down-line font-md bolder"></i>
         </button>
     </div>
 </div>
 
-<!-- Add main content here -->
+{# Table content here, render .js #}
 <section class="border-primary" id="table-products">
     {% include "dashboard/table_products.html" %}
 </section>
 
 
-
-
-
-
-
-
-<!-- Form to add new product  -->
+{# Form to ADD OR EDIT product  #}
 <form class="modal form-modal" id="form-modal-product">
 
     <template id="template-add-product">
@@ -214,7 +195,7 @@
 
     <div class="d-flex-col gap-2">
 
-        <!--   TITULO FORMULARIO 		 -->
+        {#  TITULO FORMULARIO 		 #}
         <div class="cont-space-between">
             <strong class="font-lg bold-main text-truncate modal-title"> </strong>
 
@@ -223,48 +204,44 @@
             </button>   
         </div>
 
-        <!--   FILA 1 FORMULARIO 		 -->
-        <div class="d-grid row-modal-product">
-            <label class="d-flex-col gap-1 name">
-                <strong>Nombre:</strong>
+        {#   FILA 1 FORMULARIO 		 #}
+        <div class="d-grid row-modal-product gap-2">
+            <label class="d-flex-col gap-1 name bolder">
+                Nombre:
                 <input type="text" class="modal-name" name="name"/>
             </label>
                 
             <label class="d-flex-col gap-1 available">
-                <strong class="text-truncate">Disponible:</strong>
-                <div class="d-flex w-100 ms-2">
-                    <input type="checkbox" class="modal-available" name="available"/>
-                </div>
+                <b class="text-truncate bolder">Disponible:</b>
+                <input type="checkbox" class="ms-2 mt-1 modal-available" name="available"/>
             </label>
         
-            <label class="d-flex-col gap-1 price">
-                <strong>Precio:</strong>
+            <label class="d-flex-col gap-1 price bolder">
+                Precio:
                 <input type="text" class="modal-price" name="price"/>
             </label>
         
             <label class="d-flex-col gap-1 discount">
-                <strong class="text-truncate">Descuento (%):</strong>
+                <b class="text-truncate">Descuento (%):</b>
                 <input type="text" class="modal-discount" name="discount"/>
             </label>
         
-            <label class="d-flex-col gap-1 subtotal">
-                <strong>SubTotal:</strong>
+            <label class="d-flex-col gap-1 subtotal bolder">
+                SubTotal:
                 <input type="text" class="modal-subtotal"/>
             </label>
         
-            <label class="d-flex-col gap-1 stock">
-                <strong>Stock:</strong>
+            <label class="d-flex-col gap-1 stock bolder">
+                Stock:
                 <input type="text" class="modal-stock" name="stock"/>
             </label>
         </div>
 
-        <!--   FILA 2 FORMULARIO 	SELECTS	 -->
-        <div class="d-grid cont-grid-234 p-0">
-
-            <!-- Categorias select -->
-            <label class="d-flex-col gap-1">
-                <strong>Categoría:</strong>
-
+        {# FILA 2 FORMULARIO SELECTS Category - subcategory - brand	 #}
+        <div class="d-grid cont-grid-234 gap-2">
+            {# Categorias select #}
+            <label class="d-flex-col gap-1 bolder">
+                Categoría:
                 <select class="category-select modal-category" name="category">
                     <option value="0">Sin Categoría</option>
                     {% for category, subcategories in categories.items %}
@@ -277,28 +254,26 @@
                     {% endfor %}
                 </select>
             </label>
-            
-            <!-- subcategorias select -->
-            <div class="d-flex-col gap-1">
 
-                <!-- Campo oculto que enviará la subcategoría seleccionada -->
+            {# subcategorias select #}
+            <div class="d-flex-col gap-1">
+                {# Campo oculto que enviará la subcategoría seleccionada #}
                 <input type="hidden" name="subcategory" class="selected-subcategory" value="0">
 
                 {% for category, subcategories in categories.items %}
-
                     {% if forloop.first %}
-                        <label class="subcat-container gap-1 subcat-cont-0" data-state="closed">
-                            <strong>Subcategoría:</strong>
-                            <select class="subcat-select">
+                        <label class="subcat-container gap-1 bolder subcat-cont-0" data-state="closed">
+                            Subcategoría:
+                            <select class="subcat-select text-truncate">
                                 <option value="0">Sin Subcategoría</option>
                             </select>
                         </label>
                     {% endif %}
 
                     {% if subcategories %}
-                        <label class="subcat-container gap-1 subcat-cont-{{category.id}}" data-state="closed">
-                            <strong>Subcategoría:</strong>
-                            <select class="subcat-select modal-subcategory-{{category.id}}">
+                        <label class="subcat-container gap-1 bolder subcat-cont-{{category.id}}" data-state="closed">
+                            Subcategoría:
+                            <select class="subcat-select text-truncate modal-subcategory-{{category.id}}">
                                 <option value="0">Sin Subcategoría</option>
                                 {% for subcat in subcategories %}
                                     <option value="{{subcat.id}}">
@@ -311,10 +286,9 @@
                 {% endfor %}
             </div>
 
-            <!-- BRANDS -->
-            <label class="d-flex-col gap-1">
-                <strong>Marca:</strong>
-                
+            {# BRANDS SELECT #}
+            <label class="d-flex-col gap-1 bolder">
+                Marca:
                 <select class="brand-select modal-brand" name="brand">
                     <option value="0">Sin Marca</option>
                     {% for brand in brands %}
@@ -326,31 +300,31 @@
             </label>
         </div>
 
-        <!--   FILA 3 Cont-Images	 -->
+        {# FILA 3 Cont-Images #}
         <div class="cont-block-update" data-state="closed">
-            <div class="d-flex gap-1"> 
-                <strong>Imagenes del Producto</strong>
-                <i class="ri-corner-right-down-line font-lg"></i> 
+            <div class="d-flex gap-1 bolder"> 
+                Imagenes del Producto
+                <i class="ri-corner-right-down-line fw-normal font-lg"></i> 
             </div>
 
-            <div class="d-grid cont-grid-234 cont-modal-images">    </div>
+            <div class="d-grid cont-grid-234 gap-2 cont-modal-images">    </div>
         </div>
         
-        <!--   FILA 4 y 5 FORMULARIO 		 -->
-        <div class="d-grid cont-grid-122 align-stretch border-top-prim p-0 py-2">
+        {#   FILA 4 y 5 FORMULARIO 		 #}
+        <div class="d-grid cont-grid-122 align-stretch border-top-prim gap-2 py-2">
 
-            <!--   FILA 4: Product Description		 -->
-            <div class="d-flex-col gap-1">
-                <strong>Descripción del Producto: (*)</strong>
-                <textarea class="font-md h-170 p-1 modal-description" name="description">   </textarea>
+            {#   FILA 4: Product Description		 #}
+            <div class="d-flex-col gap-1 bolder">
+                Descripción del Producto: (*)
+                <textarea class="font-md h-170 p-1 fw-normal modal-description" name="description">   </textarea>
             </div>
 
-            <div class="d-flex-col gap-1">
-                <strong>Vista Previa de la Descripción:</strong>
-                <div class="h-170 border-main p-1 font-md scroll-y description-preview "></div>
+            <div class="d-flex-col gap-1 bolder">
+                Vista Previa de la Descripción:
+                <div class="h-170 border-main p-1 font-md fw-normal scroll-y description-preview "></div>
             </div>
 
-            <strong class="grid-col-all">(*) Simbolos:</strong>
+            <b class="grid-col-all">(*) Simbolos:</b>
             <div class="grid-col-all cont-space-between p-2 border-hover"> 
                 <span>** Negrita **</span>
                 <span>-- Linea en blanco</span>
@@ -359,31 +333,30 @@
                 <span>(*) auxiliar</span>
             </div>
 
-            <!--   FILA 5: Images previews		 -->
+            {#  FILA 5: Images previews #}
             <div class="d-flex-col gap-1">
-                <div class="d-flex gap-1">
-                    <strong> Nueva Imagen Preview </strong>
-                    <i class="ri-corner-right-down-line font-lg"></i> 
+                <div class="d-flex gap-1 bolder">
+                    Nueva Imagen Preview
+                    <i class="ri-corner-right-down-line fw-normal font-lg"></i> 
                 </div>
 
-                <!-- Contenedor para las previsualizaciones -->
+                {# Contenedor para las previsualizaciones #}
                 <div class="border-main d-grid cont-grid-234 gap-1 cont-img-100 cont-img-previews">  </div>
             </div>
 
-            <!-- 	Apply changes and submit images 	 -->
+            {# 	Apply changes and submit images  #}
             <div class="d-flex-col">
-                <!-- Añade multiple y name como array <input type="file" class="image-input" name="images"> -->
+                {# Añade multiple y name como array <input type="file" class="image-input" name="images"> #}
                 <input type="file" class="image-input" name="images" multiple>
-                <!-- 	<input type="file" class="image-input" name="images" multiple accept="image/*" capture="camera">	 -->
+                {# 	<input type="file" class="image-input" name="images" multiple accept="image/*" capture="camera"> #}
         
                 <div class="d-flex-col-row justify-center align-center gap-2 mt-2 mb-1">
-                    <button class="btn gap-1 btn-main btn-36 w-100" type="submit" value="update"> 
-                        <i class="ri-edit-2-line font-lg"></i>
-                        <b>Aplicar Cambios</b>
+                    <button class="btn gap-1 btn-main btn-36 w-100 bolder" type="submit" value="update"> 
+                        <i class="ri-edit-2-line font-lg fw.normal"></i>Aplicar Cambios
                     </button>
 
-                    <button class="btn btn-close btn-36 w-100 form-modal-cancel" type="button">
-                        <b>Cancelar</b>
+                    <button class="btn btn-close btn-36 w-100 form-modal-cancel bolder" type="button">
+                        Cancelar
                     </button>
                 </div>
 
@@ -391,6 +364,5 @@
                 <p class="font-md"><b>(**)</b> Si cancelas perderás los cambios realizados...</p>
             </div>
         </div>
-
     </div>
 </form>

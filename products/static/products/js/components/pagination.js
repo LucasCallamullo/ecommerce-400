@@ -100,24 +100,29 @@ window.ProductStore = {
     },
 
 
-    getUniqueBrands() {
+    getUniqueBrands(brands) {
         /**
-         * Obtiene marcas únicas a partir de los productos
-         * @returns {Array<{id: number, name: string}>}
+         * Retrieves the unique brands present in the current list of products.
+         *
+         * This method uses the `brand_id` of each product in `this.data` to filter
+         * the provided list of `brands`, returning only those that are associated
+         * with the products. The result is sorted alphabetically by brand name.
+         *
+         * @param {Array<{id: number, name: string, ...}>} brands - The complete list of available brands.
+         * @returns {Array<{id: number, name: string}>} - Array of unique brands present in the products, sorted by name.
          */
-        const brandMap = new Map();
+        
+        // 1. Create a Set of brand_ids present in the current products
+        const brandIdsSet = new Set(this.data.map(p => p.brand_id));
 
-        this.data.forEach(product => {
-            const brand = product.brand;
-            if (brand && !brandMap.has(brand.id)) {
-                brandMap.set(brand.id, { id: brand.id, name: brand.name });
-            }
-        });
+        // 2. Filter the list of brands to only include those that exist in the products
+        const uniqueBrands = brands.filter(brand => brandIdsSet.has(brand.id));
 
-        return Array.from(brandMap.values()).sort((a, b) =>
-            a.name.localeCompare(b.name)
-        );
+        // 3. Sort the filtered brands alphabetically by name
+        return uniqueBrands.sort((a, b) => a.name.localeCompare(b.name));
     },
+
+
     filterByBrand(brandId) {
         /**
          * Filtra los productos por ID de marca
@@ -125,9 +130,8 @@ window.ProductStore = {
          * @returns {Array<Object>}
          */
         if (brandId === 0) return this.data
-        return this.data.filter(product => product.brand?.id === brandId);
+        return this.data.filter(p => p.brand_id === brandId);
     },
-
 
     orderByName() {
         /**

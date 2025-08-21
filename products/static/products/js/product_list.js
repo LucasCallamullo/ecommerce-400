@@ -63,7 +63,7 @@ function updateContBrands(contProducts) {
 
         const labelHTML = /*html*/`
             <label class="d-flex gap-1 radio-brand">
-                <input type="radio" name="brand" value="${b.id}" data-id="${b.id}">
+                <input type="radio" name="brand" value="${b.id}">
                 ${b.name}
             </label>`;
         const wrapper = document.createElement('div');
@@ -72,7 +72,7 @@ function updateContBrands(contProducts) {
     }
 
     // Combinar opción "Todos" con las marcas únicas
-    const brands = [{ id: 0, name: 'Todos' }, ...ProductStore.getUniqueBrands()];
+    const brands = [{ id: 0, name: 'Todos' }, ...ProductStore.getUniqueBrands(window.BRAND_LIST)];
     const fragment = document.createDocumentFragment();
     brands.forEach(brand => { 
         fragment.appendChild(createBrandRadio(brand)); 
@@ -89,7 +89,7 @@ function updateContBrands(contProducts) {
 
             // Ensure the event target is a radio input for brand selection
             if (input.tagName === 'INPUT' && input.type === 'radio' && input.name === 'brand') {
-                const brandId = parseInt(input.dataset.id); // Get the selected brand ID
+                const brandId = parseInt(input.value); // Get the selected brand ID
 
                 // Filter products using the selected brand ID
                 const filtered = ProductStore.filterByBrand(brandId);
@@ -102,7 +102,6 @@ function updateContBrands(contProducts) {
 
         container._hasEvent = true;
     }
-    
 }
 
 

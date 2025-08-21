@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from django.core.cache import cache
-from django.db.models import Prefetch
+from django.db.models import F
 
 # views.py
 from products import filters, utils
@@ -39,7 +39,14 @@ class ProductAPIView(APIView):
             user = request.user
             favorites_ids = get_favs_products(user)
             context = filters.get_context_filtered_products(request)
-            products = context['products'].values(*filters.VALUES_CARDS_LIST).order_by('price', 'id')
+            products = (
+                context['products'].values(*filters.VALUES_CARDS_LIST)
+                .order_by('price', 'id').annotate(
+                    category_id=F("category__id"),
+                    subcategory_id=F("subcategory__id"),
+                    brand_id=F("brand__id"),
+                )
+            )
             
             # Serializar los productos de la página actual    page.object_list
             page_num = request.GET.get('page')
@@ -212,17 +219,32 @@ class ProductImagesView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
     
     def get(self, request, product_id):
+        
+        
         product, error = self._get_product(product_id)
         if error:
             return error
         
-        images = ProductImage.objects.filter(product=product, main_image=False).values_list('image_url', flat=True)
-
-        return Response({
+        # some endpoints need all info from images
+        extra_data = request.query_params.get('all') == 'true'
+        if extra_data:
+            images = ( 
+                ProductImage.objects.filter(product=product)
+                .values('image_url', 'id').order_by('-main_image')
+            )
+        else:
+            images = ( 
+                ProductImage.objects.filter(product=product, main_image=False)
+                .values_list('image_url', flat=True)
+            )
+            
+        response = {
             'product_id': product_id,
             'images': images,
             'count': len(images)
-        }, status=status.HTTP_200_OK)
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
         
     def _get_product(self, product_id):
         # 1. Validar datos de entrada
@@ -236,7 +258,7 @@ class ProductImagesView(APIView):
             return product, None
         except Product.DoesNotExist:
             return None, Response({"success": False, "detail": "No existe el producto."}, status=status.HTTP_404_NOT_FOUND)
-
+        
 
 class BaseProductAPIView(APIView):
     # Estos atributos DEBEN ser definidos en las clases hijas

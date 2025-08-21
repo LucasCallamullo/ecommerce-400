@@ -3,12 +3,8 @@
 // ==============================================================
 //      MODAL FORM TO UPDATE SOME MODEL
 // ==============================================================
-function enrichDatasetModal(dataset, btn) {
-    const object = btn.dataset.object;
-    const action = btn.dataset.action;
-    if (!object || !action) return dataset;
-
-    const objectLabels = {
+function enrichDatasetModal(object, objectName, action) {
+    const objectNames = {
         brand: "Marca",
         category: "Categoría",
         subcategory: "Sub-Categoría",
@@ -17,34 +13,210 @@ function enrichDatasetModal(dataset, btn) {
         banner: "Banner"
     };
 
-    const label = objectLabels[object];
-    if (!label) return dataset;
+    const name = objectNames[objectName];
 
     // Construir valores por defecto dinámicamente
     let fallback;
-    if (["Marca", "Categoría", "Sub-Categoría"].includes(label)) {
+    if (["Marca", "Categoría", "Sub-Categoría"].includes(name)) {
         fallback = {
-            title: `${action === 'create' ? 'Nueva' : 'Editar'} ${label}`,
-            span: label,
+            title: `${action === 'create' ? 'Agregar Nueva' : 'Editar'} ${name}`,
+            span: name,
             ...(action === 'update' ? { oldName: dataset.name } : {})
         };
-    } else if (label === 'Producto') {
+    } else if (['Producto', 'Header', 'Banner'].includes(name)) {
         fallback = {
-            title: `${action === 'create' ? 'Agregar Nuevo' : 'Editar'} ${label}`,
-        };
-    } else if (["Header", "Banner"].includes(label)) {
-        fallback = {
-            title: `${action === 'create' ? 'Crear Nuevo' : 'Editar'} ${label}`,
-            span: label,
+            title: `${action === 'create' ? 'Agregar Nuevo' : 'Editar'} ${name}`,
+            span: name,
         };
     }
 
-    return { ...fallback, ...dataset }; // dataset sobrescribe si define valores
+    return { ...fallback, ...object };     // object sobrescribe si define valores
+}
+
+/*
+
+EXAMPLE 
+updateModalFormInputs({
+    form: myForm,
+    object: { id: 1, name: "abc" },
+    objectName: "product",
+    action: "update",
+    url: some_endpoint
+});
+*/
+async function updateModalFormInputs({
+    form = null,
+    object = {},
+    objectName = '',
+    action = '',
+    url = null
+} = {}) {
+
+    // 1. complete with dynamic info
+    const obj = deepEscape(object);
+    const extraPopulate = enrichDatasetModal(obj, objectName, action);
+
+    // 2. Guardaremos los valores iniciales
+    const initialValues = {};  
+
+    // 3. Hacer fetch asyncrono de get
+    let fetchPromise = null;
+    if (action === 'update' && url) {
+        fetchPromise = fetch(url).then(response => {
+            if (!response.ok) {
+                return null;
+            }
+            return response.json();
+        });
+    }
+
+    // esto va a ser un param opcional que hara referencia a los modal-*
+    const entries = Object.entries(extraPopulate);
+    for (const [key, value] of entries) {
+        // console.log(key, value);
+
+        // Buscar lista de elementos HTML que respeta el patron class="modal-[key]"   
+        const element = form.querySelector(`.modal-${key}`) || null; 
+
+        if (element && element.tagName == "INPUT" ) {
+            
+            // especial format to input decimal/money
+            if (['price'].includes(key)) {
+                const price = formatNumberWithPoints(value);
+                element.value = price;
+                initialValues[key] = price;
+                continue;
+            }
+
+            if (element.type === "checkbox") {
+                // its a bool for available
+                element.checked = (value);
+                initialValues[key] = (value);
+            } else {
+                element.value = value;
+                initialValues[key] = value;
+            }
+            continue;
+        } 
+
+        // Destruye el anterior choice.js y lo recrea por cada vez que se abre el modal
+        else if (["category_id", "brand_id"].includes(key)) {
+
+            // checks initiales sets
+            if (!window.BRAND_LIST || !window.CATEGORIES_LIST) continue;
+            const selectName = key.replace('_id', '');
+            const select = form.querySelector(`.modal-${selectName}`)
+            if (!select || select.tagName != "SELECT") continue;
+
+            // separamos la logica en este caso de select simples con el de subcategory
+            if (selectName === 'category') {
+                
+                // get object with keys dicts category: {...} and subcategories: [{...} ,{...}]
+                const categoryGroup = window.CATEGORIES_LIST.find(c => c.category.id === value);
+
+                // category select init
+                const category = categoryGroup.category;
+                select.value = (category.is_default) ? 0 : category.id;
+                initialValues[key] = select.value;
+                initSelectChoices(select);
+
+                // logic for subcategory in the common case this step is the most regular
+                let subcategory = categoryGroup?.subcategories.find(sc => sc.id === obj.subcategory_id);
+                
+                // in some case some products dont have subcategories for now so...
+                if (!subcategory) {
+                    const catsDefault = window.CATEGORIES_LIST.find(c => c.category.is_default === true);
+                    subcategory = catsDefault?.subcategories.find(sc => sc.id === obj.subcategory_id);
+                    if (!subcategory) continue;
+                }
+               
+                // get label to show
+                let subcatLabel = form.querySelector(`.label-subcat-${category.id}`);
+                if (!subcatLabel) subcatLabel = form.querySelector(`.label-subcat-0`);
+
+                // complete info on select and initial values opn form
+                const subcatSelect = subcatLabel.querySelector('.subcat-select')
+                subcatSelect.value = (subcategory.is_default) ? 0 : subcategory.id;
+
+                const subcategorySelect = form.querySelector('.selected-subcategory');
+                subcategorySelect.value = subcatSelect.value;
+
+                initSelectChoices(subcatSelect);
+                initialValues['subcategory'] = subcatSelect.value;
+                continue;
+            } 
+            else if (selectName === 'brand') {
+                const brand = window.BRAND_LIST.find(b => b.id === value);
+                select.value = (brand.is_default) ? 0 : brand.id;
+                initialValues[key] = select.value;
+                initSelectChoices(select);
+                continue;
+            }
+        }
+
+        /* generic text on modal to changes */
+        else if (["span", "title", "oldName"].includes(key)) {
+            // realmente solo los span tienen como varios lugar donde compeltaran texto
+            const spans = form.querySelectorAll(`.modal-${key}`) || [];
+            spans.forEach(spn => spn.textContent = value)
+
+            continue;
+        }
+    }
+
+    // Esperar fetch solo si es necesario y completar imagenes
+    const contImages = form.querySelector('.cont-modal-images');
+    if (fetchPromise && contImages) {
+        const data = await fetchPromise;
+
+        // Obtener las imágenes del endpoint, ordenadas de True a False
+        const images = data.images || [];
+        const productAlt = `${objectName} ${data.product_id}`
+
+        // set value image_id in initial values form to compare after
+        if (images.length > 0) {
+            initialValues["main_image"] = images[0].id;
+        }
+
+        const imagesHtml = images.map((image, index) => {
+            const img = deepEscape(image);
+            const imgUrl = img.image_url;
+            return /*html*/`
+                <div class="d-flex-col w-100 gap-1">
+                    <!-- Efectos visuales, Y data-main es un valor que recuperamos despues -->
+                    <div class="cont-main-image h-220 ${(index == 0) ? 'border-main' : 'border-secondary'}">
+                        <img src="${imgUrl}" alt="${productAlt}" data-index="${img.id}" 
+                            data-main="${(index == 0) ? "true" : "false"}" class="img-scale-down"/>
+                    </div>
+                    <!-- logica de radio (uno solo como select) para saber cual es la imagen principal -->
+                    <label class="d-flex gap-1">
+                        <input type="radio" name="main_image" value="${img.id}" ${(index == 0) ? 'checked' : ''}>
+                        Principal
+                    </label>
+                    <!-- logica para borrar imagenes recupera todos los id en checkbox -->
+                    <label class="d-flex gap-1">
+                        <input type="checkbox" name="delete_images" value="${img.id}">
+                        Eliminar
+                    </label>
+                </div>
+            `
+        }).join("").replace(/<!--[\s\S]*?-->/g, "");     // Elimina todos los comentarios
+
+        contImages.innerHTML = imagesHtml;
+    }
+
+
+    // Asociamos el diccionario al form
+    form._initialValues = initialValues;
+    /* const entriess = Object.entries(initialValues);
+    for (const [key, value] of entriess) {
+        console.log(key, value);
+    } */
 }
 
 
 /* los parametros son una fila de la tabla y el form Modal que se abre */
-function updateModalFormInputs(btn, form) {
+function updateModalFormInputs2222(btn, form) {
 
     // 1. Verificamos si existe el atributo data-model
     const modelAttr = btn.getAttribute('data-model');
@@ -125,7 +297,7 @@ function updateModalFormInputs(btn, form) {
             // set value in initial values form to compare after
             if (isMain === "True") initialValues["main_image"] = imageId;
         
-            const imageHTML = `
+            const imageHTML = /*html*/`
                 <div class="d-flex-col w-100 gap-1">
                     <div class="cont-100 cont-check-main h-220 ${isMain === "True" ? 'border-main' : 'border-secondary'}">
                         <img 
@@ -170,7 +342,7 @@ function updateModalFormInputs(btn, form) {
             if (isMain === "True") initialValues["main_image"] = imageId;
 
             contHeader.innerHTML = ''
-            const imageHTML = `
+            const imageHTML = /*html*/`
                 <div class="cont-img-100 ${isMain === "True" ? 'border-main' : ''}">
                     <img 
                         src="${value}" 
@@ -212,7 +384,8 @@ function getChangedFields(form) {
         } else {
             currentValue = input.value;
         }
-        // console.log('Value Now: ', currentValue, 'and Value Old: ', oldValue)
+
+        console.log(`Value Now ${key}: `, currentValue, 'and Value Old: ', oldValue)
 
         // Si hay diferencia, lo guardamos directamente como valor nuevo
         if (currentValue != oldValue) {
@@ -261,9 +434,8 @@ function initSelectChoices(element) {
  * 3. Dynamically showing relevant subcategory selects
  * 
  * @param {HTMLElement} form - The parent form element
- * @param {boolean} [choicesInit=false] - Whether to initialize Choices.js
  */
-function subcategorySelectEvents(form, choicesInit = false) {
+function subcategorySelectEvents(form, choicesInit=false) {
     // 1. Configure category selection handler
     const categorySelect = form.querySelector('.category-select');
     categorySelect.addEventListener('change', (e) => {
@@ -272,48 +444,39 @@ function subcategorySelectEvents(form, choicesInit = false) {
 
     // 2. Sync subcategory selections to hidden input
     const subcatInput = form.querySelector('[name="subcategory"]');
-    const subcatSelects = form.querySelectorAll('.subcat-select');
-    subcatSelects.forEach(select => {
-        select.addEventListener('change', (e) => {
-            subcatInput.value = e.target.value; // Store selected value
+    const containerSelects = form.querySelector('.cont-subcat-selects');
+    if (containerSelects) {
+        containerSelects.addEventListener('change', (e) => {
+            const select = e.target;
+            if (select.matches('.subcat-select')) {
+                subcatInput.value = select.value;
+                console.log("Cambió un select:", select.value);
+            }
         });
-    });
+    }
 
     // 3. Manage subcategory visibility
-    const subcatContainers = form.querySelectorAll('.subcat-container');
+    const subcatLabels = form.querySelectorAll('.label-subcat-select');
     function openSelectByCategory(categorySelected) {
         // 3.1 Hide all subcategory containers initially
-        subcatContainers.forEach(container => {
-            container.setAttribute('data-state', 'closed');
-        });
+        subcatLabels.forEach(cont => cont.dataset.state = 'closed');
         
-        // 3.2 Reset and validate selection
-        // subcatInput.value = '0'; // Default value
-        // if (categorySelected === '0' || !categorySelected) return;
+        // 3.2 Show relevant subcategory container
+        const subcatLabel = form.querySelector(`.label-subcat-${categorySelected}`);
 
-        // 3.3 Show relevant subcategory container
-        let subcatContainer;
-        subcatContainer = form.querySelector(`.subcat-cont-${categorySelected}`);
-        if (!subcatContainer) {
-            subcatContainer = form.querySelector('.subcat-cont-0');
-        };
-        if (!subcatContainer) {
-            console.log('bug')
+        if (!subcatLabel) {
             console.log(`.subcat-cont-${categorySelected} y el valor :`, categorySelected)
-            toggleState(subcatContainer); // Show container
             return
         }
-
-        toggleState(subcatContainer); // Show container
+        // 3.3 Show container
+        toggleState(subcatLabel, true); 
 
         // 3.4 Initialize enhanced select if needed
-        const subcatSelect = subcatContainer.querySelector('.subcat-select');
-        if (subcatSelect) {
-            subcatInput.value = subcatSelect.value; // Sync initial value
+        const subcatSelect = subcatLabel.querySelector('.subcat-select');
+        if (subcatSelect) subcatInput.value = subcatSelect.value; // Sync initial value
 
-            // 3.5 Only creates choices instance if the flag is active
-            if (choicesInit) initSelectChoices(subcatSelect);
-        }
+        // 3.5 for logic on selected labels we need to initialize every choice
+        if (choicesInit && subcatSelect) initSelectChoices(subcatSelect);
     };
 
     // Initialize with default category
@@ -336,7 +499,7 @@ function changeMainImageEvent(modalForm) {
     // 2. Handle change events from radio inputs
     imageContainer.addEventListener('change', function(e) {
         // 2.1 Only process events from our target checkboxes
-        if (!e.target.classList.contains('check-main')) return;
+        if (!e.target.matches('input[type="radio"][name="main_image"]')) return;
 
         // 3. Get selected image ID
         const selectedId = e.target.value;
@@ -345,7 +508,7 @@ function changeMainImageEvent(modalForm) {
         const allImages = this.querySelectorAll('img');
         allImages.forEach(img => {
             const imgId = img.dataset.index;
-            const container = img.closest('.cont-check-main');
+            const container = img.closest('.cont-main-image');
 
             // 4.1 Apply visual and data state to selected image
             if (imgId === selectedId) {
