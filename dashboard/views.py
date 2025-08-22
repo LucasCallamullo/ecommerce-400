@@ -73,50 +73,67 @@ def get_dashboard(request, section_name):
         context['products'] = serializer.data
         return JsonResponse(context)
         
-    if section_name == 'store':
+    if section_name == 'headers':
         # Obtener el store con prefetch optimizado
-        store = Store.objects.prefetch_related(
-            Prefetch(
-                'images', 
-                queryset=StoreImage.objects.all().order_by('-main_image'),
-                to_attr='all_images'
-            ),
-        ).get(id=1)
+        store = Store.objects.filter(id=1).only('id').first()
+        if not store:
+            return JsonResponse({'detail': 'No existe esa tienda con ese ID'}, status=404)
+        
+        headers = (
+            StoreImage.objects.filter(store=store)
+            .values('id', 'image_type', 'image_url', 'main_image', 'available')
+            .order_by('-main_image')
+        )
         
         active_headers = []
         inactive_headers = []
         active_banners = []
         inactive_banners = []
-        for img in store.all_images:
-            if img.image_type == 'header':
-                active_headers.append(img) if img.available else inactive_headers.append(img)
+        
+        for img in headers:
+            available = img.get('available', False)
+            image_type = img.get('image_type', 'header')
+            
+            if image_type == 'header':
+                active_headers.append(img) if available else inactive_headers.append(img)
                     
-            elif img.image_type == 'banner':
-                active_banners.append(img) if img.available else inactive_banners.append(img)
+            elif image_type == 'banner':
+                active_banners.append(img) if available else inactive_banners.append(img)
 
         context = {
+            'store': { 'id': store.id },
             'active_headers': active_headers,
             'inactive_headers': inactive_headers,
             'active_banners': active_banners,
-            'inactive_banners': inactive_banners,
+            'inactive_banners': inactive_banners
         }
         
-        html = render_to_string("dashboard/dash_store.html", context)
-        return JsonResponse({"html": html})
+        return JsonResponse(context)
         
         
     if section_name == 'categories':
         context = {}
-        context['brands'] = filters.get_brands(use='panel_admin')
-        context['categories'] = filters.get_categories_n_subcategories(use='panel_admin')
-        html = render_to_string("dashboard/dash_categories.html", context)
-        return JsonResponse({"html": html})
+        context['brands'] = filters.get_serializer_brands(
+            values=('id', 'name', 'is_default', 'image_url'), 
+            exclude_default=False
+        )
+        context['categories'] = filters.get_categories_n_subcategories(
+            from_dashboard=True,
+            values_cat=('id', 'name', 'is_default', 'image_url'),
+            values_sub=('id', 'name', 'is_default', 'image_url', 'category_id')
+        )
+        return JsonResponse(context)
         
 
     context = {'sectionId': section_name}
     html = render_to_string("dashboard/dash_default.html", context)
             
     return JsonResponse({"html": html})
+
+
+
+
+
 
 
 @admin_or_superuser_required

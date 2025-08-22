@@ -163,7 +163,7 @@ window.ProductStore = {
 };
 
 window.ProductStore.setData(window.ProductList || []);
-delete window.ProductList;  // Elimino la variable global
+delete window.ProductList;  // Elimino la variable global obtenida desde el ssr inicial
 
 /**
  * Fetches a product list using the current filters and updates the product view.

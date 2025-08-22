@@ -136,25 +136,40 @@ async function updateDashboardSection(form, tableId, dashSection, extraParams = 
         // 6. Replace the inner HTML of the section specified by the form's data-table attribute
         // const tableSection = document.getElementById(tableId);
         // tableSection.innerHTML = data.html;
+        clearWindowVars();
 
         // 6. Rebind all dynamic events for the updated section
-        if (tableId === 'table-products') {
-            // rowsProductsEvents(tableSection);     // For row click/modal functionality
-            // eventsTableProducts(tableSection);    // For forms and filters
+        const tableHandlers = {
+            'table-products': () => {
+                // set new data in object
+                window.ProductStore.setData(data.products);
 
-            // set new data
-            window.ProductStore.setData(data.products);
+                // this is from sections/products/table.js
+                const table = dashSection.querySelector('#table-products');
+                renderProductsTable(table, data.products, data);
 
-            // this is from sections/products/table.js
-            const table = dashSection.querySelector('#table-products');
-            renderProductsTable(table, data.products, data);
+                // update some info dynamic
+                updateSpansFiltersTable(dashSection, data);
 
-            // update some info dynamic
-            updateSpansFiltersTable(dashSection, data);
+                // this is from sections/products/pagination.js
+                const contBtnsPage = dashSection.querySelector('#cont-pagination');
+                updateContPagination(contBtnsPage, data.pagination);
+            },
+            'table-categories': () => {
+                console.log('Update categories section');
+                // lógica para categories
+            },
+            'table-brands': () => {
+                console.log('Update brands section');
+                // lógica para brands
+            }
+        };
 
-            // this is from sections/products/pagination.js
-            const contBtnsPage = dashSection.querySelector('#cont-pagination');
-            updateContPagination(contBtnsPage, data.pagination);
+        // Ejecutar la función correspondiente
+        if (tableHandlers[tableId]) {
+            tableHandlers[tableId]();
+        } else {
+            console.warn(`Unknown tableId: ${tableId}`);
         }
 
     } catch (error) {
@@ -167,6 +182,10 @@ async function updateDashboardSection(form, tableId, dashSection, extraParams = 
 }
 
 
+function clearWindowVars() {
+    // centralizo todos los borrados en memoria de objetos que ya no necesite o vere si los dejo
+    window.HEADERS_IMAGES = null;
+}
 
 
 
@@ -187,8 +206,9 @@ function eventsOnDashboard(sectionId, dashSection, data=null) {
 
             // render container csr stuff
             if (!dashSection._init) {
-                renderProductsDashboard(dashSection, data);
                 dashSection._init = true;
+                /* render first time dashboard section */
+                renderProductsDashboard(dashSection, data);
 
                 /* Special evento from sections/products/pagination.js */
                 historyPopState();
@@ -220,13 +240,49 @@ function eventsOnDashboard(sectionId, dashSection, data=null) {
             console.log("hacer futuro")
         },
         categories: (dashSection) => {
-            // Initialize tabs to interaction in section
-            openTabsCategories(dashSection);
-            formEventsCategories(dashSection, overlay);
+            // render container csr stuff
+            if (!dashSection._init) {
+                dashSection._init = true;
+                /* render first time dashboard section */
+                renderCategoriesDashboard(dashSection, data);
+                
+                // Initialize tabs to interaction in section
+                openTabsCategories(dashSection);
+                formEventsCategories(dashSection, overlay);
+            } 
+            // for updates after apply changes on some model
+            else {
+                const tableCategories = dashSection.querySelector('#table-categories');
+                const tableBrands = dashSection.querySelector('#table-brands');
+                renderTableBrands(tableBrands, data.brands);
+                renderTableCategories(tableCategories, data.categories);
+            }
+
+            // set initial with values
+            window.BrandStore.setData(data.brands, true);
+            window.CategoriesStore.setData(data.categories, true);
         },
-        store: (dashSection) => {
-            // Initialize tabs to interaction in section
-            formHeadersImages(dashSection, overlay);
+        headers: (dashSection) => {
+            // render container csr stuff the first time
+            if (!dashSection._init) {
+                dashSection._init = true; 
+                /* render first time dashboard section */
+                renderHeadersDashboard(dashSection, data);
+                
+                // Initialize tabs to interaction in section
+                formHeadersImages(dashSection, overlay);
+            } 
+            // for updates after apply changes on some model
+            else {
+                const table = dashSection.querySelector('#table-headers');
+                renderTablesHeadersBanners(table, data)
+            }
+            
+            // set initial list of headers
+            window.HEADERS_IMAGES = (data) ? {
+                headers: [...data.active_headers, ...data.inactive_headers],
+                banners: [...data.active_banners, ...data.inactive_banners]
+            } : null;
         },
     };
 
@@ -235,7 +291,6 @@ function eventsOnDashboard(sectionId, dashSection, data=null) {
     if (handler) handler(dashSection);
 
     analizarHTML();
-    
 };
 
 
@@ -271,7 +326,7 @@ async function getDashboardSection(sectionId) {
     if (!dashSection) throw new Error(`Section "${sectionId}" not found in DOM`);
 
     // 3. Update DOM with new content
-    const excludeSections = ['products']; // lista de secciones a excluir
+    const excludeSections = ['products', 'categories', 'headers']; // lista de secciones a excluir
     if (!excludeSections.includes(sectionId)) {
         dashSection.innerHTML = data.html;
     }
@@ -329,5 +384,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // this is for update some dashboard tab
-    buttons[3].click()
+    buttons[5].click()
 });

@@ -59,7 +59,7 @@ function renderProductsModalForm() {
                     <select class="category-select modal-category" name="category">
                         <option value="0">Sin Categoría</option>
                         <!-- generamos los option con la lista que mandamos -->
-                        ${window.CATEGORIES_LIST.map((item) => {
+                        ${window.CategoriesStore.getData().map((item) => {
                             const cat = deepEscape(item.category)
                             return /*html*/`
                                 <option value="${cat.id}">
@@ -74,7 +74,7 @@ function renderProductsModalForm() {
                 <input type="hidden" name="subcategory" class="selected-subcategory" value="0">
                 <!-- subcategorias select -->
                 <div class="d-flex-col gap-1 cont-subcat-selects">
-                    ${window.CATEGORIES_LIST.map((item, index) => {
+                    ${window.CategoriesStore.getData().map((item, index) => {
                         return /*html*/`
                             ${index === 0 ? /*html*/`
                                 <label class="gap-1 label-subcat-select label-subcat-0" data-state="closed">
@@ -111,7 +111,7 @@ function renderProductsModalForm() {
                     Marca:
                     <select class="brand-select modal-brand" name="brand">
                         <option value="0">Sin Marca</option>
-                        ${window.BRAND_LIST.map(item => {
+                        ${window.BrandStore.getData().map(item => {
                             const brand = deepEscape(item);
                             if (brand.is_default) return '';    // salter brand por defecto
                             return /*html*/`
@@ -252,7 +252,7 @@ function renderProductsFormFilters() {
             <select class="category-select text-truncate" name="category">
                 <option value="-1">Seleccione una categoría</option>
                 <option value="0">Sin Categoría</option>
-                ${window.CATEGORIES_LIST.map((item) => {
+                ${window.CategoriesStore.getData().map((item) => {
                     const cat = deepEscape(item.category)
                     return /*html*/`
                         <option value="${cat.id}">
@@ -268,7 +268,7 @@ function renderProductsFormFilters() {
         <input type="hidden" name="subcategory" class="selected-subcategory" value="-1">
 
         <div class="d-flex-col gap-1 mt-2 cont-subcat-selects">
-            ${window.CATEGORIES_LIST.map((item, index) => {
+            ${window.CategoriesStore.getData().map((item, index) => {
                 return /*html*/`
                     ${index === 0 ? /*html*/`
                         <label class="gap-1 label-subcat-select label-subcat-0 label-subcat--1" data-state="closed">
@@ -453,14 +453,12 @@ function renderProductsTableInit() {
     return { header, table, contBtnsPage };
 }
 
-
 function renderProductsDashboard(dashSection, data) {
-    // set initial sets
-    window.BRAND_LIST = data.brands;
-    window.CATEGORIES_LIST = data.categories;
+    // set initial sets with info if dont have complete info from another sections
+    if (window.BrandStore && !window.BrandStore.loaded) window.BrandStore.setData(data.brands);
+    if (window.CategoriesStore && !window.CategoriesStore.loaded) window.CategoriesStore.setData(data.categories);
 
     dashSection.innerHTML = '';
-
     // Create an in-memory lightweight container for DOM nodes
     // This reduces layout thrashing by batching DOM insertions
     const fragment = document.createDocumentFragment();

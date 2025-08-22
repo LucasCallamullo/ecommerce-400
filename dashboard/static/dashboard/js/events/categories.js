@@ -14,7 +14,13 @@
  */
 function formEventsCategories(dashSection, overlay) {
     const form = dashSection.querySelector('#form-modal-categories');
-    const modalClose = form.querySelector('.form-modal-close');
+    const modalClose = form.querySelector('.btn-modal-close');
+
+    const getObjectMap = {
+        'category': (objectId) => window.CategoriesStore.getCategoryById(objectId),
+        'subcategory': (objectId) => window.CategoriesStore.getSubcategoryById(objectId),
+        'brand': (objectId) => window.BrandStore.getBrandById(objectId)
+    }
 
     // Configura el modal UNA VEZ y obtén el método `open`
     const { open } = setupToggleableElement({
@@ -27,14 +33,28 @@ function formEventsCategories(dashSection, overlay) {
             initInputImage(form);
             initModalCancelBtns(form, modalClose);
 
-            // c) Update the form inputs based on the selected row's data
-            updateModalFormInputs(btn, form);
+            // b) Set selects Choices for brands and categories
+            const categorySelect = form.querySelector('.category-select');
+            initSelectChoices(categorySelect);
 
-            // update dataset info
+            // c) Update the form inputs based on the selected row's data
+            const action = btn.dataset.action;    // update, create
+            const objectId = parseInt(btn.dataset.index) || 0;
+            const objectName = btn.dataset.object;    // 'category', 'subcategory', 'brand'
+            const object = (objectId && action == 'update') ? getObjectMap[objectName](objectId) : null;
+
+            updateModalFormInputs({
+                form: form,
+                object: object,    // object || null
+                objectName: objectName,    // 'category', 'subcategory', 'brand'
+                action: action    // update, create
+            });
+
+            // update dataset info btn to submit, and form atributtes
             const btnSubmit = form.querySelector('.btn-form-submit');
-            btnSubmit.dataset.action = btn.dataset.action    // update, create
-            form.dataset.model = btn.dataset.object
-            form.dataset.index = btn.dataset.index
+            btnSubmit.dataset.action = action;    // update, create
+            form.dataset.model = objectName;    // 'category', 'subcategory', 'brand'
+            form.dataset.index = objectId;
 
             // Reinicia el checkbox y Cierra la sección si estaba abierta
             let modalCheckDel = form.querySelector('.check-delete');
@@ -44,7 +64,7 @@ function formEventsCategories(dashSection, overlay) {
 
             // Reinicia el estado siempre (evita conflictos visuales/lógicos)
             let flag;
-            let contUpdates = form.querySelectorAll('.cont-block-update');
+            let contUpdates = form.querySelectorAll('.cont-grid-update');
             contUpdates.forEach(cont => {
                 flag = btn.dataset.action === 'update';
                 toggleState(cont, flag);
@@ -56,7 +76,7 @@ function formEventsCategories(dashSection, overlay) {
                 toggleState(cont, flag);
             });
 
-            let contSubcats = form.querySelectorAll('.cont-block-subcats');
+            let contSubcats = form.querySelectorAll('.cont-grid-subcats');
             contSubcats.forEach(cont => {
                 flag = btn.dataset.openSelect === 'true';
                 toggleState(cont, flag);
@@ -67,9 +87,8 @@ function formEventsCategories(dashSection, overlay) {
         }
     });
 
-    // Delegación de eventos en tableSection
-    const tableCategories = dashSection.querySelector('#table-categories');
-    tableCategories.addEventListener('click', (e) => {
+    // Delegación de eventos en dashSection
+    dashSection.addEventListener('click', (e) => {
         let btn = e.target.closest('.btn-open-form-modal');
         if (!btn) return;
         open({ btn });
@@ -90,12 +109,15 @@ function formEventsCategories(dashSection, overlay) {
     // agrega una vez el evento al form to explicit delete question
     const modalCheckDel = form.querySelector('.check-delete');
     const contCheckDel = form.querySelector('.cont-delete-btn');
+    if (!modalCheckDel._hasEvent) {
+        modalCheckDel._hasEvent = true;
 
-    modalCheckDel.addEventListener('change', () => {
-        // ambas funciones vienen de base .js
-        let isOpen = toggleState(contCheckDel)
-        if (isOpen) scrollToSection(contCheckDel)
-    });
+        modalCheckDel.addEventListener('change', () => {
+            // ambas funciones vienen de base .js
+            let isOpen = toggleState(contCheckDel)
+            if (isOpen) scrollToSection(contCheckDel)
+        });
+    };
 }
 
 

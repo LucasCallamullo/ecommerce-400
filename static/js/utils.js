@@ -29,11 +29,8 @@ function analizarHTML() {
     console.log(`→ KB: ${kb}`);
     console.log(`→ MB: ${mb}`);
 }
-
-analizarHTML();
-
 // Elementos con muchos hijos
-    /*
+/*
     const elementosConMuchosHijos = [...document.querySelectorAll("*")]
         .map(el => ({ tag: el.tagName, count: el.children.length, el }))
         .filter(item => item.count > 50)
@@ -49,7 +46,7 @@ analizarHTML();
     }
 
     console.timeEnd("⏱️ Tiempo de análisis");
-    */
+*/
 
 
 function escapeHTML(str) {

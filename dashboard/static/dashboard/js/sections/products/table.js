@@ -64,7 +64,7 @@ function renderProductsTable(table, products, extraParams = null) {
     // para el caso donde si hay productos en la lista..
 
     // Indexar por id, for best performance
-    const categoryMap = Object.fromEntries(window.CATEGORIES_LIST.map(c => [c.category.id, c.category]));
+    const categoryMap = Object.fromEntries(window.CategoriesStore.getData().map(c => [c.category.id, c.category]));
     /*  for now we not use this
     const brandMap = Object.fromEntries(brands.map(b => [b.id, b]));
     const subcategoryMap = Object.fromEntries(

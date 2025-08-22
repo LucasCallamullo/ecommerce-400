@@ -5,11 +5,13 @@
 
 {% block extra_head %}
     {# Add extra head (style.css, title, etc) content here #}
-     <title>Dashboard | Admin</title>
-     <link href="{% static 'dashboard/css/dash_form_basic.css' %}" rel="stylesheet">
-     <link href="{% static 'dashboard/css/dashboard.css' %}" rel="stylesheet">
-     <link href="{% static 'dashboard/css/choices.css' %}" rel="stylesheet">
-
+    <title>Dashboard | Admin</title>
+    {% compress css %}
+        <link href="{% static 'dashboard/css/dash_form_basic.css' %}" rel="stylesheet">
+        <link href="{% static 'dashboard/css/dashboard.css' %}" rel="stylesheet">
+        <link href="{% static 'dashboard/css/choices.css' %}" rel="stylesheet">
+    {% endcompress %}
+     
     {# CSS CHOICES #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 
@@ -59,7 +61,7 @@
         </button>
 
         {# Store #}
-        <button class="btn btn-main btn-dashboard" data-section="store">
+        <button class="btn btn-main btn-dashboard" data-section="headers">
             <i class="ri-store-2-line font-xl"></i>
             <strong class="d-flex justify-start align-center font-md"> Tienda </strong>
         </button>
@@ -91,7 +93,7 @@
     <section id="categories" class="dashboard-section"></section>
 
     {# Store #}
-    <section id="store" class="dashboard-section"></section>
+    <section id="headers" class="dashboard-section"></section>
 
     {# Estadisticas #}
     <section id="statistics" class="dashboard-section"></section>
@@ -145,26 +147,35 @@
         };
     </script>
     
-    {# Add extra scripts.js here #}
-    <script src="{% static 'dashboard/js/generic/forms_utils.js' %}"></script>
-    <script src="{% static 'dashboard/js/generic/modal_form.js' %}"></script>
-    <script src="{% static 'dashboard/js/endpoints/images.js' %}"></script>
+    {% compress js %}
+        {# This generic and common to all dashboard sections #}
+        <script src="{% static 'dashboard/js/generic/forms_utils.js' %}"></script>
+        <script src="{% static 'dashboard/js/generic/modal_form.js' %}"></script>
+        <script src="{% static 'dashboard/js/endpoints/images.js' %}"></script>
 
-    <script src="{% static 'dashboard/js/sections/products/pagination.js' %}"></script>
-    <script src="{% static 'dashboard/js/sections/products/table.js' %}"></script>
-    <script src="{% static 'dashboard/js/sections/products/section_init.js' %}"></script>
-    <script src="{% static 'dashboard/js/events/products.js' %}"></script>
-    <script src="{% static 'dashboard/js/endpoints/products.js' %}"></script>
+        {# Inicializan objetos con metodos para centralizar filtrados o logica en general #}
+        <script src="{% static 'dashboard/js/sections/products/product_store.js' %}"></script>
+        <script src="{% static 'dashboard/js/sections/categories/categories_store.js' %}"></script>
 
-    <script src="{% static 'dashboard/js/events/categories.js' %}"></script>
-    <script src="{% static 'dashboard/js/endpoints/categories.js' %}"></script>
+        {# js propios de la section de products para realizar todas sus acciones #}
+        <script src="{% static 'dashboard/js/sections/products/pagination.js' %}"></script>
+        <script src="{% static 'dashboard/js/sections/products/table.js' %}"></script>
+        <script src="{% static 'dashboard/js/sections/products/section_init.js' %}"></script>
+        <script src="{% static 'dashboard/js/events/products.js' %}"></script>
+        <script src="{% static 'dashboard/js/endpoints/products.js' %}"></script>
 
-    <script src="{% static 'dashboard/js/events/headers.js' %}"></script>
-    <script src="{% static 'dashboard/js/endpoints/headers.js' %}"></script>
+        {# js propios de la section de categories para realizar todas sus acciones #}
+        <script src="{% static 'dashboard/js/sections/categories/section_init.js' %}"></script>
+        <script src="{% static 'dashboard/js/events/categories.js' %}"></script>
+        <script src="{% static 'dashboard/js/endpoints/categories.js' %}"></script>
+
+        {# js propios de la section de headers para realizar todas sus acciones #}
+        <script src="{% static 'dashboard/js/sections/headers/section_init.js' %}"></script>
+        <script src="{% static 'dashboard/js/events/headers.js' %}"></script>
+        <script src="{% static 'dashboard/js/endpoints/headers.js' %}"></script>
 
 
-    
-    <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
-
+        <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+    {% endcompress %}
      
 {% endblock extra_scripts %}

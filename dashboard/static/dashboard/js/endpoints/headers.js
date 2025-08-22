@@ -48,8 +48,8 @@ function validFormHeader(form, action) {
             const formData = new FormData(form);
 
             // Extract new values for creation
-            dataSend["main_image"] = formData.get('new_main_image') === 'yes';
-            dataSend["available"] = formData.get('new_available') === 'no';
+            dataSend["main_image"] = formData.get('main_image') === 'yes'; // 'yes' means true
+            dataSend["available"] = formData.get('available') === 'no'; // 'no' means true
             break;
         }
 
@@ -173,7 +173,7 @@ async function endpointsHeadersImages(form, action) {
             if (btnCloseForm) btnCloseForm.click(); // Close modal if exists
 
             // Refresh data on dashboard (AJAX)
-            getDashboardSection('store');
+            getDashboardSection('headers');
         },
 
         // 7. Optional: Submit animation

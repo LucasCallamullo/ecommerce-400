@@ -14,8 +14,14 @@ function formHeadersImages(dashSection, overlay) {
     const contCheckDel = form.querySelector('.cont-delete-btn');
 
     // e) Blocks to toggle between update and create UI
-    const contUpdates = form.querySelectorAll('.cont-block-update');
-    const contCreates = form.querySelectorAll('.cont-block-create');
+    const contUpdates = form.querySelectorAll('.cont-grid-update, .cont-flex-update');
+    const contCreates = form.querySelectorAll('.cont-grid-create, .cont-flex-create');
+
+    // este window.HEADERS_IMAGES viene dashboard.js para ver mas info
+    const getObjectMap = {
+        'header': (objectId) => window.HEADERS_IMAGES.headers.find(h => h.id === objectId) || null,
+        'banner': (objectId) => window.HEADERS_IMAGES.banners.find(b => b.id === objectId) || null
+    }
 
     // Set up the modal only once and get its `open` method
     const { open } = setupToggleableElement({
@@ -35,14 +41,24 @@ function formHeadersImages(dashSection, overlay) {
             modalCheckDel.checked = false; 
             toggleState(contCheckDel, false);
 
-            // c) Fill in the form inputs based on the data from the clicked button
-            updateModalFormInputs(btn, form);
+            // c) Update the form inputs based on the selected row's data
+            const action = btn.dataset.action;    // update, create
+            const objectId = parseInt(btn.dataset.index) || 0;
+            const objectName = btn.dataset.object;    // 'header', 'banner'
+            const object = (objectId && action == 'update') ? getObjectMap[objectName](objectId) : null;
+
+            updateModalFormInputs({
+                form: form,
+                object: object,    // object || null
+                objectName: objectName,    // 'category', 'subcategory', 'brand'
+                action: action    // update, create
+            });
 
             // d) Update internal dataset values used for submission
             const btnSubmit = form.querySelector('.btn-form-submit');
-            btnSubmit.dataset.action = btn.dataset.action;  // e.g., "create" or "update"
-            form.dataset.model = btn.dataset.object;
-            form.dataset.index = btn.dataset.index;
+            btnSubmit.dataset.action = action;  // e.g., "create" or "update"
+            form.dataset.model = objectName;
+            form.dataset.index = objectId;
 
             // e) Toggle visibility of update/create blocks
             const isUpdate = btn.dataset.action === 'update';

@@ -21,7 +21,7 @@ function enrichDatasetModal(object, objectName, action) {
         fallback = {
             title: `${action === 'create' ? 'Agregar Nueva' : 'Editar'} ${name}`,
             span: name,
-            ...(action === 'update' ? { oldName: dataset.name } : {})
+            ...(action === 'update' ? { oldName: object.name } : {})
         };
     } else if (['Producto', 'Header', 'Banner'].includes(name)) {
         fallback = {
@@ -73,7 +73,7 @@ async function updateModalFormInputs({
     // esto va a ser un param opcional que hara referencia a los modal-*
     const entries = Object.entries(extraPopulate);
     for (const [key, value] of entries) {
-        // console.log(key, value);
+        console.log(key, value);
 
         // Buscar lista de elementos HTML que respeta el patron class="modal-[key]"   
         const element = form.querySelector(`.modal-${key}`) || null; 
@@ -103,7 +103,9 @@ async function updateModalFormInputs({
         else if (["category_id", "brand_id"].includes(key)) {
 
             // checks initiales sets
-            if (!window.BRAND_LIST || !window.CATEGORIES_LIST) continue;
+            if (!window.BrandStore || !window.BrandStore.loaded) continue;
+            if (!window.CategoriesStore || !window.CategoriesStore.loaded) continue;
+            // if (!window.BrandStore || !window.CATEGORIES_LIST) continue;
             const selectName = key.replace('_id', '');
             const select = form.querySelector(`.modal-${selectName}`)
             if (!select || select.tagName != "SELECT") continue;
@@ -112,29 +114,25 @@ async function updateModalFormInputs({
             if (selectName === 'category') {
                 
                 // get object with keys dicts category: {...} and subcategories: [{...} ,{...}]
-                const categoryGroup = window.CATEGORIES_LIST.find(c => c.category.id === value);
+                // const categoryGroup = window.CATEGORIES_LIST.find(c => c.category.id === value);
+                const category = deepEscape(window.CategoriesStore.getCategoryById(value));
+                if (!category) continue;
 
                 // category select init
-                const category = categoryGroup.category;
+                // const category = categoryGroup.category;
                 select.value = (category.is_default) ? 0 : category.id;
                 initialValues[key] = select.value;
                 initSelectChoices(select);
 
                 // logic for subcategory in the common case this step is the most regular
-                let subcategory = categoryGroup?.subcategories.find(sc => sc.id === obj.subcategory_id);
-                
-                // in some case some products dont have subcategories for now so...
-                if (!subcategory) {
-                    const catsDefault = window.CATEGORIES_LIST.find(c => c.category.is_default === true);
-                    subcategory = catsDefault?.subcategories.find(sc => sc.id === obj.subcategory_id);
-                    if (!subcategory) continue;
-                }
-               
+                const subcategory = window.CategoriesStore.getSubcategoryWithFallback(obj.subcategory_id);
+                if (!subcategory) continue;
+
                 // get label to show
                 let subcatLabel = form.querySelector(`.label-subcat-${category.id}`);
                 if (!subcatLabel) subcatLabel = form.querySelector(`.label-subcat-0`);
 
-                // complete info on select and initial values opn form
+                // complete info on select and initial values on form
                 const subcatSelect = subcatLabel.querySelector('.subcat-select')
                 subcatSelect.value = (subcategory.is_default) ? 0 : subcategory.id;
 
@@ -143,15 +141,15 @@ async function updateModalFormInputs({
 
                 initSelectChoices(subcatSelect);
                 initialValues['subcategory'] = subcatSelect.value;
-                continue;
+                
             } 
             else if (selectName === 'brand') {
-                const brand = window.BRAND_LIST.find(b => b.id === value);
+                const brand = window.BrandStore.getBrandById(value);
                 select.value = (brand.is_default) ? 0 : brand.id;
                 initialValues[key] = select.value;
                 initSelectChoices(select);
-                continue;
             }
+            continue;
         }
 
         /* generic text on modal to changes */
@@ -159,35 +157,56 @@ async function updateModalFormInputs({
             // realmente solo los span tienen como varios lugar donde compeltaran texto
             const spans = form.querySelectorAll(`.modal-${key}`) || [];
             spans.forEach(spn => spn.textContent = value)
-
             continue;
+        } 
+
+        else if (["available", "main_image"].includes(key)) {
+            const radios = form.querySelectorAll(`input[name=${key}]`);
+            // stupids checks
+            if (!["header", "banner"].includes(objectName) || !radios.length) continue;
+
+            // Esta logica se aplica para dar el valor inverso en available
+            const preValue = (key == 'available') ? !value : value;
+            const newValue = (preValue) ? "yes" : "no";
+            radios.forEach(r => { r.checked = (r.value === newValue) });
+            initialValues[key] = newValue;
         }
     }
 
-    // Esperar fetch solo si es necesario y completar imagenes
-    const contImages = form.querySelector('.cont-modal-images');
-    let description = null;
-    if (fetchPromise && contImages) {
-        const data = await fetchPromise;
 
-        // Obtener las imágenes del endpoint, ordenadas de True a False
-        const images = data.images || [];
-        const productAlt = `${objectName} ${data.product.id}`
-        description = data.product.description
+    function populateContModalImages(contImages, images, extraData=null) {
+        if (!extraData.hasUrl) {
+            // si todavía no tiene imagen simplemente mostramos un mensaje referencial
+            contImages.innerHTML = /*html*/`
+                <span class="bolder text-secondary"> Todavía no tiene imagen actual.</span>
+            `.trim();
+            return;
+        } 
 
-        // set value image_id in initial values form to compare after
-        if (images.length > 0) {
-            initialValues["main_image"] = images[0].id;
+        // para este caso 'headers', 'banners' pasamos un unico objeto y completamos en base al mismo
+        else if (extraData.isHeader) {
+            const header = images;    
+            contImages.innerHTML = /*html*/`
+                <div class="cont-img-100-off ${(header.main_image) ? 'border-main' : ''}">
+                    <img src="${header.image_url}" alt="${objectName} ${header.id}" 
+                        data-index="${header.id}" data-main="${(header.main_image)}"
+                        class="img-scale-down ${(header.main_image) ? 'border-main' : ''}"
+                    />
+                </div>
+            `.trim();
+            return;
         }
 
+        const imageAlt = `${objectName} ${extraData.id}`
         const imagesHtml = images.map((image, index) => {
             const img = deepEscape(image);
             const imgUrl = img.image_url;
+
             return /*html*/`
                 <div class="d-flex-col w-100 gap-1">
                     <!-- Efectos visuales, Y data-main es un valor que recuperamos despues -->
                     <div class="cont-main-image h-220 ${(index == 0) ? 'border-main' : 'border-secondary'}">
-                        <img src="${imgUrl}" alt="${productAlt}" data-index="${img.id}" 
+                        <img src="${imgUrl}" alt="${imageAlt}" data-index="${img.id}" 
                             data-main="${(index == 0) ? "true" : "false"}" class="img-scale-down"/>
                     </div>
                     <!-- logica de radio (uno solo como select) para saber cual es la imagen principal -->
@@ -205,6 +224,36 @@ async function updateModalFormInputs({
         }).join("").replace(/<!--[\s\S]*?-->/g, "");     // Elimina todos los comentarios
 
         contImages.innerHTML = imagesHtml;
+    }
+
+    // Esperar fetch solo si es necesario y completar imagenes
+    const contImages = form.querySelector('.cont-modal-images');
+    const flagUrl = (extraPopulate.image_url) ? true : false;
+
+    // this is for update modal images from categories, subcategories, brands
+    if (contImages && ['category', 'subcategory', 'brand'].includes(objectName)) {
+        // creamos nuestro objeto con datos propios del objeto que pasamos antes
+        const images = [{image_url: extraPopulate.image_url, id: extraPopulate.id}];
+        populateContModalImages(contImages, images, {id: extraPopulate.id, hasUrl: flagUrl});
+    }
+    else if (contImages && ['header', 'banner'].includes(objectName)) {
+        populateContModalImages(contImages, extraPopulate, { hasUrl: flagUrl, isHeader: true });
+    }
+
+    // this is for complete with extra_data from fetch on products sections
+    let description = null;
+    if (fetchPromise && contImages) {
+        const data = await fetchPromise;
+
+        // Obtener las imágenes del endpoint, ordenadas de True a False
+        const images = data.images || [];
+        description = data.product.description
+
+        // set value image_id in initial values form to compare after
+        if (images.length > 0) {
+            initialValues["main_image"] = images[0].id;
+        }
+        populateContModalImages(contImages, images, {id: data.product.id});
     }
 
     // e) Load and set the product description dynamically into the modal
@@ -360,58 +409,6 @@ function descriptionModalEvents(form, description) {
 
 
     return textarea.value;    // return to set initial values form
-}
-
-
-/* los parametros son una fila de la tabla y el form Modal que se abre */
-function updateModalFormInputs2222(btn, form) {
-
-    // 1. Verificamos si existe el atributo data-model
-    const modelAttr = btn.getAttribute('data-model');
-    const datasetInit = modelAttr ? JSON.parse(modelAttr) : {}; ;    
-    const dataset = enrichDatasetModal(datasetInit, btn);
-    // console.log("Dataset enriquecido:\n", JSON.stringify(dataset, null, 2));
-
-    // 2. Guardaremos los valores iniciales
-    const initialValues = {};  
-
-    // 3. Completamos dinamicamente a partir del data-model formateado, para eso deben existir las clases que
-    // respeten el patron modal-key
-    let flagContImages = false;
-
-    Object.entries(dataset).forEach(([key, value]) => {
-
-        // Buscar input con id="modal-[key]"
-        const input = form.querySelector(`.modal-${key}`) || null;
-
-        // optional for headers and banners
-        if (key.startsWith("header-")) { 
-            const contHeader = form.querySelector('.header-modal-images');
-            if (!contHeader) return;
-
-            const [, isMain, imageId] = key.split("-");
-
-            // set value in initial values form to compare after
-            if (isMain === "True") initialValues["main_image"] = imageId;
-
-            contHeader.innerHTML = ''
-            const imageHTML = /*html*/`
-                <div class="cont-img-100 ${isMain === "True" ? 'border-main' : ''}">
-                    <img 
-                        src="${value}" 
-                        alt="Header/Banner image" 
-                        data-index="${imageId}" 
-                        data-main="${isMain}"
-                        class="img-scale-down ${isMain === "True" ? 'border-main' : ''}"
-                    />
-                </div>
-            `;
-            contHeader.insertAdjacentHTML('beforeend', imageHTML);
-        }
-    });
-
-    // Asociamos el diccionario al form
-    form._initialValues = initialValues;
 }
 
 

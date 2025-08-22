@@ -5,7 +5,9 @@
 */ 
 .form-modal[data-state="open"] {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; 
+    align-items: flex-start;
+    justify-content: flex-start;
     width: 90%;
     max-width: 1300px;
     pointer-events: auto; 
@@ -58,24 +60,39 @@ input[type="checkbox"]:checked::after {
     color: var(--text-primary);
 }
 
-.justify-self-end { justify-self: flex-start; }
-.justify-self-center { justify-self: center; }
-
-.cont-block-update[data-state='closed'],
-.cont-block-create[data-state='closed'],
-.cont-block-subcats[data-state='closed'] {
+/* nuevos agregados para mejorar performance del modal categories */
+.cont-grid-update[data-state='closed'],
+.cont-grid-create[data-state='closed'],
+.cont-grid-subcats[data-state='closed'],
+.cont-delete-btn[data-state='closed'],
+.cont-flex-update[data-state='closed'],
+.cont-flex-create[data-state='closed'] {
     display: none;
 }
 
-.cont-block-subcats[data-state='open'] {
-    display: block;
+/*
+    .cont-grid-update -> mostrar/ocultar dinamicamente segun tipo de form
+    .cont-grid-create -> mostrar/ocultar dinamicamente segun tipo de form
+    .cont-grid-subcats -> mostrar/ocultar dinamicamente segun si es form de subcategorias
+    .cont-delete-btn -> mostrar/ocultar especial para deletear desde la base de datos check adicional
+*/
+.cont-grid-update[data-state='open'],
+.cont-grid-create[data-state='open'],
+.cont-grid-subcats[data-state='open'],
+.cont-delete-btn[data-state='open'] {
+    display: grid;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
-.cont-block-update[data-state='open'],
-.cont-block-create[data-state='open'] {
+.cont-flex-update[data-state='open'],
+.cont-flex-create[data-state='open'] {
     display: flex;
-    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
 }
+
+
 
 .grid-col-all-cond[data-state='open'] {
     grid-column: 1 / -1;
@@ -87,28 +104,20 @@ input[type="checkbox"]:checked::after {
     grid-column: auto;
 }
 
-.cont-delete-btn[data-state='closed'] {
-    display: none;
-}
-
-.cont-delete-btn[data-state='open'] {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    height: min-content;
-}
 
 .cont-space-between-mobile {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
 }
-
+/*
+.justify-self-end { justify-self: flex-start; }
+.justify-self-center { justify-self: center; }
+.justify-self-end { justify-self: flex-end; }
+*/
 /* Styles for large desktops (mín. 992px to max. infinite) */
-@media (min-width: 992px) {
-    .justify-self-end { justify-self: flex-end; }
 
+@media (min-width: 992px) {
     .grid-col-all-cond[data-state='open'] {
         width: 50%;
         max-width: 50%;
